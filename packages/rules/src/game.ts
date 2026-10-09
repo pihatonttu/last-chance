@@ -345,6 +345,24 @@ export class Game {
     };
   }
 
+  /** Food the village eats at the end of this month. */
+  foodNeed(): number {
+    return this.params.foodPerVillager * this.#n();
+  }
+
+  /** Most food the storage keeps over a month end; the rest spoils. */
+  foodStorage(): number {
+    return this.params.foodStorageMonths * this.foodNeed();
+  }
+
+  /** Shelter places for this month's villager count. */
+  shelterCapacity(): number {
+    const n = this.#n();
+    return this.#tiles
+      .filter((t) => t.building?.kind === 'shelter')
+      .reduce((sum, t) => sum + Math.ceil(n / this.params.shelterDivisors[t.building!.level - 1]!), 0);
+  }
+
   /** Grade 1..6: how many thresholds the happiness reaches, scaled for short games. */
   grade(): number {
     const scale = this.totalMonths / this.params.months.normal;
@@ -831,7 +849,7 @@ export class Game {
     const P = this.params;
     const n = this.#n();
 
-    const need = P.foodPerVillager * n;
+    const need = this.foodNeed();
     const before = this.#resources.food;
     let eaten: number;
     let hungry: number;
@@ -843,13 +861,11 @@ export class Game {
       hungry = Math.ceil((need - before) / P.foodPerVillager);
     }
     let food = before - eaten;
-    const spoiled = Math.max(0, food - P.foodStorageMonths * need);
+    const spoiled = Math.max(0, food - this.foodStorage());
     food -= spoiled;
     this.#resources.food = food;
 
-    const capacity = this.#tiles
-      .filter((t) => t.building?.kind === 'shelter')
-      .reduce((sum, t) => sum + Math.ceil(n / P.shelterDivisors[t.building!.level - 1]!), 0);
+    const capacity = this.shelterCapacity();
     const unsheltered = Math.max(0, n - capacity);
 
     const moodFood = hungry === 0 ? P.moodFed : -Math.ceil((P.moodHungerPenalty * hungry) / n);
