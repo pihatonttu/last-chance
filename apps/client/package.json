@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "typecheck": "svelte-check --tsconfig ./tsconfig.json"
+    "typecheck": "svelte-check --tsgo --tsconfig ./tsconfig.json"
   },
   "dependencies": {
     "@fontsource-variable/nunito": "^5.3.0",
@@ -25,8 +25,9 @@
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@types/node": "^24.19.1",
     "@types/qrcode": "^1.5.6",
+    "@typescript/native": "npm:typescript@7.0.2",
     "svelte-check": "^4.7.6",
-    "typescript": "7.0.2",
+    "typescript": "6.0.3",
     "vite": "^8.3.4",
     "vitest": "5.0.3"
   }
