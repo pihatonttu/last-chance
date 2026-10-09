@@ -31,7 +31,7 @@ function playRandomGame(seed: number, villagers: number, length: 'normal' | 'sho
     expect(r.food).toBeGreaterThanOrEqual(0);
     expect(r.wood).toBeGreaterThanOrEqual(0);
     expect(r.stone).toBeGreaterThanOrEqual(0);
-    expect(r.food).toBeLessThanOrEqual(2 * 4 * game.villagers);
+    expect(r.food).toBeLessThanOrEqual(game.foodStorage());
     expect(report.happiness).toBe(moodSum);
     game.nextMonth();
   }

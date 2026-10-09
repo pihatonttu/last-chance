@@ -83,6 +83,31 @@ describe('cooperative bot actions', () => {
     expect(nextKind(game)).toBe('chop');
   });
 
+  it('does not cut down the last trees of a forest while there is fog left to explore', () => {
+    const params = {
+      ...DEFAULT_PARAMS,
+      foodPerVillager: 0,
+      startWoodPerVillager: 0,
+      costs: { ...DEFAULT_PARAMS.costs, shelter: [{ wood: 20, stone: 0 }, FREE[1], FREE[2]] as const },
+    };
+    const game = newGame(params);
+    // The shelter needs 60 wood. The only revealed forest (3,4) is cut down to 10 wood
+    // (wood 30): one more chop would clear it.
+    for (const p of ['b', 'b', 'b']) game.act(p, 3, 4);
+    expect(game.tile(3, 4)?.stock).toBe(10);
+    expect(nextKind(game)).toBe('explore');
+  });
+
+  it('treats six level-1 shelters as shelter for everyone (no floating-point extra shelter)', () => {
+    const params = { ...DEFAULT_PARAMS, costs: { shelter: FREE, school: FREE, workshop: FREE, gathering: FREE } };
+    const game = newGame(params);
+    for (let i = 0; i < 5; i++) voteAll(game, 'shelter-1'); // every revealed meadow
+    voteAll(game, 'shelter-2'); // 4 x 1/6 + 1/3
+    expect(game.shelterShare()).toBeLessThan(1); // 0.9999999999999999
+    expect(game.shelterCapacity()).toBe(3);
+    expect(plannedBuilding(game)?.id).toBe('school-1');
+  });
+
   it('studies early in the game once a school exists', () => {
     const params = {
       ...DEFAULT_PARAMS,

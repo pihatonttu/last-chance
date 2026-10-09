@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_PARAMS } from '../src/params.ts';
+import { RULE_TEST_PARAMS as DEFAULT_PARAMS } from './params.ts';
 import { act, buildByVote, finishMonth, freeBuildingParams, setup, tileAt } from './helpers.ts';
 
 /** Rock and spring next to the landing (3,3); see actions.test.ts. */
@@ -216,17 +216,20 @@ describe('game end and grade', () => {
   });
 
   it('grade counts how many thresholds the happiness reaches (1..6)', () => {
-    const params = { ...DEFAULT_PARAMS, gradeThresholds: [-15, -5, 0, 5, 10] as const };
+    const params = { ...DEFAULT_PARAMS, gradeThresholds: { normal: [-15, -5, 0, 5, 10], short: [0, 0, 0, 0, 0] } as const };
     const game = setup({ players: 3, params });
     expect(game.grade()).toBe(4); // happiness 0 reaches -15, -5 and 0
     finishMonth(game); // -8
     expect(game.grade()).toBe(2);
   });
 
-  it('a short game scales the thresholds by 10 / 15', () => {
-    const params = { ...DEFAULT_PARAMS, gradeThresholds: [-15, -9, 0, 15, 30] as const };
+  it('a short game uses its own thresholds', () => {
+    const params = {
+      ...DEFAULT_PARAMS,
+      gradeThresholds: { normal: [-15, -9, 0, 15, 30], short: [-50, -40, -30, -20, -10] },
+    } as const;
     const game = setup({ players: 3, params, length: 'short' });
-    finishMonth(game); // -8. Scaled thresholds -10, -6, 0, 10, 20: only -10 reached.
-    expect(game.grade()).toBe(2); // unscaled (-15, -9) it would be 3
+    finishMonth(game); // -8: reaches every short threshold
+    expect(game.grade()).toBe(6); // with the normal ones it would be 3
   });
 });

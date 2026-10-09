@@ -3,6 +3,8 @@ import { availableMoves, hasActionsLeft, movesOfKind, openOptions, toCoord, type
 
 /** Skills are worth studying only with at least this many months left after this one. */
 const SKILL_HORIZON = 4;
+/** Shelter shares are sums of 1/6, 1/3, 1/2 and suffer float error (6 x 1/6 < 1). */
+const EPSILON = 1e-9;
 
 /**
  * The order a well-organised class builds in: everyone under a roof first, then school,
@@ -38,9 +40,9 @@ function wanted(token: string, c: Context): string | null {
     case 'shelter:first':
       return c.shelters === 0 ? 'shelter' : null;
     case 'shelter':
-      return c.share < 1 ? 'shelter' : null;
+      return c.share + EPSILON < 1 ? 'shelter' : null;
     case 'shelter:spare':
-      return c.share < c.game.params.spareShelterRatio ? 'shelter' : null;
+      return c.share + EPSILON < c.game.params.spareShelterRatio ? 'shelter' : null;
     default:
       return token;
   }
@@ -106,7 +108,7 @@ export function cooperativeAction(game: Game, playerId: string, rng: Rng, option
   const moves = availableMoves(game, playerId);
   if (moves.length === 0) return null;
   if (options.noise > 0 && rng.next() < options.noise) return toCoord(rng.pick(moves));
-  return toCoord(choose(game, moves, options.buildOrder) ?? moves[0]);
+  return toCoord(choose(game, moves, options.buildOrder));
 }
 
 function choose(game: Game, moves: Move[], order: readonly string[]): Move | undefined {
@@ -115,6 +117,8 @@ function choose(game: Game, moves: Move[], order: readonly string[]): Move | und
   const resource = (m: Move) => (m.preview.yield.type === 'resource' ? m.preview.yield.amount : 0);
   /** Highest yield first, nearest the landing on ties. */
   const richest = (list: Move[]) => best(list, (m) => resource(m) - dist(m) / 1000);
+  /** Chops that leave trees standing, so the forest grows back. */
+  const sustainable = (list: Move[]) => list.filter((m) => m.preview.kind !== 'chop' || resource(m) < (game.tile(m.x, m.y)?.stock ?? 0));
   /** Least work left first, nearest the landing on ties. */
   const quickest = (list: Move[]) =>
     best(list, (m) => {
@@ -147,8 +151,10 @@ function choose(game: Game, moves: Move[], order: readonly string[]): Move | und
   // 3. Materials and room for the planned building.
   if (target) {
     if (target.cost.wood > game.resources.wood) {
-      // No forest in sight: go and find one.
-      const m = richest(movesOfKind(moves, 'chop')) ?? quickest(movesOfKind(moves, 'explore'));
+      // Never clear a forest while another can be found; no forest in sight: go and find one.
+      const chops = movesOfKind(moves, 'chop');
+      const m =
+        richest(sustainable(chops)) ?? quickest(movesOfKind(moves, 'explore')) ?? richest(chops);
       if (m) return m;
     }
     if (target.cost.stone > game.resources.stone) {
@@ -178,7 +184,7 @@ function choose(game: Game, moves: Move[], order: readonly string[]): Move | und
   // 6. Save up for next month's building too.
   if (target && next) {
     if (target.cost.wood + next.cost.wood > game.resources.wood) {
-      const m = richest(movesOfKind(moves, 'chop'));
+      const m = richest(sustainable(movesOfKind(moves, 'chop')));
       if (m) return m;
     }
     if (target.cost.stone + next.cost.stone > game.resources.stone) {
@@ -187,11 +193,12 @@ function choose(game: Game, moves: Move[], order: readonly string[]): Move | und
     }
   }
 
-  // 7. Exploring, 8. stocking up.
+  // 7. Exploring, 8. food up to the storage limit, 9. wood without clearing forests.
+  // Nothing sensible left: leave the action unused rather than waste the island.
   return (
     quickest(movesOfKind(moves, 'explore')) ??
     (food < game.foodStorage() ? richest(movesOfKind(moves, 'harvest', 'fish')) : undefined) ??
-    richest(movesOfKind(moves, 'chop', 'mine'))
+    richest(sustainable(movesOfKind(moves, 'chop')))
   );
 }
 

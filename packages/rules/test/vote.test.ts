@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_PARAMS } from '../src/params.ts';
+import { RULE_TEST_PARAMS as DEFAULT_PARAMS } from './params.ts';
 import { act, buildByVote, finishMonth, freeBuildingParams, setup, tileAt } from './helpers.ts';
 
 const ids = (game: ReturnType<typeof setup>) => game.voteOptions().map((o) => o.id);

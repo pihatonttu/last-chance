@@ -27,9 +27,10 @@ describe('mergeParams', () => {
   });
 
   it('replaces arrays and tuples whole', () => {
-    const merged = mergeParams(DEFAULT_PARAMS, { shelterDivisors: [8, 4, 2], gradeThresholds: [-50, 0, 30, 60, 90] });
+    const merged = mergeParams(DEFAULT_PARAMS, { shelterDivisors: [8, 4, 2], gradeThresholds: { normal: [-50, 0, 30, 60, 90] } });
     expect(merged.shelterDivisors).toEqual([8, 4, 2]);
-    expect(merged.gradeThresholds).toEqual([-50, 0, 30, 60, 90]);
+    expect(merged.gradeThresholds.normal).toEqual([-50, 0, 30, 60, 90]);
+    expect(merged.gradeThresholds.short).toEqual(DEFAULT_PARAMS.gradeThresholds.short);
   });
 
   it('merges a top-level record and keeps its other keys', () => {

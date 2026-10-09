@@ -136,7 +136,7 @@ saari/
 | V0 ✓ | Tutkimus, suunnitelma, grillaus | tämä dokumentti ja `03-paatokset.md` |
 | V1 ✓ | Pelisuunnitteludokumentti `04-pelisuunnittelu.md` ja sen grillaus (P25–P34) | säännöt, kartta, rakennukset, kierrosrakenne ja jälkipuinnin sisältö lukittu |
 | V2 ✓ | Sääntömoottori, data ja tapahtumaloki (`packages/rules`, 157 testiä 2026-10-09) | Vitest kattaa jokaisen toiminnon, rakennuksen, kierroksen lopun ja lokin |
-| V3 | Botit ja simulaattori, tasapainon viritys | raportti 2/15/30 pelaajalla: hyvä yhteistyö voittaa ja huono häviää |
+| V3 ✓ | Botit ja simulaattori, tasapainon viritys (`05-tasapaino.md`) | raportti 2/15/30 pelaajalla: hyvä yhteistyö voittaa ja huono häviää |
 | V4 | Palvelin: huoneet, ajastimet, tauko, paluu, moderointi, kokeilutila, jälkipuinnin tallennus ja poisto | 30 bottia pelaa koko pelin WebSocketin yli testissä |
 | V5 | Grafiikkakokeilu | Samu on valinnut tyylin |
 | V6 | Asiakas: oppilas-, projektori- ja jälkipuintinäkymät, nimimerkkisuodatin | Playwright-testi: opettaja ja 3 oppilasta pelaavat pelin läpi |

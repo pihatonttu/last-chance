@@ -11,8 +11,8 @@ export interface Cost {
 }
 
 /**
- * Every tunable number of the rules. Starting values come from
- * docs/04-pelisuunnittelu.md §16 and are tuned with the simulator (V3).
+ * Every tunable number of the rules. The defaults are the simulator-tuned values
+ * (docs/05-tasapaino.md); the design doc's starting values live on in the rule tests.
  */
 export interface GameParams {
   months: Record<GameLength, number>;
@@ -71,10 +71,10 @@ export interface GameParams {
   costRounding: number;
 
   /**
-   * Happiness needed for grades 2..6 in a normal game. A short game scales
-   * them by months.short / months.normal. Placeholder until the simulator (V3).
+   * Happiness needed for grades 2..6, per game length. Short games get their own
+   * thresholds: the shelter-building months weigh more in 10 months than in 15.
    */
-  gradeThresholds: readonly [number, number, number, number, number];
+  gradeThresholds: Record<GameLength, readonly [number, number, number, number, number]>;
 
   map: MapGenParams;
 }
@@ -84,14 +84,14 @@ export const DEFAULT_PARAMS: GameParams = {
   baseActions: 3,
   joinClosesAtMonth: 4,
 
-  foodPerVillager: 4,
+  foodPerVillager: 6,
   foodStorageMonths: 2,
-  startFoodPerVillager: 4,
+  startFoodPerVillager: 6,
   startWoodPerVillager: 4,
   startStone: 0,
 
   harvestYield: 10,
-  fishYield: 5,
+  fishYield: 4,
   chopYield: 10,
   mineYield: 8,
   mineMinYield: 2,
@@ -106,12 +106,12 @@ export const DEFAULT_PARAMS: GameParams = {
   exploreBase: 1,
   exploreDistanceDivisor: 2,
 
-  maxSkillLevel: 4,
-  skillProgressPerLevel: 3,
+  maxSkillLevel: 3,
+  skillProgressPerLevel: 4,
   toolsBonusPerLevel: 0.25,
 
-  springDivisor: 6,
-  gatheringDivisors: [5, 4, 3],
+  springDivisor: 4,
+  gatheringDivisors: [3, 2, 1],
   shelterDivisors: [6, 3, 2],
 
   moodFed: 2,
@@ -146,7 +146,10 @@ export const DEFAULT_PARAMS: GameParams = {
   },
   costRounding: 5,
 
-  gradeThresholds: [-60, 0, 40, 80, 110],
+  gradeThresholds: {
+    normal: [-100, -30, 20, 64, 70],
+    short: [-70, -25, 10, 28, 31],
+  },
 
   map: {
     landBase: 12,

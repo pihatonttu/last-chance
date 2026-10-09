@@ -1,7 +1,8 @@
 # Pelisuunnittelu (työnimi `saari`)
 
-**Tila: v1, grillattu 2026-10-09.** Päätökset P25–P34 (`03-paatokset.md`) on viety tähän, ja
-niiden numerot ovat suluissa.
+**Tila: v1.1 (2026-10-09).** Päätökset P25–P34 (`03-paatokset.md`) on viety tähän, ja niiden
+numerot ovat suluissa. V3:n tasapainotyön sääntömuutokset (sumu, suojat, pyöristys,
+arvosanarajat) on merkitty **(V3)**; perustelut ovat dokumentissa `05-tasapaino.md`.
 
 - Luvut ovat **alkuarvoja**. Ne viritetään simulaattorilla vaiheessa V3, ja lopulliset arvot ovat
   datatiedostossa eivätkä tässä dokumentissa.
@@ -102,12 +103,14 @@ vähintään yksi niitty, yksi metsä ja kaksi meriruutua, jotta ensimmäinen ki
 ### 5.3 Sumu ja tutkiminen
 
 - Alussa näkyvät rantautumispaikka ja sen 8 naapuria. Muu saari on sumun peitossa.
-- Sumuruutua voi tutkia, jos jokin sen **8 naapurista** on paljastettu.
+- **(V3) Sumu peittää vain maan:** meri näkyy aina, joten saaren ääriviivat näkyvät alusta
+  asti mutta sisältö ei. Ennen muutosta noin 2/3 tutkimisesta meni avomereen.
+- Sumuruutua voi tutkia, jos jokin sen **8 naapurista on tutkittua maata** (V3: ei pelkkä
+  näkyvä meri).
 - Tutkimiseen tarvittava työ on `1 + ⌊d / 2⌋`. *d* on etäisyys rantautumispaikasta ruutuina
   (Chebyshev), joten kaukana tutkiminen on raskaampaa. Yksi toiminto antaa yhden työyksikön
   kerrottuna työkalukertoimella.
 - Usean pelaajan työ samaan ruutuun lasketaan yhteen.
-- Kun ruutu paljastuu, myös sen viereinen meri paljastuu.
 
 ## 6. Resurssit
 
@@ -135,7 +138,7 @@ työkalutasolla 1. Työkalukerroin on kuvattu kohdassa §8.
 | Sumu | **Tutki** | +1 työ (× työkalut); paljastuu, kun työ ≥ `1 + ⌊d/2⌋` |
 | Niitty | **Raivaa pelloksi** | +1 työ (× työkalut); 3 työtä → pelto |
 | Pelto | **Korjaa sato** | +10 ruokaa (× työkalut), enintään pellon jäljellä oleva sato. Pelto kasvaa joka kuukausi täyteen 30 ruokaan. Tyhjästä pellosta ei saa mitään. |
-| Rannikkomeri | **Kalasta** | +5 ruokaa (× työkalut), rajaton mutta puolet pellon tuotosta |
+| Rannikkomeri | **Kalasta** | +5 ruokaa (× työkalut), rajaton mutta puolet pellon tuotosta. (V3) Vain meri, jonka vieressä on tutkittua maata. |
 | Metsä | **Kaada puita** | +10 puuta (× työkalut), enintään metsän puumäärä (täysi metsä 40). Metsä kasvaa kuukaudessa ×1,25 kohti täyttä. Tyhjästä metsästä tulee niitty. |
 | Kallio | **Perusta louhos** | +1 työ (× työkalut); 4 työtä → louhos |
 | Louhos | **Louhi kiveä** | kiveä `8 × jäljellä/60` (× työkalut), vähintään 2. Louhoksessa on 60 kiveä, joten uusi louhos tuottaa hyvin ja vanha huonosti. |
@@ -172,18 +175,23 @@ Kuukauden lopussa tapahtuu järjestyksessä:
 1. **Ruoka:** kylä syö `4 × N`.
    - Jos ruoka riittää, kaikki ovat ravittuja.
    - Jos ei, varasto tyhjenee ja `nälkäiset = ⌈puuttuva / 4⌉` henkeä.
-2. **Suojat:** suojapaikkoja on yhteensä tasojen mukaan `⌈N/6⌉`, `⌈N/3⌉` tai `⌈N/2⌉` per suoja.
-   Ilman suojaa jäävät `max(0, N − paikat)`.
+2. **Suojat (V3):** suoja kattaa tasonsa mukaan **1/6, 1/3 tai 1/2 kylästä**, ja osuudet
+   lasketaan yhteen. Ilman suojaa on `round(N × (1 − osuus))` henkeä, kuitenkin vähintään yksi,
+   jos osuus on alle 1. Osuuksina laskettuna 15 ja 30 hengen kylä saa samasta tilanteesta
+   saman mielialan.
 3. **Mieliala** lasketaan kokonaislukuna. Arvot ovat alkuarvoja:
 
    | Osa | Ehto | Vaikutus |
    |---|---|---|
    | Ruoka | kaikki ravittuja | +2 |
-   | Ruoka | osa nälässä | −⌈10 × nälkäiset / N⌉ |
+   | Ruoka | osa nälässä | −round(10 × nälkäiset / N), vähintään −1 |
    | Suoja | kaikilla suoja | +2 |
-   | Suoja | paikkoja ≥ 1,25 N | +1 lisää |
-   | Suoja | osa ilman | −⌈10 × ilman / N⌉ |
-   | Virkistys | kuukauden virkistyskerrat yhteensä | +⌊10 × kerrat / N⌋ |
+   | Suoja | osuus ≥ 1,25 | +1 lisää |
+   | Suoja | osa ilman | −round(10 × (1 − osuus)), vähintään −1 |
+   | Virkistys | kuukauden virkistyskerrat yhteensä | +round(10 × kerrat / N) |
+
+   (V3) Pyöristykset ovat symmetrisiä (`round`). Alkuperäinen `ceil`/`floor` rankaisi isoa
+   kylää joka kuukausi.
 
    Kuukauden mieliala on noin −20…+15. **Onnellisuus** (pisteet) on kaikkien kuukausien
    mielialojen summa.
@@ -268,7 +276,9 @@ Rakennusten nimet ja ulkoasu sovitetaan Kenneyn kuviin grafiikkakokeilussa (V5).
 
   Rajat asetetaan simulaattorilla. Tavoitteena on, että hyvin yhteistyötä tekevä botti saa tason
   5–6, satunnainen botti 2–3, ja itsekäs botti, joka vain kehittää itseään, tason 1–2.
-- Rajat asetetaan erikseen Normaalille ja Lyhyelle pelille (P26).
+- Rajat asetetaan erikseen Normaalille ja Lyhyelle pelille (P26). **(V3)** Rajat ovat
+  pituuskohtaiset eivätkä skaalattuja, koska suojien rakentaminen vie lyhyessäkin pelissä
+  yhtä monta kuukautta. Arvot ovat dokumentissa `05-tasapaino.md`.
 - Loppuruudulla näkyvät arvosana, tasoa vastaava kuva sekä siirtymä jälkipuintiin.
 
 ## 13. Tapahtumaloki ja jälkipuinti
@@ -359,6 +369,9 @@ oma kehitys jopa ~1000) ylittää tarjonnan (~1350), joten niukkuutta on, mutta 
 tarkistaa simulaattorilla.
 
 ## 16. Parametrit (alkuarvot)
+
+Nämä ovat suunnittelun alkuarvot, jotka on jäädytetty sääntötesteihin. **Pelissä käytetyt
+viritetyt arvot ja muutosten syyt ovat dokumentissa `05-tasapaino.md`.**
 
 | Parametri | Arvo | Kohta |
 |---|---|---|

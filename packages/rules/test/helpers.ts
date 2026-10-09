@@ -1,5 +1,6 @@
 import { Game, type GameOptions } from '../src/game.ts';
-import { DEFAULT_PARAMS, type GameParams } from '../src/params.ts';
+import type { GameParams } from '../src/params.ts';
+import { RULE_TEST_PARAMS } from './params.ts';
 import type { NaturalTerrain, TerrainMap } from '../src/types.ts';
 
 const LEGEND: Record<string, NaturalTerrain> = {
@@ -61,7 +62,7 @@ export interface SetupOptions extends Partial<GameOptions> {
 /** Create a game on an ASCII map with players p1..pN, started unless start: false. */
 export function setup(opts: SetupOptions = {}): Game {
   const { players = 3, map = SMALL_ISLAND, start = true, ...rest } = opts;
-  const game = new Game({ seed: 1, length: 'normal', terrain: terrainFromAscii(map), ...rest });
+  const game = new Game({ seed: 1, length: 'normal', terrain: terrainFromAscii(map), params: RULE_TEST_PARAMS, ...rest });
   for (let i = 1; i <= players; i++) game.addPlayer(`p${i}`);
   if (start) game.start();
   return game;
@@ -81,7 +82,7 @@ export function freeBuildingParams(): GameParams {
     { wood: 0, stone: 0 },
   ] as const;
   return {
-    ...DEFAULT_PARAMS,
+    ...RULE_TEST_PARAMS,
     costs: { shelter: free, school: free, workshop: free, gathering: free },
   };
 }

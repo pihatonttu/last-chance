@@ -376,10 +376,9 @@ export class Game {
     return Math.max(1, Math.round(this.#n() * (1 - share)));
   }
 
-  /** Grade 1..6: how many thresholds the happiness reaches, scaled for short games. */
+  /** Grade 1..6: how many of this game length's thresholds the happiness reaches. */
   grade(): number {
-    const scale = this.totalMonths / this.params.months.normal;
-    return 1 + this.params.gradeThresholds.filter((t) => this.#happiness >= t * scale).length;
+    return 1 + this.params.gradeThresholds[this.length].filter((t) => this.#happiness >= t).length;
   }
 
   // ---------------------------------------------------------------- players
