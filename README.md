@@ -1,10 +1,11 @@
-# Saarella (uusioversio)
+# Saari (työnimi)
 
-Moderni uusioversio suomalaisesta yhteistyöoppimispelistä *Saarella* (Eduplus Oy 2013,
-myöhemmin TeacherGaming / *Stranded*). Luokka tai kaveriporukka haaksirikkoutuu saarelle, ja
-selviytyminen vaatii yhteistyötä: resurssit ovat yhteisiä ja rakentamisesta äänestetään.
+Selainpohjainen yhteistyöpeli koululuokille. Pohjana on suomalaisen *Saarella*-oppimispelin
+(Eduplus Oy 2013, myöhemmin TeacherGaming / *Stranded*) ydinidea: luokka haaksirikkoutuu
+saarelle, resurssit ovat yhteisiä ja rakentamisesta äänestetään. Muuten peli on uusi ja sillä on
+oma nimensä, joka lukitaan ennen julkaisua.
 
-Kohde: `https://saarelle.novanet.fi` (novaservu).
+Kohde: `https://<nimi>.novanet.fi` (novaservu), avoin kaikille kouluille.
 
 ## Dokumentit
 
