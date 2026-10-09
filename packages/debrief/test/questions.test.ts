@@ -25,8 +25,29 @@ const ids = (facts: QuestionFacts) => pickQuestions(facts).map((q) => q.id);
 const find = (facts: QuestionFacts, id: QuestionId) => pickQuestions(facts).find((q) => q.id === id);
 
 describe('pickQuestions', () => {
-  it("asks only 'decision-making' when nothing stands out", () => {
-    expect(pickQuestions(quiet())).toEqual([{ id: 'decision-making', params: {} }]);
+  it('fills a quiet game up to three questions with the general ones', () => {
+    expect(pickQuestions(quiet())).toEqual([
+      { id: 'next-time', params: {} },
+      { id: 'roles', params: {} },
+      { id: 'decision-making', params: {} },
+    ]);
+  });
+
+  it('adds only as many general questions as needed to reach three', () => {
+    expect(ids(quiet({ grade: 5 }))).toEqual(['good-result', 'next-time', 'decision-making']);
+    expect(ids(quiet({ grade: 5, ties: 2 }))).toEqual(['ties', 'good-result', 'decision-making']);
+  });
+
+  it('asks about engagement (unused actions, votes) right after hunger', () => {
+    const facts = quiet({
+      crises: [{ kind: 'hunger', month: 4, people: 6, resolvedMonth: null }],
+      unshelteredMonths: 9,
+      ties: 3,
+      unused: 50,
+      votesCast: 40,
+      votesPossible: 100,
+    });
+    expect(ids(facts)).toEqual(['hunger', 'unused-actions', 'low-participation', 'no-shelter-long', 'decision-making']);
   });
 
   it("asks about hunger with the first hungry month and the most hungry in one month", () => {
@@ -55,7 +76,7 @@ describe('pickQuestions', () => {
     expect(find(quiet({ emptyMonths: 3 }), 'empty-months')).toEqual({ id: 'empty-months', params: { count: 3 } });
     expect(ids(quiet({ emptyMonths: 2 }))).not.toContain('empty-months');
     // Two of four empty months were ties and the ties question is asked: only two left.
-    expect(ids(quiet({ emptyMonths: 4, ties: 2 }))).toEqual(['ties', 'decision-making']);
+    expect(ids(quiet({ emptyMonths: 4, ties: 2 }))).toEqual(['ties', 'next-time', 'decision-making']);
     // Three empty months besides the ties: both questions.
     expect(ids(quiet({ emptyMonths: 5, ties: 2 }))).toEqual(['ties', 'empty-months', 'decision-making']);
     // One tie is not asked about, so it does not explain anything away.
@@ -138,10 +159,10 @@ describe('pickQuestions', () => {
       unused: 10,
       springFoundMonth: 14,
     });
-    expect(ids(everything)).toEqual(['hunger', 'no-shelter-long', 'ties', 'empty-months', 'decision-making']);
+    expect(ids(everything)).toEqual(['hunger', 'unused-actions', 'low-participation', 'no-shelter-long', 'decision-making']);
 
     const lower = quiet({ grade: 5, springFoundMonth: null, unused: 50, votesCast: 10 });
-    expect(ids(lower)).toEqual(['spring-never', 'unused-actions', 'low-participation', 'good-result', 'decision-making']);
+    expect(ids(lower)).toEqual(['unused-actions', 'low-participation', 'spring-never', 'good-result', 'decision-making']);
   });
 
   it('only ever returns known question ids, each at most once', () => {
@@ -156,6 +177,8 @@ describe('QUESTION_IDS', () => {
   it("lists every question id once in priority order, 'decision-making' last", () => {
     expect(QUESTION_IDS).toEqual([
       'hunger',
+      'unused-actions',
+      'low-participation',
       'no-shelter-long',
       'ties',
       'empty-months',
@@ -163,9 +186,9 @@ describe('QUESTION_IDS', () => {
       'skills-none',
       'spring-never',
       'spring-late',
-      'unused-actions',
-      'low-participation',
       'good-result',
+      'next-time',
+      'roles',
       'decision-making',
     ]);
   });

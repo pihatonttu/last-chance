@@ -451,6 +451,8 @@ export const fi = {
   'debrief.question.low-participation': 'Vain {percent} % mahdollisista äänistä annettiin. Miksi kaikki eivät äänestäneet?',
   'debrief.question.good-result':
     'Kylänne pääsi tasolle {grade}: {gradeName}. Mikä yhteistyössänne toimi? Mitä tekisitte eri tavalla?',
+  'debrief.question.next-time': 'Mitä tekisitte ensi kerralla toisin, jotta kylä voisi vielä paremmin?',
+  'debrief.question.roles': 'Jakautuivatko tehtävät luokassa? Kuka huolehti ruoasta, kuka rakennusaineista, kuka tutki saarta?',
   'debrief.question.decision-making': 'Mitä opitte siitä, miten ryhmä tekee päätöksiä?',
   'debrief.print': 'Tulosta',
   'debrief.stored': 'Nimetön kopio on tallessa 30 päivää tässä osoitteessa:',

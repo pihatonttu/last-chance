@@ -124,6 +124,8 @@ export const QUESTION_IDS = keys<QuestionId>({
   'unused-actions': true,
   'low-participation': true,
   'good-result': true,
+  'next-time': true,
+  roles: true,
   'decision-making': true,
 });
 

@@ -20,9 +20,16 @@ export interface QuestionFacts {
   springFoundMonth: number | null;
 }
 
-/** Every question id in priority order; 'decision-making' is always asked, last. */
+/**
+ * Every question id in priority order. Engagement (unused actions, votes) comes right after
+ * hunger: it is the clearest sign of how the class worked together, and in lazy classes
+ * it used to be pushed out by four earlier triggers. The general questions fill a quiet
+ * game up to three; 'decision-making' is always asked, last.
+ */
 export const QUESTION_IDS = [
   'hunger',
+  'unused-actions',
+  'low-participation',
   'no-shelter-long',
   'ties',
   'empty-months',
@@ -30,11 +37,14 @@ export const QUESTION_IDS = [
   'skills-none',
   'spring-never',
   'spring-late',
-  'unused-actions',
-  'low-participation',
   'good-result',
+  'next-time',
+  'roles',
   'decision-making',
 ] as const satisfies readonly QuestionId[];
+
+/** Asked when few triggers fire, in this order (design doc: 3-5 questions per game). */
+const GENERAL_QUESTIONS = ['next-time', 'roles'] as const satisfies readonly QuestionId[];
 
 // Compile-time check that QUESTION_IDS lists every QuestionId.
 const _allListed: [Exclude<QuestionId, (typeof QUESTION_IDS)[number]>] extends [never] ? true : false = true;
@@ -48,6 +58,8 @@ void _allListed;
 export const THRESHOLDS = {
   /** Most triggered questions; 'decision-making' comes on top (design doc: 3-5 questions). */
   maxTriggered: 4,
+  /** Fewest questions in total; general questions fill the gap. */
+  minQuestions: 3,
   /**
    * 'no-shelter-long': months with someone unsheltered. A cooperative class takes about
    * five months to shelter everyone, in short games too, so six means the build-up dragged.
@@ -120,7 +132,8 @@ function triggered(f: QuestionFacts): Partial<Record<QuestionId, Record<string, 
 
 /**
  * Discussion questions (design doc §13.2 item 6): the triggered ones in QUESTION_IDS
- * priority order, at most THRESHOLDS.maxTriggered, then always 'decision-making'.
+ * priority order, at most THRESHOLDS.maxTriggered, then general questions until there are
+ * THRESHOLDS.minQuestions with the last one, which is always 'decision-making'.
  */
 export function pickQuestions(f: QuestionFacts): DebriefQuestion[] {
   const fired = triggered(f);
@@ -128,6 +141,11 @@ export function pickQuestions(f: QuestionFacts): DebriefQuestion[] {
   for (const id of QUESTION_IDS) {
     const params = fired[id];
     if (params && picked.length < THRESHOLDS.maxTriggered) picked.push({ id, params });
+  }
+  // A game ended before the first month gives nothing to talk about beyond decision-making.
+  for (const id of f.monthsPlayed > 0 ? GENERAL_QUESTIONS : []) {
+    if (picked.length + 1 >= THRESHOLDS.minQuestions) break;
+    picked.push({ id, params: {} });
   }
   picked.push({ id: 'decision-making', params: {} });
   return picked;

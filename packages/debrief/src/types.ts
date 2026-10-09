@@ -43,6 +43,7 @@ export interface DebriefCrisis {
  * - 'unused-actions': percent (share of actions left unused)
  * - 'low-participation': percent (share of possible votes cast)
  * - 'good-result': grade (grade 5 or 6)
+ * - 'next-time', 'roles': (no params) general questions that fill a quiet game up to three
  * - 'decision-making': (no params) always included last
  */
 export type QuestionId =
@@ -57,6 +58,8 @@ export type QuestionId =
   | 'unused-actions'
   | 'low-participation'
   | 'good-result'
+  | 'next-time'
+  | 'roles'
   | 'decision-making';
 
 export interface DebriefQuestion {
