@@ -6,6 +6,7 @@ saarelle, resurssit ovat yhteisiä ja rakentamisesta äänestetään. Muuten pel
 oma nimensä, joka lukitaan ennen julkaisua.
 
 Kohde: `https://<nimi>.novanet.fi` (novaservu), avoin kaikille kouluille.
+Koodi: <https://github.com/pihatonttu/last-chance> (julkinen, ei vielä lisenssiä).
 
 ## Dokumentit
 
