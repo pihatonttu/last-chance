@@ -31,7 +31,7 @@ export function village(over: Partial<VillageView> = {}): VillageView {
 }
 
 export function timer(over: Partial<TimerView> = {}): TimerView {
-  return { phaseEndsAt: 100_000, remainingMs: 60_000, paused: false, ...over };
+  return { phaseEndsAt: 100_000, remainingMs: 60_000, phaseMs: 60_000, paused: false, ...over };
 }
 
 export function gameView(over: Partial<GameView> = {}): GameView {

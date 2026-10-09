@@ -3,7 +3,7 @@
  * passed in so the reducer is unit-testable and the Svelte layer only stores results.
  */
 import type { DebriefData } from '@saari/debrief';
-import type { GameView, JoinRefusal, ServerMessage, TickerEvent, TimerView, YouView } from '@saari/protocol';
+import type { ErrorCode, GameView, JoinRefusal, ServerMessage, TickerEvent, TimerView, YouView } from '@saari/protocol';
 import type { ActionPreview, Gain, PublicTile, Refusal, VoteRefusal } from '@saari/rules';
 
 export type ConnectionStatus = 'idle' | 'connecting' | 'open' | 'reconnecting' | 'closed';
@@ -54,7 +54,8 @@ export interface ClientState {
   ticker: TickerItem[];
   debrief: DebriefData | null;
   storedToken: string | null;
-  error: string | null;
+  /** Last server error code; the UI translates it (serverError.*). */
+  error: ErrorCode | null;
   nextId: number;
 }
 
@@ -95,6 +96,8 @@ function phaseKeyOf(game: GameView): string {
 
 function withTimer(state: ClientState, game: GameView): Pick<ClientState, 'phaseKey' | 'phaseTotalMs'> {
   const key = phaseKeyOf(game);
+  // The server tells the phase length; the longest remaining time seen is only a fallback.
+  if (game.timer.phaseMs > 0) return { phaseKey: key, phaseTotalMs: game.timer.phaseMs };
   const remaining = game.timer.remainingMs;
   if (key !== state.phaseKey) return { phaseKey: key, phaseTotalMs: remaining };
   return { phaseKey: key, phaseTotalMs: Math.max(state.phaseTotalMs, remaining) };
@@ -210,7 +213,7 @@ export function applyServerMessage(state: ClientState, msg: ServerMessage, now: 
     case 'kicked':
       return { ...base, kicked: true };
     case 'error':
-      return { ...base, error: msg.message };
+      return { ...base, error: msg.code };
     case 'pong':
       return { ...base, clockOffset: msg.serverTime - now };
   }

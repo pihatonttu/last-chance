@@ -125,12 +125,12 @@ describe('Connection', () => {
     const { code } = hub.createGame(SHORT);
     const { peer, conn } = open();
     conn.receive({ t: 'act', x: 1, y: 1 });
-    expect(peer.last('error')?.message).toBe('not-joined');
+    expect(peer.last('error')?.code).toBe('not-joined');
     conn.receive({ t: 'what' });
-    expect(peer.last('error')?.message).toBe('bad-message');
+    expect(peer.last('error')?.code).toBe('bad-message');
     conn.receive({ t: 'hello-player', protocol: PROTOCOL_VERSION, code, nickname: 'Aino' });
     conn.receive({ t: 'hello-player', protocol: PROTOCOL_VERSION, code, nickname: 'Eero' });
-    expect(peer.last('error')?.message).toBe('already-joined');
+    expect(peer.last('error')?.code).toBe('already-joined');
     expect(hub.session(code)?.playerCount).toBe(1);
   });
 
@@ -168,7 +168,7 @@ describe('Connection', () => {
     const { code } = hub.createGame(SHORT);
     const { peer, conn } = open();
     conn.receive({ t: 'hello-player', protocol: PROTOCOL_VERSION, code, nickname: 'Aino' });
-    expect(peer.last('error')?.message).toBe('server-error');
+    expect(peer.last('error')?.code).toBe('server-error');
     expect(lines.some((l) => l.includes('not implemented'))).toBe(true);
     expect(lines.join('\n')).not.toContain('Aino');
   });

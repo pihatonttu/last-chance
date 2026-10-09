@@ -61,6 +61,11 @@ export interface TimerView {
   phaseEndsAt: number | null;
   /** Milliseconds left in the phase (frozen while paused). */
   remainingMs: number;
+  /**
+   * Length of the current phase in ms, including +30 s extensions; 0 in the lobby and
+   * after the end. Lets a client that joins mid-phase draw the countdown bar right.
+   */
+  phaseMs: number;
   paused: boolean;
 }
 
@@ -129,7 +134,11 @@ export interface GameView {
   village: VillageView;
   /** null in the lobby: the island is generated at start. */
   map: MapView | null;
-  /** Shown in the action phase too, so the class can plan what to build. */
+  /**
+   * Shown in the action phase too, so the class can plan what to build. The `blocked`
+   * flags depend on wood, stone and free meadows, so the server resends this in patches
+   * whenever they change during the action phase.
+   */
   vote: VoteView | null;
   lastReport: MonthReport | null;
   /** Filled for the host only; empty for students. */
@@ -198,6 +207,24 @@ export type JoinRefusal =
   | 'bad-token'
   | 'protocol-mismatch';
 
+/**
+ * Why the server rejected a message. Clients translate these (P17); the server never
+ * sends free text.
+ */
+export type ErrorCode =
+  | 'bad-message'
+  | 'server-error'
+  | 'not-joined'
+  | 'already-joined'
+  | 'unexpected-message'
+  | 'game-closed'
+  | 'replaced'
+  | 'not-a-player'
+  | 'not-host'
+  | 'wrong-phase'
+  | 'no-players'
+  | 'unknown-player';
+
 export type ServerMessage =
   | {
       t: 'welcome';
@@ -227,7 +254,10 @@ export type ServerMessage =
   | { t: 'act-result'; x: number; y: number; ok: false; reason: Refusal }
   | { t: 'vote-result'; ok: true }
   | { t: 'vote-result'; ok: false; reason: VoteRefusal }
-  /** Someone's action at a tile, for the floating "+10 puuta". No names (P34). */
+  /**
+   * Someone else's action at a tile, for the floating "+10 puuta". No names (P34). The
+   * acting player gets `act-result` instead and builds its own effect from it.
+   */
   | { t: 'effect'; x: number; y: number; gain: Gain }
   | { t: 'ticker'; event: TickerEvent }
   /**
@@ -236,7 +266,7 @@ export type ServerMessage =
    */
   | { t: 'debrief'; debrief: DebriefData; storedToken: string | null }
   | { t: 'kicked' }
-  | { t: 'error'; message: string }
+  | { t: 'error'; code: ErrorCode }
   | { t: 'pong'; serverTime: number };
 
 // ------------------------------------------------------------------ helpers

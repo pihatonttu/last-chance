@@ -8,6 +8,7 @@ import {
   ACTION_KINDS,
   BUILDING_KINDS,
   GRADES,
+  ERROR_CODES,
   JOIN_REFUSALS,
   LEVELS,
   NICKNAME_REFUSALS,
@@ -60,6 +61,7 @@ function familyKeys(): string[] {
   for (const r of REFUSALS) keys.push(`refusal.${r}`);
   for (const r of VOTE_REFUSALS) keys.push(`voteRefusal.${r}`);
   for (const r of JOIN_REFUSALS) keys.push(`joinRefusal.${r}`);
+  for (const c of ERROR_CODES) keys.push(`serverError.${c}`);
   for (const r of NICKNAME_REFUSALS) keys.push(`nickname.${r}`);
   for (const b of VOTE_BLOCKS) keys.push(`vote.blocked.${b}`);
   for (const k of TICKER_KINDS) keys.push(`ticker.${k}`);
@@ -96,6 +98,7 @@ describe('translations', () => {
     for (const r of REFUSALS) expect(t(`refusal.${r}`).length).toBeGreaterThan(5);
     for (const r of VOTE_REFUSALS) expect(t(`voteRefusal.${r}`).length).toBeGreaterThan(5);
     for (const r of JOIN_REFUSALS) expect(t(`joinRefusal.${r}`).length).toBeGreaterThan(5);
+    for (const c of ERROR_CODES) expect(t(`serverError.${c}`).length).toBeGreaterThan(5);
     for (const q of QUESTION_IDS) expect(t(`debrief.question.${q}`).length).toBeGreaterThan(10);
   });
 

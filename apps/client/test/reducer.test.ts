@@ -82,17 +82,17 @@ describe('applyServerMessage', () => {
     let s = welcomed();
     s = applyServerMessage(s, { t: 'preview', x: 1, y: 1, preview: { kind: 'plow', available: true, yield: { type: 'none' } } }, NOW);
     expect(s.preview?.x).toBe(1);
-    s = applyServerMessage(s, { t: 'patch', timer: timer({ remainingMs: 90_000 }) }, NOW);
+    s = applyServerMessage(s, { t: 'patch', timer: timer({ remainingMs: 90_000, phaseMs: 90_000 }) }, NOW);
     expect(s.phaseTotalMs).toBe(90_000);
-    s = applyServerMessage(s, { t: 'game', game: gameView({ phase: 'vote', timer: timer({ remainingMs: 30_000 }) }) }, NOW);
+    s = applyServerMessage(s, { t: 'game', game: gameView({ phase: 'vote', timer: timer({ remainingMs: 30_000, phaseMs: 30_000 }) }) }, NOW);
     expect(s.phaseKey).toBe('1:vote');
     expect(s.phaseTotalMs).toBe(30_000);
     expect(s.preview).toBeNull();
   });
 
-  it('the same phase keeps the largest remaining time seen (+30 s grows it)', () => {
+  it('without a phase length from the server, keeps the largest remaining time seen', () => {
     let s = welcomed();
-    s = applyServerMessage(s, { t: 'game', game: gameView({ timer: timer({ remainingMs: 20_000 }) }) }, NOW);
+    s = applyServerMessage(s, { t: 'game', game: gameView({ timer: timer({ remainingMs: 20_000, phaseMs: 0 }) }) }, NOW);
     expect(s.phaseTotalMs).toBe(60_000);
   });
 
@@ -147,14 +147,23 @@ describe('applyServerMessage', () => {
     expect(s.ticker.at(-1)?.month).toBe(1);
   });
 
+  it("takes the countdown bar's length from the server, also after joining mid-phase", () => {
+    const s = applyServerMessage(
+      initialState(),
+      { t: 'welcome', role: 'player', game: gameView({ timer: timer({ remainingMs: 20_000, phaseMs: 60_000 }) }), you: null, serverTime: NOW },
+      NOW,
+    );
+    expect(s.phaseTotalMs).toBe(60_000);
+  });
+
   it('you, debrief, kicked, error and pong', () => {
     let s = welcomed();
     s = applyServerMessage(s, { t: 'you', you: you({ actionsLeft: 1 }) }, NOW);
     expect(s.you?.actionsLeft).toBe(1);
     s = applyServerMessage(s, { t: 'kicked' }, NOW);
     expect(s.kicked).toBe(true);
-    s = applyServerMessage(s, { t: 'error', message: 'oops' }, NOW);
-    expect(s.error).toBe('oops');
+    s = applyServerMessage(s, { t: 'error', code: 'replaced' }, NOW);
+    expect(s.error).toBe('replaced');
     s = applyLocal(s, { type: 'clear-error' });
     expect(s.error).toBeNull();
     s = applyServerMessage(s, { t: 'pong', serverTime: NOW + 2000 }, NOW);

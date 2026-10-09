@@ -121,7 +121,7 @@
     <Banner message={t('host.reconnecting')} />
   {/if}
   {#if client?.error}
-    <Banner tone="error" message={t('common.serverError', { message: client.error })} />
+    <Banner tone="error" message={t(`serverError.${client.error}`)} />
   {/if}
 
   {#if game.phase === 'lobby'}

@@ -85,7 +85,8 @@ export interface DebriefData {
   months: MonthReport[];
   /** Action group counts per month (index 0 = month 1), plus unused actions. */
   actionsByMonth: (GroupCounts & { unused: number })[];
-  actionShare: GroupCounts;
+  /** Each group's share (0..1) of the actions used; sums to 1. Not counts. */
+  actionShare: Record<ActionGroup, number>;
   crises: DebriefCrisis[];
   votes: {
     /** Share of possible votes that were cast (0..1). */

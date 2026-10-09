@@ -126,6 +126,8 @@ class Room {
   namesHidden = false;
   endsAt: number | null = null;
   remainingMs = 0;
+  /** Length of the running phase incl. extensions (TimerView.phaseMs). */
+  phaseMs = 0;
   paused = false;
   phaseTimer: unknown = null;
   graceTimer: unknown = null;
@@ -237,6 +239,7 @@ export class MockServer {
     for (const room of this.#rooms.values()) {
       if (room.endsAt !== null && !room.paused) {
         const left = Math.max(0, room.endsAt - this.#now());
+        room.phaseMs = (room.phaseMs * this.#speed) / next;
         this.#armPhaseTimer(room, (left * this.#speed) / next);
       }
     }
@@ -280,7 +283,7 @@ export class MockServer {
         break;
     }
     const room = this.#roomOf(conn);
-    if (!room) return this.#send(conn, { t: 'error', message: 'not joined' });
+    if (!room) return this.#send(conn, { t: 'error', code: 'not-joined' });
     switch (message.t) {
       case 'inspect':
         return this.#inspect(room, conn, message.x, message.y);
@@ -289,7 +292,7 @@ export class MockServer {
       case 'vote':
         return this.#vote(room, conn, message.option);
       case 'host':
-        if (conn.role !== 'host') return this.#send(conn, { t: 'error', message: 'host only' });
+        if (conn.role !== 'host') return this.#send(conn, { t: 'error', code: 'not-host' });
         return this.#host(room, message.command);
     }
   }
@@ -414,6 +417,7 @@ export class MockServer {
       case 'extend':
         if (game.phase !== 'action' && game.phase !== 'vote' && game.phase !== 'summary') return;
         game.logTeacher('extend');
+        room.phaseMs += 30000;
         if (room.paused) room.remainingMs += 30000;
         else if (room.endsAt !== null) this.#armPhaseTimer(room, room.endsAt - this.#now() + 30000);
         return this.#broadcastTimer(room);
@@ -474,7 +478,7 @@ export class MockServer {
     if (game.phase !== 'lobby') return;
     const players = [...room.seats.values()].filter((s) => !s.removed);
     if (players.length === 0) {
-      return this.#broadcast(room, (c) => (c.role === 'host' ? { t: 'error', message: 'no players' } : null));
+      return this.#broadcast(room, (c) => (c.role === 'host' ? { t: 'error', code: 'no-players' } : null));
     }
     room.pendingBots = 0;
     game.start();
@@ -516,7 +520,8 @@ export class MockServer {
     const seconds =
       game.phase === 'action' ? room.actionSeconds : game.phase === 'vote' ? this.#options.voteSeconds : this.#options.summarySeconds;
     room.paused = false;
-    this.#armPhaseTimer(room, (seconds * 1000) / this.#speed);
+    room.phaseMs = (seconds * 1000) / this.#speed;
+    this.#armPhaseTimer(room, room.phaseMs);
     this.#refreshTileCache(room);
     this.#broadcastGame(room);
     for (const seat of room.seats.values()) this.#sendYou(room, seat);
@@ -762,10 +767,10 @@ export class MockServer {
 
   #timerView(room: Room): TimerView {
     const phase = room.game.phase;
-    if (phase === 'lobby' || phase === 'ended') return { phaseEndsAt: null, remainingMs: 0, paused: false };
-    if (room.paused) return { phaseEndsAt: null, remainingMs: room.remainingMs, paused: true };
+    if (phase === 'lobby' || phase === 'ended') return { phaseEndsAt: null, remainingMs: 0, phaseMs: 0, paused: false };
+    if (room.paused) return { phaseEndsAt: null, remainingMs: room.remainingMs, phaseMs: room.phaseMs, paused: true };
     const endsAt = room.endsAt ?? this.#now();
-    return { phaseEndsAt: endsAt, remainingMs: Math.max(0, endsAt - this.#now()), paused: false };
+    return { phaseEndsAt: endsAt, remainingMs: Math.max(0, endsAt - this.#now()), phaseMs: room.phaseMs, paused: false };
   }
 
   #villageView(room: Room): VillageView {

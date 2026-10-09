@@ -4,7 +4,7 @@
  */
 import type { ActionGroup, QuestionId } from '@saari/debrief';
 import type { NicknameRefusal } from '@saari/names';
-import type { JoinRefusal, TickerEvent } from '@saari/protocol';
+import type { ErrorCode, JoinRefusal, TickerEvent } from '@saari/protocol';
 import type {
   ActionKind,
   BuildingKind,
@@ -91,6 +91,21 @@ export const JOIN_REFUSALS = keys<JoinRefusal>({
   kicked: true,
   'bad-token': true,
   'protocol-mismatch': true,
+});
+
+export const ERROR_CODES = keys<ErrorCode>({
+  'bad-message': true,
+  'server-error': true,
+  'not-joined': true,
+  'already-joined': true,
+  'unexpected-message': true,
+  'game-closed': true,
+  replaced: true,
+  'not-a-player': true,
+  'not-host': true,
+  'wrong-phase': true,
+  'no-players': true,
+  'unknown-player': true,
 });
 
 export const NICKNAME_REFUSALS = keys<NicknameRefusal>({

@@ -59,7 +59,7 @@ describe('WebSocket endpoint', () => {
     const pong = await client.waitFor<Extract<ServerMessage, { t: 'pong' }>>((m) => m.t === 'pong');
     expect(Math.abs(pong.serverTime - Date.now())).toBeLessThan(5_000);
     client.ws.send('not json');
-    expect(await client.waitFor((m) => m.t === 'error')).toEqual({ t: 'error', message: 'bad-message' });
+    expect(await client.waitFor((m) => m.t === 'error')).toEqual({ t: 'error', code: 'bad-message' });
     client.close();
   });
 

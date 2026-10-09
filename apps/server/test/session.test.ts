@@ -173,10 +173,10 @@ describe('phases and timers', () => {
   it('needs at least one player to start, and only the host can start', () => {
     const { session, host, join } = setup();
     session.handle(host, { t: 'host', command: { type: 'start' } });
-    expect(host.last('error')?.message).toBe('no-players');
+    expect(host.last('error')?.code).toBe('no-players');
     const aino = join('Aino');
     session.handle(aino.peer, { t: 'host', command: { type: 'start' } });
-    expect(aino.peer.last('error')?.message).toBe('not-host');
+    expect(aino.peer.last('error')?.code).toBe('not-host');
     expect(session.game.phase).toBe('lobby');
   });
 
@@ -187,7 +187,7 @@ describe('phases and timers', () => {
     expect(session.game.phase).toBe('action');
     const view = lastGame(host);
     expect(view).toMatchObject({ phase: 'action', month: 1, totalMonths: 10 });
-    expect(view.timer).toEqual({ phaseEndsAt: clock.now() + ACTION, remainingMs: ACTION, paused: false });
+    expect(view.timer).toEqual({ phaseEndsAt: clock.now() + ACTION, remainingMs: ACTION, phaseMs: ACTION, paused: false });
     expect(view.map!.tiles.length).toBe(view.map!.width * view.map!.height);
     expect(view.vote!.options[0]!.id).toBe('none');
     expect(lastGame(aino.peer).phase).toBe('action');
@@ -286,7 +286,7 @@ describe('phases and timers', () => {
       const view = lastGame(peer);
       expect(view.phase).toBe('ended');
       expect(view.result).toEqual({ happiness: session.game.happiness, grade: session.game.grade(), early: false });
-      expect(view.timer).toEqual({ phaseEndsAt: null, remainingMs: 0, paused: false });
+      expect(view.timer).toEqual({ phaseEndsAt: null, remainingMs: 0, phaseMs: 0, paused: false });
     }
     const debrief = host.last('debrief')!;
     expect(debrief.debrief.named).toBe(true);
@@ -315,7 +315,7 @@ describe('teacher controls', () => {
     command({ type: 'start' });
     clock.advance(10_000);
     command({ type: 'pause' });
-    expect(lastGame(host).timer).toEqual({ phaseEndsAt: null, remainingMs: 50_000, paused: true });
+    expect(lastGame(host).timer).toEqual({ phaseEndsAt: null, remainingMs: 50_000, phaseMs: ACTION, paused: true });
     expect(lastGame(aino.peer).timer.paused).toBe(true);
     clock.advance(100_000);
     expect(session.game.phase).toBe('action');
@@ -323,7 +323,7 @@ describe('teacher controls', () => {
     session.handle(aino.peer, { t: 'act', x: move.x, y: move.y });
     expect(aino.peer.last('act-result')).toMatchObject({ ok: false, reason: 'wrong-phase' });
     command({ type: 'resume' });
-    expect(lastGame(host).timer).toEqual({ phaseEndsAt: clock.now() + 50_000, remainingMs: 50_000, paused: false });
+    expect(lastGame(host).timer).toEqual({ phaseEndsAt: clock.now() + 50_000, remainingMs: 50_000, phaseMs: ACTION, paused: false });
     clock.advance(49_999);
     expect(session.game.phase).toBe('action');
     clock.advance(1);
@@ -339,7 +339,7 @@ describe('teacher controls', () => {
     join('Aino');
     command({ type: 'start' });
     command({ type: 'extend' });
-    expect(host.last('patch')?.timer).toMatchObject({ remainingMs: ACTION + 30_000 });
+    expect(host.last('patch')?.timer).toMatchObject({ remainingMs: ACTION + 30_000, phaseMs: ACTION + 30_000 });
     clock.advance(ACTION);
     expect(session.game.phase).toBe('action');
     clock.advance(30_000);
@@ -420,9 +420,9 @@ describe('teacher controls', () => {
     const { session, host, join, command } = setup();
     const aino = join('Aino');
     session.handle(aino.peer, { t: 'host', command: { type: 'kick', playerId: aino.id } });
-    expect(aino.peer.last('error')?.message).toBe('not-host');
+    expect(aino.peer.last('error')?.code).toBe('not-host');
     command({ type: 'kick', playerId: 'p99' });
-    expect(host.last('error')?.message).toBe('unknown-player');
+    expect(host.last('error')?.code).toBe('unknown-player');
   });
 });
 
@@ -449,7 +449,7 @@ describe('rejoin', () => {
     const aino = join('Aino');
     const tab = new FakePeer();
     expect(session.joinPlayer(tab, { playerToken: aino.token })).toBeNull();
-    expect(aino.peer.last('error')?.message).toBe('replaced');
+    expect(aino.peer.last('error')?.code).toBe('replaced');
     expect(aino.peer.closed).toBe(true);
     session.disconnect(aino.peer);
     expect(session.game.player(aino.id)?.connected).toBe(true);

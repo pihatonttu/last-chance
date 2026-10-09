@@ -145,7 +145,7 @@ export class Connection {
     if (this.#closed) return;
     const message = parseClientMessage(value);
     if (!message) {
-      this.#peer.send({ t: 'error', message: 'bad-message' });
+      this.#peer.send({ t: 'error', code: 'bad-message' });
       return;
     }
     try {
@@ -153,7 +153,7 @@ export class Connection {
     } catch (error) {
       // Never let one bad message take the server down. The message has no nicknames.
       this.#hub.log(`internal error: ${error instanceof Error ? error.message : String(error)}`);
-      this.#peer.send({ t: 'error', message: 'server-error' });
+      this.#peer.send({ t: 'error', code: 'server-error' });
     }
   }
 
@@ -175,7 +175,7 @@ export class Connection {
       return;
     }
     if (!this.#session) {
-      this.#peer.send({ t: 'error', message: 'not-joined' });
+      this.#peer.send({ t: 'error', code: 'not-joined' });
       return;
     }
     this.#session.handle(this.#peer, message);
@@ -183,7 +183,7 @@ export class Connection {
 
   #hello(message: Extract<ClientMessage, { t: 'hello-host' | 'hello-player' }>): void {
     if (this.#session) {
-      this.#peer.send({ t: 'error', message: 'already-joined' });
+      this.#peer.send({ t: 'error', code: 'already-joined' });
       return;
     }
     if (message.protocol !== PROTOCOL_VERSION) {

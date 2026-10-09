@@ -3,6 +3,7 @@ import { buildDebrief, pseudonymize, type DebriefData, type DebriefLabel } from 
 import { checkNickname, colorFor, randomNickname, type NicknameCheck } from '@saari/names';
 import type {
   ClientMessage,
+  ErrorCode,
   GameStatusResponse,
   GameView,
   HostCommand,
@@ -193,6 +194,8 @@ export class GameSession {
   #timer: TimerHandle | null = null;
   #deadline: number | null = null;
   #remaining = 0;
+  /** Length of the running phase incl. extensions (TimerView.phaseMs). */
+  #phaseMs = 0;
   #paused = false;
   #graceActive = false;
   #graceCut = 0;
@@ -359,7 +362,7 @@ export class GameSession {
         return;
       }
       default:
-        peer.send({ t: 'error', message: 'unexpected-message' });
+        peer.send({ t: 'error', code: 'unexpected-message' });
     }
   }
 
@@ -374,7 +377,7 @@ export class GameSession {
     this.#byPeer.clear();
     for (const m of this.#members.values()) m.peer = null;
     for (const peer of peers) {
-      peer.send({ t: 'error', message: 'game-closed' });
+      peer.send({ t: 'error', code: 'game-closed' });
       peer.close();
     }
   }
@@ -431,7 +434,7 @@ export class GameSession {
     const old = member.peer;
     if (old && old !== peer) {
       this.#byPeer.delete(old);
-      old.send({ t: 'error', message: 'replaced' });
+      old.send({ t: 'error', code: 'replaced' });
       old.close();
     }
     member.peer = peer;
@@ -441,7 +444,7 @@ export class GameSession {
 
   #memberOf(peer: Peer): Member | undefined {
     const member = this.#byPeer.get(peer);
-    if (!member) peer.send({ t: 'error', message: 'not-a-player' });
+    if (!member) peer.send({ t: 'error', code: 'not-a-player' });
     return member;
   }
 
@@ -507,10 +510,10 @@ export class GameSession {
 
   #hostCommand(peer: Peer, command: HostCommand): void {
     if (!this.#hosts.has(peer)) {
-      peer.send({ t: 'error', message: 'not-host' });
+      peer.send({ t: 'error', code: 'not-host' });
       return;
     }
-    const fail = (message: string) => peer.send({ t: 'error', message });
+    const fail = (code: ErrorCode) => peer.send({ t: 'error', code });
     const g = this.#game;
     const running = g.phase === 'action' || g.phase === 'vote' || g.phase === 'summary';
     switch (command.type) {
@@ -605,12 +608,15 @@ export class GameSession {
     switch (g.phase) {
       case 'action':
         this.#votes.clear();
+        this.#phaseMs = this.#timing.actionMs;
         this.#startTimer(this.#timing.actionMs);
         break;
       case 'vote':
+        this.#phaseMs = this.#timing.voteMs;
         this.#startTimer(this.#timing.voteMs);
         break;
       case 'summary':
+        this.#phaseMs = this.#timing.summaryMs;
         this.#startTimer(this.#timing.summaryMs);
         break;
       default:
@@ -765,6 +771,8 @@ export class GameSession {
   }
 
   #shiftTimer(deltaMs: number): void {
+    // Extensions make the phase longer; the vote grace cut only brings the end closer.
+    if (deltaMs > 0) this.#phaseMs += deltaMs;
     const next = Math.max(0, this.#remainingMs() + deltaMs);
     if (this.#paused) this.#remaining = next;
     else this.#startTimer(next);
@@ -772,8 +780,13 @@ export class GameSession {
 
   #timerView(): TimerView {
     const phase = this.#game.phase;
-    if (phase === 'lobby' || phase === 'ended') return { phaseEndsAt: null, remainingMs: 0, paused: false };
-    return { phaseEndsAt: this.#paused ? null : this.#deadline, remainingMs: this.#remainingMs(), paused: this.#paused };
+    if (phase === 'lobby' || phase === 'ended') return { phaseEndsAt: null, remainingMs: 0, phaseMs: 0, paused: false };
+    return {
+      phaseEndsAt: this.#paused ? null : this.#deadline,
+      remainingMs: this.#remainingMs(),
+      phaseMs: this.#phaseMs,
+      paused: this.#paused,
+    };
   }
 
   // ---------------------------------------------------------------- trial bots
