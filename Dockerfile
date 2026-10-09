@@ -12,7 +12,7 @@ COPY apps/ apps/
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @saari/client build
 # Drop dev dependencies (Vite, Vitest, TypeScript…) before copying to the runtime image.
-RUN pnpm install --frozen-lockfile --prod
+RUN CI=true pnpm install --frozen-lockfile --prod
 
 # ---- runtime ----
 FROM node:24.13.0-bookworm-slim
