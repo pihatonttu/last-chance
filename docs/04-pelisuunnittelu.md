@@ -1,14 +1,12 @@
 # Pelisuunnittelu (työnimi `saari`)
 
-**Tila: LUONNOS v0 (2026-10-09), ennen grillausta.**
+**Tila: v1, grillattu 2026-10-09.** Päätökset P25–P34 (`03-paatokset.md`) on viety tähän, ja
+niiden numerot ovat suluissa.
 
-- **[EHDOTUS]** tarkoittaa kohtaa, joka poikkeaa alkuperäisestä tai jossa on valittu yksi monesta
-  vaihtoehdosta. Ne grillataan.
-- **[AVOIN]** tarkoittaa kohtaa, joka odottaa Samun päätöstä.
 - Luvut ovat **alkuarvoja**. Ne viritetään simulaattorilla vaiheessa V3, ja lopulliset arvot ovat
   datatiedostossa eivätkä tässä dokumentissa.
 
-Reunaehdot tulevat tiedostosta `03-paatokset.md` (P1–P24). Tärkeimmät: ydin (P7), isometriset
+Reunaehdot tulevat tiedostosta `03-paatokset.md` (P1–P34). Tärkeimmät: ydin (P7), isometriset
 neliöt (P10), kartta skaalautuu (P8), 15–30 pelaajaa (P15), enintään 45 minuuttia ja
 tapahtumaloki jälkipuintia varten (P8).
 
@@ -18,15 +16,14 @@ tapahtumaloki jälkipuintia varten (P8).
 
 Luokka on laivalla, joka ajaa myrskyssä karille tuntemattoman saaren edustalla. Kaikki pääsevät
 rantaan. Hylystä pelastettiin vähän ruokaa ja lautoja, ja radiosta kuului viesti, että
-pelastuslaiva saapuu **15 kuukauden kuluttua**. Siihen asti saarella pitää pärjätä yhdessä.
+pelastuslaiva saapuu **15 kuukauden kuluttua** (Lyhyessä pelissä 10). Siihen asti saarella pitää
+pärjätä yhdessä.
 
 - Jokainen kierros on yksi kuukausi.
 - Peli päättyy, kun pelastuslaiva saapuu. Tulos kertoo, millainen yhteisö saarelle ehti syntyä.
-- **[EHDOTUS] Loppuäänestys:** kun laiva saapuu, kylä äänestää, lähdetäänkö kotiin vai jäädäänkö
-  saarelle. Äänestys vaikuttaa vain loppukuvaan ja -tekstiin, ei pisteisiin. Se on kuitenkin hyvä
-  avaus jälkipuinnille: "Miksi halusit jäädä?"
+- Loppuäänestystä ei ole (P31). Peli päättyy suoraan arvosanaan.
 
-## 2. Mitoitusperiaate: kaikki lasketaan per kyläläinen [EHDOTUS]
+## 2. Mitoitusperiaate: kaikki lasketaan per kyläläinen (P25)
 
 Tämä on pelin suurin rakenteellinen muutos alkuperäiseen.
 
@@ -56,12 +53,12 @@ asukasta.
 |---|---|---|
 | Aula | ~5 min | Opettaja luo pelin ja näyttää koodin ja QR:n. Oppilaat liittyvät ja kirjoittavat nimimerkin. |
 | Opetus | 0–5 min | Opettaja kertoo tarinan ja tavoitteen (aulassa on näytettävä "Näin pelataan" -kortti). |
-| Peli | ~20–25 min | 15 kierrosta, kukin enintään ~100 s. Kierros päättyy aiemmin, kun kaikki ovat valmiita. |
+| Peli | ~15–25 min | *Normaali* 15 kierrosta tai *Lyhyt* 10 kierrosta, kukin enintään ~100 s. Kierros päättyy aiemmin, kun kaikki ovat valmiita. |
 | Jälkipuinti | 10–15 min | Projektorilla pelin kulku, ja keskustelukysymykset luokalle. |
 
-**[AVOIN] Pelin pituus:** onko kierroksia aina 15, vai voiko opettaja valita *lyhyen pelin*
-(10 kierrosta, ~15 min) esimerkiksi 30 minuutin tunnille? Jos lyhyt peli tulee, tarpeet ja hinnat
-pysyvät samoina, ja vain arvosanarajat skaalataan.
+**Pelin pituus (P26):** opettaja valitsee pelin luodessaan *Normaalin* (15 kuukautta, ~25 min)
+tai *Lyhyen* (10 kuukautta, ~15 min) pelin. Tarpeet ja hinnat ovat samat, ja vain arvosanarajat
+skaalataan. Simulaattori virittää molemmat.
 
 ## 4. Kierros (kuukausi)
 
@@ -123,14 +120,9 @@ Kaikki resurssit ovat **koko kylän yhteisiä** (ydin a).
 | Ruoka | pelto, kalastus | jokainen syö 4 joka kuukausi |
 | Onnellisuus | kuukauden mieliala (§9) | pisteet ja arvosana |
 
-**[AVOIN] Säilyykö ruoka?** Alkuperäisessä ruoka kertyi rajatta, joten yhden kuukauden iso
-sato saattoi kattaa monta seuraavaa, eikä ruokaa tarvinnut miettiä joka kierros. Vaihtoehdot:
-- **(a)** kertyy rajatta, kuten alkuperäisessä;
-- **(b)** varastoon mahtuu enintään kahden kuukauden tarve, ja ylimenevä osa pilaantuu;
-- **(c)** puolet ylijäämästä pilaantuu joka kuukausi.
-
-Suosittelen (b):tä. Ruoka pysyy yhteisenä huolena koko pelin, ja raja on helppo selittää:
-"varasto on täynnä".
+**Ruokavarasto (P27):** varastoon mahtuu enintään kahden kuukauden tarve (`8N`), ja ylimenevä
+osa pilaantuu kuukauden vaihteessa. Pilaantunut määrä näkyy yhteenvedossa ("varasto oli täynnä,
+14 ruokaa pilaantui"). Puulla ja kivellä ei ole ylärajaa.
 
 ## 7. Toiminnot
 
@@ -197,8 +189,8 @@ Kuukauden lopussa tapahtuu järjestyksessä:
    mielialojen summa.
 4. **Luonto:** metsät kasvavat, pellot kasvavat täyteen, ja lähteen ja kokoontumispaikan
    käyttökerrat nollautuvat.
-5. Jokaisen toiminnot palautuvat. Jos ruokavarastolle tulee yläraja (§6 vaihtoehto b), ylimenevä
-   osa pilaantuu tässä kohdassa.
+5. **Pilaantuminen:** ruoka, joka ylittää varaston ylärajan `8N`, pilaantuu (P27).
+6. Jokaisen toiminnot palautuvat.
 
 Pisteitä ei jaeta per pelaaja. Kylä onnistuu tai epäonnistuu yhdessä (ydin a).
 
@@ -211,10 +203,14 @@ Suluissa on esimerkkinä 30 hengen luokan hinta.
 
 | Rakennus | Taso 1 | Taso 2 | Taso 3 | Ehto |
 |---|---|---|---|---|
-| **Suoja** (teltta → maja → talo) | 4 puuta (120) | 6 puuta (180) | 6 puuta + 3 kiveä (180 + 90) | Suojia voi rakentaa useita. Tavoite on kaksi tason 3 suojaa. |
-| **Koulu** | 6 puuta (180) | 8 puuta + 2 kiveä (240 + 60) | 8 puuta + 6 kiveä (240 + 180) | Vain yksi, joka päivitetään. |
-| **Työpaja** | 6 puuta (180) | 6 puuta + 4 kiveä (180 + 120) | 8 puuta + 8 kiveä (240 + 240) | Vain yksi. Vaatii suojan. |
-| **Kokoontumispaikka** (nuotio → teatteri → amfiteatteri) | 4 puuta (120) | 8 puuta + 2 kiveä (240 + 60) | 8 puuta + 8 kiveä (240 + 240) | Vain yksi. Vaatii koulun. |
+| **Suoja** (teltta → maja → talo) | 4 puuta (120) | 6 puuta (180) | 6 puuta + 3 kiveä (180 + 90) | Saatavilla heti. Suojia voi rakentaa useita. Tavoite on kaksi tason 3 suojaa. |
+| **Koulu** | 6 puuta (180) | 8 puuta + 2 kiveä (240 + 60) | 8 puuta + 6 kiveä (240 + 180) | Vain yksi, joka päivitetään. Avautuu ensimmäisen suojan jälkeen. |
+| **Työpaja** | 6 puuta (180) | 6 puuta + 4 kiveä (180 + 120) | 8 puuta + 8 kiveä (240 + 240) | Vain yksi. Avautuu ensimmäisen suojan jälkeen. |
+| **Kokoontumispaikka** (nuotio → teatteri → amfiteatteri) | 4 puuta (120) | 8 puuta + 2 kiveä (240 + 60) | 8 puuta + 8 kiveä (240 + 240) | Vain yksi. Avautuu ensimmäisen suojan jälkeen. |
+
+**Esiehdot (P30): suoja ensin.** Alussa voi äänestää vain suojasta tai olla rakentamatta. Kun
+ensimmäinen suoja on valmis, koulu, työpaja ja kokoontumispaikka avautuvat kerralla. Aloitusvarat
+(`4N` puuta) riittävät juuri ensimmäiseen suojaan.
 
 Rakennusten nimet ja ulkoasu sovitetaan Kenneyn kuviin grafiikkakokeilussa (V5).
 
@@ -227,16 +223,17 @@ Rakennusten nimet ja ulkoasu sovitetaan Kenneyn kuviin grafiikkakokeilussa (V5).
 - Äänen voi vaihtaa vaiheen aikana. Jakauma päivittyy kaikille ja projektorille reaaliajassa.
   Kuka äänesti mitä, näkyy vain opettajalle jälkipuinnissa.
 - Eniten ääniä saanut vaihtoehto voittaa. Äänestämättä jättäneitä ei lasketa.
-- **[AVOIN] Tasapeli:** suosittelen, että **tasapelissä ei rakenneta**, ja projektori näyttää
-  viestin "Tasapeli! Neuvotelkaa ja yrittäkää ensi kuussa uudelleen". Se opettaa kompromissia.
-  Vaihtoehto on arpoa voittaja.
-- Hinta maksetaan heti, ja rakennus valmistuu kuukauden vaihteessa.
+- **Tasapeli (P28):** jos kärjessä on tasapeli, **mitään ei rakenneta eikä veloiteta**, ja
+  projektori näyttää viestin "Tasapeli! Neuvotelkaa ja yrittäkää ensi kuussa uudelleen".
+  Tasapelit näkyvät jälkipuinnissa.
+- Voittajan hinta maksetaan äänestyksen päättyessä, ja rakennus valmistuu kuukauden vaihteessa.
 - Kuukaudessa voi rakentaa enintään yhden rakennuksen.
 
-### 10.3 Sijoitus [EHDOTUS]
+### 10.3 Sijoitus (P29)
 
 - Uusi rakennus sijoitetaan automaattisesti **lähimmälle vapaalle niitylle rantautumispaikasta**,
-  joten kylä kasvaa hylyn ympärille.
+  joten kylä kasvaa hylyn ympärille. Tasapelissä ratkaisee ensin rivi, sitten sarake, jotta
+  sijoitus on deterministinen.
 - Päivitys rakennetaan samaan ruutuun.
 - Pelaajat vaikuttavat sijoitukseen sillä, mitkä niityt he jättävät raivaamatta. Erillistä
   sijoitusvaihetta ei ole, koska se pidentäisi kierrosta.
@@ -248,28 +245,31 @@ Rakennusten nimet ja ulkoasu sovitetaan Kenneyn kuviin grafiikkakokeilussa (V5).
   pidetään huolta.
 - *N* lasketaan **kuukauden alussa**. Kesken kuukauden liittyvä pelaa heti, mutta tarpeisiin ja
   hintoihin hänet lasketaan vasta seuraavasta kuukaudesta.
-- **[AVOIN] Myöhäinen liittyminen:** suosittelen, että liittyä voi koko pelin ajan, koska joku
-  tulee aina myöhässä. Vaihtoehto on sulkea liittyminen esimerkiksi kuukauden 3 jälkeen.
+- **Myöhäinen liittyminen (P33):** uusi pelaaja voi liittyä kuukausien 1–3 aikana. Kuukauden 4
+  alusta liittyminen sulkeutuu automaattisesti, myös Lyhyessä pelissä. Liittymiskoodi näyttää
+  silloin viestin "Peli on jo käynnissä, liittyminen on suljettu". **Paluu omaan peliin (P23)
+  toimii koko pelin ajan.**
 - Paluu samaan peliin palauttaa koulutuksen, työkalut ja kuukauden käyttämättömät toiminnot.
 
 ## 12. Pisteet ja loppu
 
 - Lopputulos on **onnellisuus**, eli kuukausien mielialojen summa.
-- Arvosanatasoja on kuusi. Nimet ovat ehdotuksia [AVOIN]:
+- Arvosanatasoja on kuusi (P32). Ne kuvaavat **kylän tilaa eivätkä ryhmän luonnetta**, ja alin
+  taso kertoo silti, että kaikki selvisivät:
 
   | Taso | Nimi |
   |---|---|
   | 6 | Saaren paratiisi |
   | 5 | Kukoistava kylä |
-  | 4 | Toimiva yhteisö |
-  | 3 | Sinnittelijät |
-  | 2 | Riitainen leiri |
-  | 1 | Hajonnut porukka |
+  | 4 | Toimiva kylä |
+  | 3 | Sinnittelevä leiri |
+  | 2 | Ahdinko |
+  | 1 | Selviytyjät rannalla |
 
   Rajat asetetaan simulaattorilla. Tavoitteena on, että hyvin yhteistyötä tekevä botti saa tason
   5–6, satunnainen botti 2–3, ja itsekäs botti, joka vain kehittää itseään, tason 1–2.
-- Loppuruudulla näkyvät arvosana, kuva, joka vastaa tasoa (ja loppuäänestystä, jos se otetaan
-  mukaan), sekä siirtymä jälkipuintiin.
+- Rajat asetetaan erikseen Normaalille ja Lyhyelle pelille (P26).
+- Loppuruudulla näkyvät arvosana, tasoa vastaava kuva sekä siirtymä jälkipuintiin.
 
 ## 13. Tapahtumaloki ja jälkipuinti
 
@@ -323,11 +323,8 @@ Tarkka käyttöliittymä suunnitellaan vaiheessa V6. Pelin kannalta olennaista o
   onnellisuus, kuukausi, vaihe ja ajastin.
 - **Oma tila:** toiminnot jäljellä (esim. 2 / 4), koulutus- ja työkalutaso sekä edistyminen.
 - **Äänestys:** kortit, jakauma ja oma valinta.
-- **[AVOIN] Näkyvätkö toisten toiminnot kartalla nimimerkkeineen** ("Kettu: +10 puuta")?
-  Suosittelen, että kartalla näkyy vain "+10 puuta" ilman nimeä, kuten alkuperäisessä. Nimet
-  saavat helposti oppilaat syyttelemään toisiaan ("Kettu vaan opiskelee!"). Pelin hetkessä
-  keskustelun pitää koskea tekoja, ei tekijöitä, ja tekijät käsitellään jälkipuinnissa opettajan
-  johdolla.
+- **Ei nimiä pelin aikana (P34):** toisten toiminnot näkyvät kartalla pelkkinä tekoina
+  ("+10 puuta"), myös projektorilla. Tekijät käsitellään jälkipuinnissa opettajan johdolla.
 
 **Projektori**
 - Koko saari ja kaikki yhteiset luvut isolla.
@@ -365,7 +362,7 @@ tarkistaa simulaattorilla.
 
 | Parametri | Arvo | Kohta |
 |---|---|---|
-| kierroksia | 15 | §3 |
+| kierroksia | Normaali 15, Lyhyt 10 | §3 |
 | toimintavuoro / äänestys / vaihde | 60 s / 30 s / 8 s | §4 |
 | maaruutuja | 12 + 2N | §5 |
 | metsä / niitty / kallio | 50 / 30 / 20 % | §5 |
@@ -381,17 +378,23 @@ tarkistaa simulaattorilla.
 | suojapaikat per suoja | ⌈N/6⌉ / ⌈N/3⌉ / ⌈N/2⌉ | §9 |
 | virkistyskerrat | lähde ⌈N/6⌉, kokoontumispaikka ⌈N/5⌉ / ⌈N/4⌉ / ⌈N/3⌉ | §7 |
 | aloitusvarat | ruokaa 4N (yksi kuukausi), puuta 4N (yksi suoja), kiveä 0 | — |
-| ruokavaraston yläraja | 8N (kaksi kuukautta), jos vaihtoehto b | §6 |
+| ruokavaraston yläraja | 8N (kaksi kuukautta) | §6 |
+| liittyminen sulkeutuu | kuukauden 4 alussa | §11 |
 
-## 17. Grillattavat kohdat
+## 17. Grillauksen tulos
 
-1. Mitoitus per kyläläinen (§2).
-2. Pelin pituus: aina 15 vai myös lyhyt peli (§3).
-3. Säilyykö ruoka (§6).
-4. Tasapeli äänestyksessä (§10.2).
-5. Rakennuksen automaattinen sijoitus (§10.3).
-6. Rakennusten esiehdot alkuperäisen mukaan: työpaja vaatii suojan, kokoontumispaikka koulun (§10.1).
-7. Loppuäänestys: lähdetäänkö vai jäädäänkö (§1).
-8. Arvosanatasojen määrä ja nimet (§12).
-9. Myöhäinen liittyminen (§11).
-10. Näkyvätkö nimet kartalla pelin aikana (§14).
+Kaikki kymmenen kohtaa on lukittu 2026-10-09 (P25–P34):
+
+1. Mitoitus per kyläläinen: **kyllä** (P25)
+2. Pelin pituus: **Normaali 15 tai Lyhyt 10** (P26)
+3. Ruoka: **varaston yläraja 8N** (P27)
+4. Tasapeli: **ei rakenneta** (P28)
+5. Sijoitus: **automaattinen, lähin vapaa niitty** (P29)
+6. Esiehdot: **suoja ensin**, sitten kaikki muut (P30)
+7. Loppuäänestys: **ei** (P31)
+8. Arvosanat: **kuusi kylää kuvaavaa tasoa** (P32)
+9. Myöhäinen liittyminen: **kuukaudet 1–3** (P33)
+10. Nimet kartalla: **ei** (P34)
+
+Seuraavaksi luvut tarkistetaan simulaattorilla (V3). Jos simulaattori osoittaa, että jokin
+lukittu sääntö ei toimi, siitä keskustellaan uudelleen eikä sitä muuteta hiljaa.

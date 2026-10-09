@@ -54,8 +54,8 @@ toimii vaaka-asennossa, mutta sitä ei optimoida (P16).
 
 ## 4. Pelisuunnittelu: reunaehdot seuraavalle vaiheelle
 
-Säännöt kirjoitetaan uudelleen dokumenttiin `docs/04-pelisuunnittelu.md` ja grillataan ennen
-koodia. Seuraavat asiat on jo lukittu:
+Säännöt on kirjoitettu dokumenttiin `docs/04-pelisuunnittelu.md` (v1, grillattu 2026-10-09,
+P25–P34). Seuraavat asiat on jo lukittu:
 
 - isometrinen neliöruudukko (P10);
 - kartta skaalautuu pelaajamäärän mukaan ja vaihtelee pelistä toiseen siemenen avulla (P8);
@@ -134,7 +134,7 @@ saari/
 | Vaihe | Sisältö | Valmis kun |
 |---|---|---|
 | V0 ✓ | Tutkimus, suunnitelma, grillaus | tämä dokumentti ja `03-paatokset.md` |
-| V1 | Pelisuunnitteludokumentti `04-pelisuunnittelu.md` ja sen grillaus | säännöt, kartta, rakennukset, kierrosrakenne ja jälkipuinnin sisältö lukittu |
+| V1 ✓ | Pelisuunnitteludokumentti `04-pelisuunnittelu.md` ja sen grillaus (P25–P34) | säännöt, kartta, rakennukset, kierrosrakenne ja jälkipuinnin sisältö lukittu |
 | V2 | Sääntömoottori, data ja tapahtumaloki | Vitest kattaa jokaisen toiminnon, rakennuksen, kierroksen lopun ja lokin |
 | V3 | Botit ja simulaattori, tasapainon viritys | raportti 2/15/30 pelaajalla: hyvä yhteistyö voittaa ja huono häviää |
 | V4 | Palvelin: huoneet, ajastimet, tauko, paluu, moderointi, kokeilutila, jälkipuinnin tallennus ja poisto | 30 bottia pelaa koko pelin WebSocketin yli testissä |
