@@ -61,14 +61,11 @@ describe('initial fog', () => {
     expect(tileAt(game, 1, 4).fog).toBe(true);
   });
 
-  it('also reveals sea next to every revealed land tile', () => {
+  it('never fogs the sea, so the island outline is visible from the start', () => {
     const game = setup();
-    // (2,4) is revealed meadow; its sea neighbours (1,5) and (1,3)? (1,3) is meadow. (1,5) is sea.
-    expect(tileAt(game, 1, 5).fog).toBe(false);
-    // (5,5) is sea next to revealed (4,4) and (4,5).
-    expect(tileAt(game, 5, 5).fog).toBe(false);
-    // Far sea stays fogged.
-    expect(tileAt(game, 0, 0).fog).toBe(true);
+    expect(tileAt(game, 0, 0).fog).toBe(false);
+    expect(tileAt(game, 6, 6).fog).toBe(false);
+    expect(game.tiles().filter((t) => t.terrain === 'sea').every((t) => !t.fog)).toBe(true);
   });
 
   it('hides the true terrain of fogged tiles in the public view', () => {

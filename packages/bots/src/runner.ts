@@ -1,26 +1,29 @@
 import { createGame, createRng, type Game, type GameLength, type GameParams, type MonthReport, type Rng } from '@saari/rules';
 import type { Bot, BotOptions, Strategy } from './bot.ts';
-import { cooperativeAction, cooperativeVote } from './cooperative.ts';
+import { cooperativeAction, cooperativeVote, DEFAULT_BUILD_ORDER, type CoopOptions } from './cooperative.ts';
 import { lazyBot, randomBot, selfishBot } from './simple.ts';
 
 /** Default chance of a random move for the cooperative and lazy bots: a class is never perfect. */
 export const DEFAULT_NOISE = 0.1;
 
 export function createBot(strategy: Strategy, options: BotOptions = {}): Bot {
-  const noise = options.noise ?? DEFAULT_NOISE;
+  const coop: CoopOptions = {
+    noise: options.noise ?? DEFAULT_NOISE,
+    buildOrder: options.buildOrder ?? DEFAULT_BUILD_ORDER,
+  };
   switch (strategy) {
     case 'cooperative':
       return {
         strategy,
-        chooseAction: (game, id, rng) => cooperativeAction(game, id, rng, noise),
-        chooseVote: (game, id, rng) => cooperativeVote(game, id, rng, noise),
+        chooseAction: (game, id, rng) => cooperativeAction(game, id, rng, coop),
+        chooseVote: (game, id, rng) => cooperativeVote(game, id, rng, coop),
       };
     case 'random':
       return randomBot;
     case 'selfish':
       return selfishBot;
     case 'lazy':
-      return lazyBot(noise);
+      return lazyBot(coop);
   }
 }
 

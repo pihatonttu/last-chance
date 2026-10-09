@@ -5,6 +5,8 @@ export type Strategy = 'cooperative' | 'random' | 'selfish' | 'lazy';
 export interface BotOptions {
   /** Chance of a random action or vote instead of the planned one (cooperative, lazy). */
   noise?: number;
+  /** Build order for the cooperative and lazy bots; see DEFAULT_BUILD_ORDER. */
+  buildOrder?: readonly string[];
 }
 
 /** A simulated player. Picks one action at a time so the runner can interleave the class. */

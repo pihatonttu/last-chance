@@ -156,7 +156,7 @@ export type LogEvent =
   | { type: 'game-started'; seed: number; length: GameLength; villagers: number; width: number; height: number }
   | { type: 'phase'; to: Phase }
   | { type: 'action'; player: string; kind: ActionKind; x: number; y: number; gain: Gain }
-  | { type: 'tile-revealed'; x: number; y: number; terrain: Terrain; player: string | null }
+  | { type: 'tile-revealed'; x: number; y: number; terrain: Terrain; player: string }
   | { type: 'spring-found'; x: number; y: number; player: string }
   | { type: 'field-ready' | 'quarry-ready' | 'forest-cleared'; x: number; y: number; player: string }
   | { type: 'level-up'; player: string; skill: Skill; level: number }
@@ -556,7 +556,8 @@ export class Game {
     switch (tile.terrain) {
       case 'sea': {
         const amount = Math.round(P.fishYield * m);
-        const coastal = this.#around(tile).some((n) => n.terrain !== 'sea');
+        // Fishing needs an explored shore next to the water.
+        const coastal = this.#around(tile).some((n) => n.terrain !== 'sea' && !n.fog);
         return {
           kind: 'fish',
           yield: { type: 'resource', resource: 'food', amount },
@@ -625,7 +626,8 @@ export class Game {
 
   #planExplore(tile: Tile, m: number): Plan {
     const needed = this.#exploreNeeded(tile);
-    const explorable = this.#around(tile).some((n) => !n.fog);
+    // Exploring spreads over land from what is already known, never from the open sea.
+    const explorable = this.#around(tile).some((n) => !n.fog && n.terrain !== 'sea');
     return {
       kind: 'explore',
       yield: { type: 'work', amount: m, done: tile.exploreWork, needed },
@@ -715,22 +717,10 @@ export class Game {
     }
   }
 
-  #reveal(tile: Tile, player: string | null): void {
+  #reveal(tile: Tile, player: string): void {
     tile.fog = false;
     this.#emit({ type: 'tile-revealed', x: tile.x, y: tile.y, terrain: tile.terrain, player });
-    if (tile.terrain === 'spring' && player !== null) {
-      this.#emit({ type: 'spring-found', x: tile.x, y: tile.y, player });
-    }
-    if (tile.terrain !== 'sea') this.#revealSeaAround(tile, player);
-  }
-
-  #revealSeaAround(tile: Tile, player: string | null): void {
-    for (const n of this.#around(tile)) {
-      if (n.fog && n.terrain === 'sea') {
-        n.fog = false;
-        this.#emit({ type: 'tile-revealed', x: n.x, y: n.y, terrain: n.terrain, player });
-      }
-    }
+    if (tile.terrain === 'spring') this.#emit({ type: 'spring-found', x: tile.x, y: tile.y, player });
   }
 
   /** Uses a month for a spring or gathering place: N / divisor rounded, at least 1. */
@@ -937,7 +927,8 @@ export class Game {
         x,
         y,
         terrain,
-        fog: chebyshev({ x, y }, map.landing) > 1,
+        // Fog covers land only: the island's outline is visible from the start.
+        fog: terrain !== 'sea' && chebyshev({ x, y }, map.landing) > 1,
         exploreWork: 0,
         work: 0,
         stock: terrain === 'forest' ? this.params.forestCapacity : 0,
@@ -945,9 +936,6 @@ export class Game {
         building: null,
       };
     });
-    for (const t of this.#tiles) {
-      if (!t.fog && t.terrain !== 'sea') this.#revealSeaAround(t, null);
-    }
   }
 
   #tileAt(c: Coord): Tile | undefined {

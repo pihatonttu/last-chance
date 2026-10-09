@@ -136,6 +136,15 @@ describe('cooperative bot votes', () => {
     expect(bot.chooseVote(game, 'a', rng)).toBe('school-1');
   });
 
+  it('follows a custom build order', () => {
+    const params = { ...DEFAULT_PARAMS, costs: { shelter: FREE, school: FREE, workshop: FREE, gathering: FREE } };
+    const custom = createBot('cooperative', { noise: 0, buildOrder: ['shelter:first', 'gathering-1', 'school-1'] });
+    const game = newGame(params);
+    voteAll(game, 'shelter-1');
+    game.endActionPhase();
+    expect(custom.chooseVote(game, 'a', rng)).toBe('gathering-1');
+  });
+
   it('falls back to an affordable option when the planned one is blocked', () => {
     const params = {
       ...DEFAULT_PARAMS,

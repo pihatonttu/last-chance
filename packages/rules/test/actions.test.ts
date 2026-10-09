@@ -24,21 +24,14 @@ describe('explore', () => {
     expect(game.publicTile(3, 3)).toMatchObject({ terrain: 'forest' });
   });
 
-  it('only allows fog that touches a revealed tile (8 neighbours)', () => {
+  it('only allows fog that touches explored land (8 neighbours), not just visible sea', () => {
     const game = setup();
     expect(game.act('p1', 3, 1)).toEqual({ ok: false, reason: 'not-explorable' });
   });
 
-  it('reveals the sea around a newly revealed tile', () => {
+  it('a sea tile is never explored: it is visible and offers fishing instead', () => {
     const game = setup();
-    // (1,4) forest, distance 2 -> 2 work. Its sea neighbours (0,3),(0,4),(0,5) start fogged.
-    expect(tileAt(game, 0, 4).fog).toBe(true);
-    act(game, 'p1', 1, 4);
-    act(game, 'p1', 1, 4);
-    expect(tileAt(game, 1, 4).fog).toBe(false);
-    expect(tileAt(game, 0, 3).fog).toBe(false);
-    expect(tileAt(game, 0, 4).fog).toBe(false);
-    expect(tileAt(game, 0, 5).fog).toBe(false);
+    expect(game.preview('p1', 0, 4).kind).toBe('fish');
   });
 
   it('logs the revealed tile and the spring discovery', () => {
@@ -86,11 +79,16 @@ describe('sea', () => {
 
   it('cannot fish in deep sea with no land next to it', () => {
     const game = setup();
-    // Reveal (0,6) by exploring it from the revealed sea at (1,5).
-    act(game, 'p1', 0, 6);
-    act(game, 'p1', 0, 6);
-    expect(tileAt(game, 0, 6).fog).toBe(false);
     expect(game.act('p2', 0, 6)).toEqual({ ok: false, reason: 'deep-sea' });
+  });
+
+  it('can fish only next to explored land', () => {
+    const game = setup();
+    // (0,3) touches fogged land (1,3), (1,4) and (1,2) only.
+    expect(game.act('p1', 0, 3)).toEqual({ ok: false, reason: 'deep-sea' });
+    act(game, 'p1', 1, 4); // forest, 2 work
+    act(game, 'p1', 1, 4);
+    expect(game.preview('p2', 0, 3).available).toBe(true);
   });
 });
 

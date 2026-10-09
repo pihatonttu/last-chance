@@ -5,24 +5,45 @@ import { availableMoves, hasActionsLeft, movesOfKind, openOptions, toCoord, type
 const SKILL_HORIZON = 4;
 
 /**
- * The order a well-organised class builds in. 'shelter' means the cheapest way to add
- * shelter places: a new level-1 shelter while there is room, otherwise an upgrade.
+ * The order a well-organised class builds in. Tokens:
+ * - 'shelter:first' a shelter while there is none,
+ * - 'shelter' the cheapest shelter step while not everyone has shelter,
+ * - 'shelter:spare' the same until there is spare room,
+ * - any option id such as 'school-1'.
  */
-const WANTS: readonly { match: string; when?: (c: Context) => boolean }[] = [
-  { match: 'shelter', when: (c) => c.shelters === 0 },
-  { match: 'school-1' },
-  { match: 'shelter', when: (c) => c.share < 1 },
-  { match: 'workshop-1' },
-  { match: 'gathering-1' },
-  { match: 'shelter', when: (c) => c.share < 1 },
-  { match: 'shelter', when: (c) => c.share < c.game.params.spareShelterRatio },
-  { match: 'gathering-2' },
-  { match: 'school-2' },
-  { match: 'workshop-2' },
-  { match: 'gathering-3' },
-  { match: 'school-3' },
-  { match: 'workshop-3' },
+export const DEFAULT_BUILD_ORDER: readonly string[] = [
+  'shelter:first',
+  'school-1',
+  'shelter',
+  'workshop-1',
+  'gathering-1',
+  'shelter',
+  'shelter:spare',
+  'gathering-2',
+  'school-2',
+  'workshop-2',
+  'gathering-3',
+  'school-3',
+  'workshop-3',
 ];
+
+export interface CoopOptions {
+  noise: number;
+  buildOrder: readonly string[];
+}
+
+function wanted(token: string, c: Context): string | null {
+  switch (token) {
+    case 'shelter:first':
+      return c.shelters === 0 ? 'shelter' : null;
+    case 'shelter':
+      return c.share < 1 ? 'shelter' : null;
+    case 'shelter:spare':
+      return c.share < c.game.params.spareShelterRatio ? 'shelter' : null;
+    default:
+      return token;
+  }
+}
 
 interface Context {
   game: Game;
@@ -55,38 +76,39 @@ function resolveWant(match: string, options: readonly VoteOption[]): VoteOption 
 }
 
 /** The buildings the class wants, best first, as currently offered options. */
-export function wantedOptions(game: Game): VoteOption[] {
+export function wantedOptions(game: Game, order: readonly string[] = DEFAULT_BUILD_ORDER): VoteOption[] {
   const ctx = context(game);
   const options = game.voteOptions();
-  const wanted: VoteOption[] = [];
-  for (const want of WANTS) {
-    if (want.when && !want.when(ctx)) continue;
-    const option = resolveWant(want.match, options);
-    if (option && !wanted.includes(option)) wanted.push(option);
+  const result: VoteOption[] = [];
+  for (const token of order) {
+    const match = wanted(token, ctx);
+    if (match === null) continue;
+    const option = resolveWant(match, options);
+    if (option && !result.includes(option)) result.push(option);
   }
-  return wanted;
+  return result;
 }
 
 /** What the class is saving up for this month. */
-export function plannedBuilding(game: Game): VoteOption | undefined {
-  return wantedOptions(game)[0];
+export function plannedBuilding(game: Game, order: readonly string[] = DEFAULT_BUILD_ORDER): VoteOption | undefined {
+  return wantedOptions(game, order)[0];
 }
 
-export function cooperativeVote(game: Game, _playerId: string, rng: Rng, noise: number): string {
+export function cooperativeVote(game: Game, _playerId: string, rng: Rng, options: CoopOptions): string {
   const open = openOptions(game);
-  if (noise > 0 && rng.next() < noise) return rng.pick(open).id;
-  return wantedOptions(game).find((o) => o.blocked.length === 0)?.id ?? 'none';
+  if (options.noise > 0 && rng.next() < options.noise) return rng.pick(open).id;
+  return wantedOptions(game, options.buildOrder).find((o) => o.blocked.length === 0)?.id ?? 'none';
 }
 
-export function cooperativeAction(game: Game, playerId: string, rng: Rng, noise: number): Coord | null {
+export function cooperativeAction(game: Game, playerId: string, rng: Rng, options: CoopOptions): Coord | null {
   if (!hasActionsLeft(game, playerId)) return null;
   const moves = availableMoves(game, playerId);
   if (moves.length === 0) return null;
-  if (noise > 0 && rng.next() < noise) return toCoord(rng.pick(moves));
-  return toCoord(choose(game, moves) ?? moves[0]);
+  if (options.noise > 0 && rng.next() < options.noise) return toCoord(rng.pick(moves));
+  return toCoord(choose(game, moves, options.buildOrder) ?? moves[0]);
 }
 
-function choose(game: Game, moves: Move[]): Move | undefined {
+function choose(game: Game, moves: Move[], order: readonly string[]): Move | undefined {
   const landing = game.landing;
   const dist = (m: Move) => chebyshev(m, landing);
   const resource = (m: Move) => (m.preview.yield.type === 'resource' ? m.preview.yield.amount : 0);
@@ -102,7 +124,7 @@ function choose(game: Game, moves: Move[]): Move | undefined {
   const food = game.resources.food;
   const need = game.foodNeed();
   const monthsLeft = game.totalMonths - game.month;
-  const target = plannedBuilding(game);
+  const target = plannedBuilding(game, order);
   const reserved = target && !target.upgrade ? reservedMeadow(game) : undefined;
 
   // 1. Nobody goes hungry this month.

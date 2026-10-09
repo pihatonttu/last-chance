@@ -1,6 +1,6 @@
 import type { Coord, Game, Rng } from '@saari/rules';
 import { availableMoves, hasActionsLeft, movesOfKind, openOptions, toCoord, type Bot } from './bot.ts';
-import { cooperativeAction, cooperativeVote } from './cooperative.ts';
+import { cooperativeAction, cooperativeVote, type CoopOptions } from './cooperative.ts';
 
 /** Any legal action, any open vote (abstains one time in ten). */
 export const randomBot: Bot = {
@@ -35,16 +35,16 @@ export const selfishBot: Bot = {
 };
 
 /** Does one sensible action a month and votes half of the time. */
-export function lazyBot(noise: number): Bot {
+export function lazyBot(options: CoopOptions): Bot {
   return {
     strategy: 'lazy',
     chooseAction(game, playerId, rng) {
       const p = game.player(playerId);
       if (!p || p.actionsLeft < p.maxActions) return null;
-      return cooperativeAction(game, playerId, rng, noise);
+      return cooperativeAction(game, playerId, rng, options);
     },
     chooseVote(game, playerId, rng) {
-      return rng.next() < 0.5 ? cooperativeVote(game, playerId, rng, noise) : null;
+      return rng.next() < 0.5 ? cooperativeVote(game, playerId, rng, options) : null;
     },
   };
 }
