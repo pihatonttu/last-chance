@@ -84,8 +84,8 @@
       <h2>{t('lobby.howTo.title')}</h2>
       <ol>
         <li>{t('lobby.howTo.1', { months })}</li>
-        <li>{t('lobby.howTo.2')}</li>
-        <li>{t('lobby.howTo.3')}</li>
+        <li>{t('lobby.howTo.2', { actions: PARAMS.baseActions })}</li>
+        <li>{t('lobby.howTo.3', { food: PARAMS.foodPerVillager })}</li>
         <li>{t('lobby.howTo.4')}</li>
         <li>{t('lobby.howTo.5')}</li>
       </ol>

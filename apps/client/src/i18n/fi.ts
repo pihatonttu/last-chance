@@ -74,8 +74,8 @@ export const fi = {
   'lobby.openStudent': 'Avaa oppilaan näkymä',
   'lobby.howTo.title': 'Näin pelataan',
   'lobby.howTo.1': 'Laiva ajoi karille tuntemattoman saaren rantaan. Pelastuslaiva saapuu {months} kuukauden kuluttua.',
-  'lobby.howTo.2': 'Joka kuukausi jokaisella on 3 toimintoa: napauta saaren ruutua ja valitse, mitä teet.',
-  'lobby.howTo.3': 'Ruoka, puu ja kivi ovat koko kylän yhteisiä. Jokainen syö 4 ruokaa kuukaudessa.',
+  'lobby.howTo.2': 'Joka kuukausi jokaisella on {actions} toimintoa: napauta saaren ruutua ja valitse, mitä teet.',
+  'lobby.howTo.3': 'Ruoka, puu ja kivi ovat koko kylän yhteisiä. Jokainen syö {food} ruokaa kuukaudessa.',
   'lobby.howTo.4': 'Kuukauden lopuksi äänestätte, mitä kylään rakennetaan. Suoja ensin!',
   'lobby.howTo.5': 'Tavoite: mahdollisimman onnellinen kylä, kun pelastuslaiva saapuu.',
 

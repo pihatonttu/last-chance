@@ -1,0 +1,15 @@
+# Generic stack. Host-specific settings (reverse proxy labels, networks, memory cap)
+# belong in an untracked docker-compose.override.yml next to this file.
+services:
+  last-chance:
+    build: .
+    container_name: last-chance
+    restart: unless-stopped
+    environment:
+      TZ: UTC
+    volumes:
+      # SQLite with pseudonymised debriefs only (no nicknames ever reach the disk).
+      - ./data:/data
+    # No published port: put a reverse proxy in front, or add
+    #   ports: ["127.0.0.1:8080:8080"]
+    # in docker-compose.override.yml to try it locally.
