@@ -52,11 +52,11 @@ export interface GameParams {
   /** Each tools level above 1 adds this share to every yield and work. */
   toolsBonusPerLevel: number;
 
-  /** Spring uses per month = ceil(N / springDivisor). */
+  /** Spring uses per month = max(1, round(N / springDivisor)). */
   springDivisor: number;
-  /** Gathering place uses per month by level = ceil(N / divisor). */
+  /** Gathering place uses per month by level = max(1, round(N / divisor)). */
   gatheringDivisors: readonly [number, number, number];
-  /** Shelter capacity by level = ceil(N / divisor). */
+  /** A shelter of level k covers 1 / shelterDivisors[k-1] of the village. */
   shelterDivisors: readonly [number, number, number];
 
   moodFed: number;

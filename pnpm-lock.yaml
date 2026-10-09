@@ -36,6 +36,25 @@ importers:
         specifier: ^5.0.3
         version: 5.0.3(@types/node@24.19.1)(vite@8.3.4(@types/node@24.19.1))
 
+  packages/sim:
+    dependencies:
+      '@saari/bots':
+        specifier: workspace:*
+        version: link:../bots
+      '@saari/rules':
+        specifier: workspace:*
+        version: link:../rules
+    devDependencies:
+      '@types/node':
+        specifier: ^24.19.1
+        version: 24.19.1
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(vite@8.3.4(@types/node@24.19.1))
+
 packages:
 
   '@jridgewell/resolve-uri@3.1.2':

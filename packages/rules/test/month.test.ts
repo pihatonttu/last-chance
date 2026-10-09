@@ -13,7 +13,7 @@ describe('food', () => {
     expect(report.mood.food).toBe(2);
   });
 
-  it('missing food leaves ceil(missing / 4) hungry and costs ceil(10 x hungry / N) mood', () => {
+  it('missing food leaves ceil(missing / 4) hungry and costs round(10 x hungry / N) mood', () => {
     const game = setup({ players: 3 });
     finishMonth(game); // month 1 eats the starting 12 food
     const report = finishMonth(game); // month 2: 0 food, need 12
@@ -27,7 +27,7 @@ describe('food', () => {
     act(game, 'p1', 3, 6); // fish +5
     const report = finishMonth(game); // 5 of 12: 7 missing -> 2 hungry
     expect(report.food).toMatchObject({ before: 5, eaten: 5, hungry: 2 });
-    expect(report.mood.food).toBe(-7); // ceil(10 * 2 / 3)
+    expect(report.mood.food).toBe(-7); // round(10 * 2 / 3)
   });
 
   it('food above two months of need spoils at month end', () => {
@@ -45,30 +45,46 @@ describe('food', () => {
 describe('shelter', () => {
   it('no shelter: everyone unsheltered, -10 mood', () => {
     const report = finishMonth(setup({ players: 3 }));
-    expect(report.shelter).toEqual({ capacity: 0, unsheltered: 3 });
+    expect(report.shelter).toEqual({ share: 0, capacity: 0, unsheltered: 3 });
     expect(report.mood.shelter).toBe(-10);
   });
 
   it('a shelter built this month already counts at month end', () => {
-    const game = setup({ players: 3 });
+    const game = setup({ players: 6 });
     const report = buildByVote(game, 'shelter-1');
-    // Level 1 holds ceil(3/6) = 1.
-    expect(report.shelter).toEqual({ capacity: 1, unsheltered: 2 });
-    expect(report.mood.shelter).toBe(-7);
+    // Level 1 shelters 1/6 of the village: 1 of 6. Mood -round(10 x 5/6) = -8.
+    expect(report.shelter).toMatchObject({ capacity: 1, unsheltered: 5 });
+    expect(report.shelter.share).toBeCloseTo(1 / 6);
+    expect(report.mood.shelter).toBe(-8);
   });
 
-  it('enough shelter gives +2, and 25 % spare room +1 more', () => {
-    const game = setup({ players: 3, params: freeBuildingParams() });
-    buildByVote(game, 'shelter-1');
-    buildByVote(game, 'shelter-2');
-    const r3 = buildByVote(game, 'shelter-3'); // ceil(3/2) = 2
-    expect(r3.shelter).toEqual({ capacity: 2, unsheltered: 1 });
-    buildByVote(game, 'shelter-1');
-    const r5 = buildByVote(game, 'shelter-2'); // 2 + ceil(3/3) = 3 = N
-    expect(r5.shelter).toEqual({ capacity: 3, unsheltered: 0 });
-    expect(r5.mood.shelter).toBe(2);
-    const r6 = buildByVote(game, 'shelter-3'); // 2 + 2 = 4 >= 3.75
-    expect(r6.mood.shelter).toBe(3);
+  it('shelters cover shares of the village; full cover +2, 25 % spare room +1 more', () => {
+    const game = setup({ players: 6, params: freeBuildingParams() });
+    buildByVote(game, 'shelter-1'); // landing, 1/6
+    buildByVote(game, 'shelter-2'); // landing, 1/3
+    const r3 = buildByVote(game, 'shelter-3'); // landing, 1/2
+    expect(r3.shelter).toMatchObject({ capacity: 3, unsheltered: 3 });
+    expect(r3.mood.shelter).toBe(-5);
+    buildByVote(game, 'shelter-1'); // (2,4), 1/2 + 1/6
+    buildByVote(game, 'shelter-2'); // (2,4), 1/2 + 1/3
+    const r6 = buildByVote(game, 'shelter-3'); // (2,4), 1/2 + 1/2 = 1
+    expect(r6.shelter).toMatchObject({ capacity: 6, unsheltered: 0 });
+    expect(r6.mood.shelter).toBe(2);
+    const r7 = buildByVote(game, 'shelter-1'); // 7/6 < 1.25
+    expect(r7.mood.shelter).toBe(2);
+    const r8 = buildByVote(game, 'shelter-2'); // 4/3 >= 1.25
+    expect(r8.mood.shelter).toBe(3);
+    expect(r8.shelter.capacity).toBe(8);
+  });
+
+  it('the same shelters give the same mood in villages of 15 and 30', () => {
+    const mood = (players: number) => {
+      const game = setup({ players, params: freeBuildingParams() });
+      return buildByVote(game, 'shelter-1').mood.shelter;
+    };
+    // Old ceil rules gave -8 for 15 and -9 for 30.
+    expect(mood(15)).toBe(-8);
+    expect(mood(30)).toBe(-8);
   });
 });
 

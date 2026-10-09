@@ -11,11 +11,11 @@ const SKILL_HORIZON = 4;
 const WANTS: readonly { match: string; when?: (c: Context) => boolean }[] = [
   { match: 'shelter', when: (c) => c.shelters === 0 },
   { match: 'school-1' },
-  { match: 'shelter', when: (c) => c.capacity < c.villagers },
+  { match: 'shelter', when: (c) => c.share < 1 },
   { match: 'workshop-1' },
   { match: 'gathering-1' },
-  { match: 'shelter', when: (c) => c.capacity < c.villagers },
-  { match: 'shelter', when: (c) => c.capacity < c.game.params.spareShelterRatio * c.villagers },
+  { match: 'shelter', when: (c) => c.share < 1 },
+  { match: 'shelter', when: (c) => c.share < c.game.params.spareShelterRatio },
   { match: 'gathering-2' },
   { match: 'school-2' },
   { match: 'workshop-2' },
@@ -26,28 +26,32 @@ const WANTS: readonly { match: string; when?: (c: Context) => boolean }[] = [
 
 interface Context {
   game: Game;
-  villagers: number;
   shelters: number;
-  capacity: number;
+  /** Share of the village with shelter (1 = everyone). */
+  share: number;
 }
 
 function context(game: Game): Context {
   return {
     game,
-    villagers: game.villagers,
     shelters: game.tiles().filter((t) => t.building?.kind === 'shelter').length,
-    capacity: game.shelterCapacity(),
+    share: game.shelterShare(),
   };
 }
 
+/** Stone is scarcer than wood, so it weighs double when comparing prices. */
+const price = (o: VoteOption) => o.cost.wood + 2 * o.cost.stone;
+
+/**
+ * 'shelter' resolves to the cheapest shelter option that can be built now (every
+ * shelter step adds the same share), or the cheapest one to save up for.
+ */
 function resolveWant(match: string, options: readonly VoteOption[]): VoteOption | undefined {
   if (match !== 'shelter') return options.find((o) => o.id === match);
-  return (
-    options.find((o) => o.id === 'shelter-1' && !o.blocked.includes('space')) ??
-    options.find((o) => o.id === 'shelter-2') ??
-    options.find((o) => o.id === 'shelter-3') ??
-    options.find((o) => o.id === 'shelter-1')
-  );
+  const shelters = options
+    .filter((o) => o.kind === 'shelter' && !o.blocked.includes('space'))
+    .sort((a, b) => price(a) - price(b));
+  return shelters.find((o) => o.blocked.length === 0) ?? shelters[0];
 }
 
 /** The buildings the class wants, best first, as currently offered options. */
@@ -118,7 +122,8 @@ function choose(game: Game, moves: Move[]): Move | undefined {
   // 3. Materials and room for the planned building.
   if (target) {
     if (target.cost.wood > game.resources.wood) {
-      const m = richest(movesOfKind(moves, 'chop'));
+      // No forest in sight: go and find one.
+      const m = richest(movesOfKind(moves, 'chop')) ?? quickest(movesOfKind(moves, 'explore'));
       if (m) return m;
     }
     if (target.cost.stone > game.resources.stone) {

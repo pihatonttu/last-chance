@@ -136,7 +136,8 @@ export interface MonthReport {
   villagers: number;
   vote: VoteResolution;
   food: { before: number; need: number; eaten: number; hungry: number; spoiled: number; after: number };
-  shelter: { capacity: number; unsheltered: number };
+  /** share = sum of 1 / divisor over the shelters; capacity and unsheltered are whole people. */
+  shelter: { share: number; capacity: number; unsheltered: number };
   recreation: number;
   mood: { food: number; shelter: number; recreation: number; total: number };
   /** Running total after this month. */
@@ -355,12 +356,24 @@ export class Game {
     return this.params.foodStorageMonths * this.foodNeed();
   }
 
-  /** Shelter places for this month's villager count. */
-  shelterCapacity(): number {
-    const n = this.#n();
+  /** Share of the village the shelters cover: a level-k shelter covers 1 / shelterDivisors[k-1]. */
+  shelterShare(): number {
     return this.#tiles
       .filter((t) => t.building?.kind === 'shelter')
-      .reduce((sum, t) => sum + Math.ceil(n / this.params.shelterDivisors[t.building!.level - 1]!), 0);
+      .reduce((sum, t) => sum + 1 / this.params.shelterDivisors[t.building!.level - 1]!, 0);
+  }
+
+  /** Whole people with shelter this month (may exceed N when there is spare room). */
+  shelterCapacity(): number {
+    const share = this.shelterShare();
+    const n = this.#n();
+    return share + EPSILON >= 1 ? Math.round(n * share) : n - this.#unsheltered(share);
+  }
+
+  /** People without shelter: at least one whenever the share is below 1. */
+  #unsheltered(share: number): number {
+    if (share + EPSILON >= 1) return 0;
+    return Math.max(1, Math.round(this.#n() * (1 - share)));
   }
 
   /** Grade 1..6: how many thresholds the happiness reaches, scaled for short games. */
@@ -606,7 +619,7 @@ export class Game {
         };
       }
       case 'spring':
-        return this.#planRecreation(tile, 'swim', Math.ceil(this.#n() / P.springDivisor));
+        return this.#planRecreation(tile, 'swim', this.#recreationCapacity(P.springDivisor));
     }
   }
 
@@ -659,7 +672,7 @@ export class Game {
       case 'shelter':
         return { kind: null, yield: { type: 'none' }, refusal: 'no-action' };
       case 'gathering':
-        return this.#planRecreation(tile, 'gather', Math.ceil(this.#n() / this.params.gatheringDivisors[b.level - 1]!));
+        return this.#planRecreation(tile, 'gather', this.#recreationCapacity(this.params.gatheringDivisors[b.level - 1]!));
       case 'school':
         return this.#planSkill(p, 'education', 'study', b.level);
       case 'workshop':
@@ -718,6 +731,11 @@ export class Game {
         this.#emit({ type: 'tile-revealed', x: n.x, y: n.y, terrain: n.terrain, player });
       }
     }
+  }
+
+  /** Uses a month for a spring or gathering place: N / divisor rounded, at least 1. */
+  #recreationCapacity(divisor: number): number {
+    return Math.max(1, Math.round(this.#n() / divisor));
   }
 
   #exploreNeeded(tile: Tile): number {
@@ -865,16 +883,19 @@ export class Game {
     food -= spoiled;
     this.#resources.food = food;
 
+    const share = this.shelterShare();
     const capacity = this.shelterCapacity();
-    const unsheltered = Math.max(0, n - capacity);
+    const unsheltered = this.#unsheltered(share);
 
-    const moodFood = hungry === 0 ? P.moodFed : -Math.ceil((P.moodHungerPenalty * hungry) / n);
+    // Penalties use shares of the village and symmetric rounding, so 15 and 30 villagers
+    // in the same situation get the same mood.
+    const moodFood = hungry === 0 ? P.moodFed : -Math.max(1, Math.round((P.moodHungerPenalty * hungry) / n));
     const moodShelter =
       unsheltered === 0
-        ? P.moodSheltered + (capacity >= P.spareShelterRatio * n ? P.moodSpareShelter : 0)
-        : -Math.ceil((P.moodShelterPenalty * unsheltered) / n);
+        ? P.moodSheltered + (share + EPSILON >= P.spareShelterRatio ? P.moodSpareShelter : 0)
+        : -Math.max(1, Math.round(P.moodShelterPenalty * (1 - share)));
     const recreation = this.#recreation;
-    const moodRecreation = Math.floor((P.moodRecreation * recreation) / n);
+    const moodRecreation = Math.round((P.moodRecreation * recreation) / n);
     const total = moodFood + moodShelter + moodRecreation;
     this.#happiness += total;
 
@@ -890,7 +911,7 @@ export class Game {
       villagers: this.#villagers,
       vote,
       food: { before, need, eaten, hungry, spoiled, after: food },
-      shelter: { capacity, unsheltered },
+      shelter: { share, capacity, unsheltered },
       recreation,
       mood: { food: moodFood, shelter: moodShelter, recreation: moodRecreation, total },
       happiness: this.#happiness,

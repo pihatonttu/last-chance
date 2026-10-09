@@ -131,7 +131,7 @@ describe('rock and quarry', () => {
 });
 
 describe('spring', () => {
-  it('swimming counts recreation and is limited to ceil(N/6) uses a month', () => {
+  it('swimming counts recreation and is limited to max(1, round(N/6)) uses a month', () => {
     const game = setup({ map: ROCK_MAP, players: 3 });
     act(game, 'p1', 3, 1);
     act(game, 'p1', 3, 1);

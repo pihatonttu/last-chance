@@ -94,6 +94,26 @@ describe('cooperative bot actions', () => {
     expect(nextKind(game)).not.toBe('study');
   });
 
+  it('explores to find forest when wood is needed and none is revealed, even with a school', () => {
+    // No forest near the landing (3,5).
+    const rows = ['~~~~~~~', '~TTTTT~', '~TT.TT~', '~.....~', '~.....~', '~~...~~', '~~~~~~~'];
+    const legend = { '~': 'sea', '.': 'meadow', T: 'forest' } as const;
+    const terrain = rows.flatMap((r) => [...r].map((c) => legend[c as keyof typeof legend]));
+    const params = {
+      ...DEFAULT_PARAMS,
+      foodPerVillager: 0,
+      costs: { ...DEFAULT_PARAMS.costs, school: FREE },
+    };
+    const game = new Game({ seed: 1, length: 'normal', params, terrain: { width: 7, height: 7, terrain, landing: { x: 3, y: 5 } } });
+    for (const p of ['a', 'b', 'c']) game.addPlayer(p);
+    game.start();
+    voteAll(game, 'shelter-1'); // paid with the starting wood
+    voteAll(game, 'school-1'); // free
+    expect(game.resources.wood).toBe(0);
+    expect(plannedBuilding(game)?.cost.wood).toBeGreaterThan(0);
+    expect(nextKind(game)).toBe('explore');
+  });
+
   it('returns null when the player has no actions left', () => {
     const game = newGame();
     for (let i = 0; i < 3; i++) game.act('a', 3, 6);
