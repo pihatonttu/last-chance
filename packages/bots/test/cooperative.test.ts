@@ -69,6 +69,20 @@ describe('cooperative bot actions', () => {
     expect(nextKind(game)).toBe('explore');
   });
 
+  it('saves wood for the next building once this month is paid for, before exploring', () => {
+    const params = {
+      ...DEFAULT_PARAMS,
+      foodPerVillager: 0,
+      startWoodPerVillager: 0,
+      costs: { ...DEFAULT_PARAMS.costs, shelter: FREE },
+    };
+    const game = newGame(params);
+    voteAll(game, 'shelter-1');
+    // Planned: another free shelter (paid). Next wanted: school-1, which needs wood.
+    expect(plannedBuilding(game)?.cost.wood).toBe(0);
+    expect(nextKind(game)).toBe('chop');
+  });
+
   it('studies early in the game once a school exists', () => {
     const params = {
       ...DEFAULT_PARAMS,
@@ -128,10 +142,16 @@ describe('cooperative bot votes', () => {
     expect(bot.chooseVote(game, 'a', rng)).toBe('shelter-1');
   });
 
-  it('votes for the school after the first shelter', () => {
+  it('keeps building shelter until everyone has one, then the school', () => {
     const params = { ...DEFAULT_PARAMS, costs: { shelter: FREE, school: FREE, workshop: FREE, gathering: FREE } };
     const game = newGame(params);
     voteAll(game, 'shelter-1');
+    game.endActionPhase();
+    expect(bot.chooseVote(game, 'a', rng)).toMatch(/^shelter-/);
+    game.endVotePhase();
+    game.nextMonth();
+    for (const step of ['shelter-2', 'shelter-3', 'shelter-1', 'shelter-2', 'shelter-3']) voteAll(game, step);
+    expect(game.shelterShare()).toBeGreaterThanOrEqual(1);
     game.endActionPhase();
     expect(bot.chooseVote(game, 'a', rng)).toBe('school-1');
   });
@@ -158,8 +178,9 @@ describe('cooperative bot votes', () => {
     const game = newGame(params);
     voteAll(game, 'shelter-1');
     game.endActionPhase();
-    const vote = bot.chooseVote(game, 'a', rng);
-    expect(vote).not.toBe('school-1');
+    const schoolFirst = createBot('cooperative', { noise: 0, buildOrder: ['shelter:first', 'school-1', 'gathering-1'] });
+    const vote = schoolFirst.chooseVote(game, 'a', rng);
+    expect(vote).toBe('gathering-1');
     expect(game.voteOptions().find((o) => o.id === vote)?.blocked).toEqual([]);
   });
 });

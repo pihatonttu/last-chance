@@ -5,7 +5,9 @@ import { availableMoves, hasActionsLeft, movesOfKind, openOptions, toCoord, type
 const SKILL_HORIZON = 4;
 
 /**
- * The order a well-organised class builds in. Tokens:
+ * The order a well-organised class builds in: everyone under a roof first, then school,
+ * gathering place and workshop, then upgrades. In simulation (2026-10-09) this beat
+ * putting the school or the gathering place before the shelters. Tokens:
  * - 'shelter:first' a shelter while there is none,
  * - 'shelter' the cheapest shelter step while not everyone has shelter,
  * - 'shelter:spare' the same until there is spare room,
@@ -13,11 +15,10 @@ const SKILL_HORIZON = 4;
  */
 export const DEFAULT_BUILD_ORDER: readonly string[] = [
   'shelter:first',
+  'shelter',
   'school-1',
-  'shelter',
-  'workshop-1',
   'gathering-1',
-  'shelter',
+  'workshop-1',
   'shelter:spare',
   'gathering-2',
   'school-2',
@@ -124,7 +125,9 @@ function choose(game: Game, moves: Move[], order: readonly string[]): Move | und
   const food = game.resources.food;
   const need = game.foodNeed();
   const monthsLeft = game.totalMonths - game.month;
-  const target = plannedBuilding(game, order);
+  const wanted = wantedOptions(game, order);
+  const target = wanted[0];
+  const next = wanted[1];
   const reserved = target && !target.upgrade ? reservedMeadow(game) : undefined;
 
   // 1. Nobody goes hungry this month.
@@ -168,9 +171,24 @@ function choose(game: Game, moves: Move[], order: readonly string[]): Move | und
     if (m) return m;
   }
 
-  // 5. Recreation, 6. exploring, 7. stocking up.
+  // 5. Recreation.
+  const fun = movesOfKind(moves, 'swim', 'gather')[0];
+  if (fun) return fun;
+
+  // 6. Save up for next month's building too.
+  if (target && next) {
+    if (target.cost.wood + next.cost.wood > game.resources.wood) {
+      const m = richest(movesOfKind(moves, 'chop'));
+      if (m) return m;
+    }
+    if (target.cost.stone + next.cost.stone > game.resources.stone) {
+      const m = richest(movesOfKind(moves, 'mine')) ?? quickest(movesOfKind(moves, 'build-quarry'));
+      if (m) return m;
+    }
+  }
+
+  // 7. Exploring, 8. stocking up.
   return (
-    movesOfKind(moves, 'swim', 'gather')[0] ??
     quickest(movesOfKind(moves, 'explore')) ??
     (food < game.foodStorage() ? richest(movesOfKind(moves, 'harvest', 'fish')) : undefined) ??
     richest(movesOfKind(moves, 'chop', 'mine'))
