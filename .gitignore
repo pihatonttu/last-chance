@@ -1,0 +1,21 @@
+# Original game material (copyright Eduplus / TeacherGaming), local study only
+reference/original/
+
+# Node / build
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Local data and secrets
+*.db
+*.db-*
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
