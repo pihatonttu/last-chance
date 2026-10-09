@@ -1,0 +1,22 @@
+{
+  "name": "@saari/debrief",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@saari/rules": "workspace:*"
+  },
+  "devDependencies": {
+    "@saari/bots": "workspace:*",
+    "@types/node": "^24.19.1",
+    "typescript": "7.0.2",
+    "vitest": "5.0.3"
+  }
+}
