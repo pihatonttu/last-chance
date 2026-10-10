@@ -85,7 +85,8 @@
   }
   .tiles {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(9.5em, 1fr));
+    /* Never fewer than two columns: all four pictures fit on a phone without scrolling. */
+    grid-template-columns: repeat(auto-fit, minmax(min(9.5em, 42%), 1fr));
     gap: 0.7em;
   }
   .tile {
@@ -103,6 +104,19 @@
   .tile strong {
     font-size: 1.1em;
     line-height: 1.2;
+  }
+  @media (max-width: 520px) {
+    .tile {
+      padding: 0.6em 0.4em;
+    }
+    .tile strong {
+      font-size: 0.95em;
+    }
+    .tile :global(.art-icon),
+    .tile :global(svg[role='img']) {
+      width: 48px;
+      height: 48px;
+    }
   }
   .good {
     background: var(--ok-soft);

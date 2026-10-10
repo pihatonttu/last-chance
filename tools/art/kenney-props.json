@@ -782,45 +782,37 @@
    "name": "gathering-2",
    "parts": [
     {
-     "model": "nature/campfire_stones",
+     "model": "town/stall-red",
      "at": [
-      0,
-      0
+      -0.17,
+      0.17
      ],
-     "scale": 1.08,
-     "z": 0.054
-    },
-    {
-     "model": "nature/campfire_logs",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 1.08,
-     "z": 0.054
+     "scale": 0.46,
+     "turn": 45
     },
     {
      "model": "town/stall-bench",
      "at": [
-      -0.27,
-      0
+      0.1,
+      -0.1
      ],
-     "scale": 0.5
+     "scale": 0.45,
+     "turn": -45
     },
     {
      "model": "town/stall-bench",
      "at": [
-      0,
-      0.27
+      0.27,
+      -0.27
      ],
-     "scale": 0.5,
-     "turn": 90
+     "scale": 0.45,
+     "turn": -45
     },
     {
      "model": "town/lantern",
      "at": [
-      -0.32,
-      0.32
+      -0.36,
+      -0.2
      ],
      "scale": 0.3
     }
@@ -833,45 +825,83 @@
    "name": "gathering-3",
    "parts": [
     {
+     "model": "nature/path_stoneCircle",
+     "at": [
+      0.06,
+      -0.06
+     ],
+     "scale": 0.62,
+     "z": 0.031
+    },
+    {
+     "model": "town/stall-bench",
+     "at": [
+      -0.028,
+      -0.388
+     ],
+     "scale": 0.38,
+     "turn": -105
+    },
+    {
+     "model": "town/stall-bench",
+     "at": [
+      0.204,
+      -0.368
+     ],
+     "scale": 0.38,
+     "turn": -65
+    },
+    {
+     "model": "town/stall-bench",
+     "at": [
+      0.368,
+      -0.204
+     ],
+     "scale": 0.38,
+     "turn": -25
+    },
+    {
+     "model": "town/stall-bench",
+     "at": [
+      0.388,
+      0.028
+     ],
+     "scale": 0.38,
+     "turn": 15
+    },
+    {
+     "model": "town/stall-bench",
+     "at": [
+      0.255,
+      0.219
+     ],
+     "scale": 0.38,
+     "turn": 55
+    },
+    {
      "model": "town/stall-red",
      "at": [
-      -0.18,
-      0.18
-     ],
-     "scale": 0.4
-    },
-    {
-     "model": "town/fountain-round",
-     "at": [
-      0.1,
-      -0.1
-     ],
-     "scale": 0.24
-    },
-    {
-     "model": "town/lantern",
-     "at": [
-      0.35,
+      -0.3,
       0.3
      ],
+     "scale": 0.36,
+     "turn": 45
+    },
+    {
+     "model": "town/lantern",
+     "at": [
+      -0.4,
+      -0.1
+     ],
      "scale": 0.3
     },
     {
      "model": "town/lantern",
      "at": [
-      -0.32,
-      -0.32
+      0.1,
+      0.4
      ],
      "scale": 0.3
-    },
-    {
-     "model": "nature/flower_purpleA",
-     "at": [
-      0.32,
-      -0.32
-     ],
-     "scale": 0.8,
-     "z": 0.04
     }
    ],
    "recolor": [

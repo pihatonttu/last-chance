@@ -9,7 +9,7 @@ import type { Coord, Gain, PublicTile } from '@saari/rules';
 import { formatNumber } from '../i18n/index.ts';
 import { gainParts } from '../lib/format.ts';
 import { exploreNeeded, stockMax } from '../lib/rules-info.ts';
-import { clampCamera, fitCamera, panBy, screenToWorld, zoomAt, type Camera } from './camera.ts';
+import { clampCamera, fitCamera, panBy, playArea, screenToWorld, zoomAt, type Camera } from './camera.ts';
 import { drawOrder, tileCenter, tilesBounds, worldToTile, type Rect } from './iso.ts';
 import {
   CLOUD_SCALE,
@@ -144,6 +144,8 @@ export class MapRenderer {
   #map: MapView | null = null;
   #villagers = 0;
   #bounds: Rect | null = null;
+  /** Students: the explored part of the island, where the map frames by default. */
+  #focus: Rect | null = null;
   #camera: Camera = { x: 0, y: 0, scale: 1 };
   #userMoved = false;
   #selected: Coord | null = null;
@@ -198,6 +200,7 @@ export class MapRenderer {
     this.#map = map;
     this.#villagers = villagers;
     this.#bounds = this.#islandBounds(map);
+    this.#focus = this.#options.mode === 'student' ? tilesBounds(playArea(map.tiles, map.landing), 8) : null;
     this.#draw();
     if (first || this.#options.mode === 'projector' || !this.#userMoved) this.fit();
     else this.#requestRender();
@@ -284,12 +287,13 @@ export class MapRenderer {
     this.#draw();
   }
 
-  /** Whole island in view. */
+  /** Whole island in view (students: the explored part of it). */
   fit(): void {
-    if (!this.#bounds) return;
+    const frame = this.#focus ?? this.#bounds;
+    if (!frame) return;
     const { width, height } = this.#viewSize();
     const padding = this.#options.mode === 'projector' ? 24 : 16;
-    this.#camera = fitCamera(this.#bounds, width, height, padding, this.#options.mode === 'projector' ? 3 : 2.2);
+    this.#camera = fitCamera(frame, width, height, padding, this.#options.mode === 'projector' ? 3 : 2.2);
     this.#setUserMoved(false);
     this.#applyCamera();
   }

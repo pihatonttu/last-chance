@@ -169,7 +169,7 @@ export const fi = {
   'terrain.field.description': 'Pellosta korjataan ruokaa. Pelto kasvaa joka kuukausi taas täyteen.',
   'terrain.quarry.name': 'Louhos',
   'terrain.quarry.description': 'Louhoksesta saa kiveä. Mitä vähemmän kiveä on jäljellä, sitä vähemmän sitä irtoaa.',
-  'tile.landing': 'Rantautumispaikka: tähän hylky ajoi.',
+  'tile.landing': 'Rantautumispaikka: tähän rantauduitte veneellä.',
   'tile.select': 'Napauta ruutua kartalla',
   'tile.more': 'Lisätietoja',
   'tile.stock.forest': 'Puuta jäljellä {n} / {max}',
@@ -249,7 +249,7 @@ export const fi = {
   'refusal.removed': 'Opettaja poisti sinut pelistä.',
   'refusal.wrong-phase': 'Toimintoja voi tehdä vain toimintavuorolla.',
   'refusal.out-of-bounds': 'Tämä ruutu ei ole saarella.',
-  'refusal.no-actions-left': 'Toimintosi on käytetty tältä kuukaudelta.',
+  'refusal.no-actions-left': 'Energiasi on käytetty tältä kuulta.',
   'refusal.not-explorable': 'Tutki ensin ruutu tämän vierestä.',
   'refusal.deep-sea': 'Liian syvää. Kalastaa voi vain tutkitun rannan vieressä.',
   'refusal.field-empty': 'Pelto on korjattu tyhjäksi. Se kasvaa taas ensi kuussa.',
@@ -309,7 +309,7 @@ export const fi = {
   'play.refused.title': 'Liittyminen ei onnistunut',
   'play.soundOn': 'Äänet päällä',
   'play.soundOff': 'Äänet pois',
-  'play.recenter': 'Koko saari',
+  'play.recenter': 'Keskitä',
   'play.tab.vote': 'Äänestys',
 
   'skill.education': 'Koulutus',
@@ -390,9 +390,9 @@ export const fi = {
   'ticker.quarry-ready': 'Louhos valmistui.',
   'ticker.forest-cleared': 'Metsä kaadettiin niityksi.',
   'ticker.built': 'Rakennettiin: {name}',
-  'ticker.tie': 'Tasapeli! Neuvotelkaa ja yrittäkää ensi kuussa uudelleen.',
+  'ticker.tie': 'Tasapeli! Ei rakennettu. Neuvotelkaa!',
   'ticker.player-joined': 'Uusi kyläläinen liittyi.',
-  'ticker.food-short': 'Ruoka ei riitä tässä kuussa: puuttuu {missing}.',
+  'ticker.food-short': 'Ruoka ei riitä: puuttuu {missing}.',
 
   // ---------------------------------------------------------------- debrief
   'debrief.title': 'Jälkipuinti',

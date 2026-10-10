@@ -12,6 +12,7 @@ Kits (CC0, kenney.nl): survival = Survival Kit 2.0, town = Fantasy Town Kit 2.0,
 nature = Nature Kit, pirate = Pirate Kit.
 """
 import json
+import math
 import os
 
 N, S, T, P = 'nature/', 'survival/', 'town/', 'pirate/'
@@ -155,14 +156,18 @@ def workshop(level):
 
 
 def gathering(level):
-    if level == 1:  # a campfire with logs to sit on
+    if level == 1:  # Nuotio: a campfire with logs to sit on
         return [*campfire((0, 0), 1.2), part(N + 'log_large', (-0.27, 0.0), 0.28, 90), part(N + 'log_large', (0.0, 0.27), 0.28, 0)]
-    if level == 2:  # benches round the fire
-        return [*campfire((0, 0), 1.2), part(T + 'stall-bench', (-0.27, 0), 0.5), part(T + 'stall-bench', (0, 0.27), 0.5, 90),
-                part(T + 'lantern', (-0.32, 0.32), 0.3)]
-    return [part(T + 'stall-red', (-0.18, 0.18), 0.4), part(T + 'fountain-round', (0.1, -0.1), 0.24),
-            part(T + 'lantern', (0.35, 0.3), 0.3), part(T + 'lantern', (-0.32, -0.32), 0.3),
-            part(N + 'flower_purpleA', (0.32, -0.32), 0.8)]
+    if level == 2:  # Teatteri: a puppet-theatre booth with benches in front
+        return [part(T + 'stall-red', (-0.17, 0.17), 0.46, 45), part(T + 'stall-bench', (0.1, -0.1), 0.45, -45),
+                part(T + 'stall-bench', (0.27, -0.27), 0.45, -45), part(T + 'lantern', (-0.36, -0.2), 0.3)]
+    # Amfiteatteri: a paved ring with benches round it and a stage at the back
+    ring = []
+    for deg in (-60, -20, 20, 60, 100):
+        r = 0.34
+        ring.append(part(T + 'stall-bench', (0.06 + r * math.cos(math.radians(deg - 45)), -0.06 + r * math.sin(math.radians(deg - 45))), 0.38, deg - 45))
+    return [part(N + 'path_stoneCircle', (0.06, -0.06), 0.62), *ring, part(T + 'stall-red', (-0.3, 0.3), 0.36, 45),
+            part(T + 'lantern', (-0.4, -0.1), 0.3), part(T + 'lantern', (0.1, 0.4), 0.3)]
 
 
 sprites = []

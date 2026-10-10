@@ -26,7 +26,7 @@ describe('game text', () => {
     expect(optionName({ id: 'school-2' })).toBe('Koulu (taso 2)');
     expect(optionName({ id: 'none' })).toBe('Ei rakenneta tässä kuussa');
     expect(tickerText({ kind: 'built', option: 'shelter-1', x: 1, y: 2 })).toBe('Rakennettiin: Teltta');
-    expect(tickerText({ kind: 'food-short', missing: 12 })).toBe('Ruoka ei riitä tässä kuussa: puuttuu 12.');
+    expect(tickerText({ kind: 'food-short', missing: 12 })).toBe('Ruoka ei riitä: puuttuu 12.');
     expect(parseOptionId('workshop-3')).toEqual({ kind: 'workshop', level: 3 });
     expect(parseOptionId('castle-1')).toBeNull();
   });

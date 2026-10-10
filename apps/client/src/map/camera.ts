@@ -58,3 +58,21 @@ export function clampCamera(cam: Camera, bounds: Rect, viewW: number, viewH: num
   if (top > viewH - keepY) y -= top - (viewH - keepY);
   return { ...cam, x, y };
 }
+
+/**
+ * Where a student's map frames by default: the explored land with two tiles of room round
+ * it (the green boxes to explore next and the fishing water), or the landing at the start.
+ * The view widens by itself as the class explores.
+ */
+export function playArea(
+  tiles: readonly { x: number; y: number; fog: boolean; terrain: string | null }[],
+  landing: { x: number; y: number },
+): { x: number; y: number }[] {
+  const known = tiles.filter((t) => !t.fog && t.terrain !== null && t.terrain !== 'sea');
+  const centres = known.length > 0 ? known : [landing];
+  const out: { x: number; y: number }[] = [];
+  for (const c of centres) {
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) out.push({ x: c.x + dx, y: c.y + dy });
+  }
+  return out;
+}

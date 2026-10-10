@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { ActionPreview, Coord, Phase, PublicTile } from '@saari/rules';
-  import { t } from '../i18n/index.ts';
+  import { formatNumber, t } from '../i18n/index.ts';
   import { actionName, buildingTitle, gainText, terrainDescription, terrainName } from '../lib/format.ts';
   import { exploreNeeded, shelterPeople, stockMax, tileUseCapacity, workNeeded } from '../lib/rules-info.ts';
   import type { ActOutcome } from '../state/reducer.ts';
@@ -117,6 +117,17 @@
           <GainChip gain={preview.yield} />
         {/if}
       </button>
+      {#if preview.yield.type === 'work'}
+        {@const y = preview.yield}
+        <!-- Shared work: how far it is and how far this action takes it. -->
+        <div class="work" aria-label={t('yield.work', { done: y.done, after: Math.min(y.needed, y.done + y.amount), needed: y.needed })}>
+          <div class="bar">
+            <span class="next" style:width="{Math.min(1, (y.done + y.amount) / y.needed) * 100}%"></span>
+            <span style:width="{Math.min(1, y.done / y.needed) * 100}%"></span>
+          </div>
+          <span class="steps">{formatNumber(y.done)} / {formatNumber(y.needed)}</span>
+        </div>
+      {/if}
       {#if !preview.available && preview.reason}
         <p class="reason" role="status">{t(`refusal.${preview.reason}`)}</p>
       {/if}
@@ -186,6 +197,30 @@
   .act {
     width: 100%;
     flex-wrap: wrap;
+  }
+  .work {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 800;
+  }
+  .work .bar {
+    position: relative;
+    flex: 1;
+    height: 0.9rem;
+  }
+  .work .bar > span {
+    position: absolute;
+    inset: 0 auto 0 0;
+  }
+  .work .bar > .next {
+    background: var(--primary-soft);
+    outline: 2px dashed var(--primary);
+    outline-offset: -2px;
+  }
+  .steps {
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
   }
   .reason {
     color: var(--danger);

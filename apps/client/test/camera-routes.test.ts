@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clampCamera, fitCamera, panBy, screenToWorld, worldToScreen, zoomAt } from '../src/map/camera.ts';
+import { clampCamera, fitCamera, panBy, playArea, screenToWorld, worldToScreen, zoomAt } from '../src/map/camera.ts';
 import { isGameCode, normalizeCode, parseRoute } from '../src/lib/routes.ts';
 import { backoffDelay } from '../src/net/websocket.ts';
 import { isMock } from '../src/net/mode.ts';
@@ -76,5 +76,26 @@ describe('reconnect backoff', () => {
     expect(backoffDelay(3, 500, 8000, () => 1)).toBe(4000);
     expect(backoffDelay(10, 500, 8000, () => 1)).toBe(8000);
     expect(backoffDelay(10, 500, 8000, () => 0)).toBe(4000);
+  });
+});
+
+describe('playArea', () => {
+  const tile = (x: number, y: number, over: Partial<{ fog: boolean; terrain: string | null }> = {}) => ({ x, y, fog: false, terrain: 'meadow', ...over });
+
+  it('frames what has been explored, with two tiles of room round it', () => {
+    const tiles = [tile(5, 5), tile(6, 5), tile(9, 9, { fog: true, terrain: null }), tile(0, 0, { terrain: 'sea' })];
+    const area = playArea(tiles, { x: 5, y: 5 });
+    const xs = area.map((c) => c.x);
+    const ys = area.map((c) => c.y);
+    expect(Math.min(...xs)).toBe(3);
+    expect(Math.max(...xs)).toBe(8);
+    expect(Math.min(...ys)).toBe(3);
+    expect(Math.max(...ys)).toBe(7);
+  });
+
+  it('frames the landing when nothing is explored yet', () => {
+    const area = playArea([tile(1, 1, { fog: true, terrain: null })], { x: 4, y: 4 });
+    expect(area).toContainEqual({ x: 2, y: 2 });
+    expect(area).toContainEqual({ x: 6, y: 6 });
   });
 });
