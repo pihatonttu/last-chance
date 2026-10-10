@@ -71,6 +71,17 @@
           "scale": 1.6
         }
       ]
+    },
+    {
+      "name": "ship",
+      "size": 192,
+      "parts": [
+        {
+          "model": "pirate/ship-medium",
+          "scale": 0.12,
+          "turn": 65
+        }
+      ]
     }
   ]
 }

@@ -2,10 +2,19 @@
   import type { MonthReport } from '@saari/rules';
   import { formatNumber, t, tp } from '../i18n/index.ts';
   import { optionName } from '../lib/format.ts';
+  import { parseOptionId } from '../lib/rules-info.ts';
+  import ArtIcon from './ArtIcon.svelte';
   import MoodFace from './MoodFace.svelte';
+  import PropPicture from './PropPicture.svelte';
 
+  /**
+   * The end of a month in four pictures: what was built, whether everyone ate, whether
+   * everyone had shelter, and how the mood changed. The numbers behind them wait under
+   * "More info" (P38).
+   */
   let { report }: { report: MonthReport } = $props();
 
+  const built = $derived(report.vote.outcome === 'built' ? parseOptionId(report.vote.option ?? '') : null);
   const voteLine = $derived.by(() => {
     switch (report.vote.outcome) {
       case 'built':
@@ -18,6 +27,8 @@
         return t('summary.noVotes');
     }
   });
+  const fed = $derived(report.food.hungry === 0);
+  const sheltered = $derived(report.shelter.unsheltered === 0);
 
   function signed(n: number): string {
     return n > 0 ? `+${formatNumber(n)}` : formatNumber(n);
@@ -26,130 +37,135 @@
 
 <section class="summary" aria-labelledby="summary-title">
   <h2 id="summary-title">{t('summary.title', { month: report.month })}</h2>
-  <p class="vote-line" class:tie={report.vote.outcome === 'tie'}>{voteLine}</p>
 
-  <div class="grid">
-    <div class="box" class:bad={report.food.hungry > 0}>
-      <h3>{t('summary.food')}</h3>
-      <p>{t('summary.food.eaten', { eaten: report.food.eaten, need: report.food.need })}</p>
-      <p class="status">
-        {report.food.hungry > 0 ? tp('summary.food.hungry', report.food.hungry) : t('summary.food.allFed')}
-      </p>
-      {#if report.food.spoiled > 0}
-        <p class="warn">{t('summary.food.spoiled', { n: report.food.spoiled })}</p>
-      {/if}
-      <p class="muted">{t('summary.food.left', { n: report.food.after })}</p>
+  <div class="tiles">
+    <div class="tile" class:good={built !== null} class:bad={report.vote.outcome === 'tie'}>
+      <PropPicture texture={built ? `props/${built.kind}-${built.level}` : null} size={84} />
+      <strong>{voteLine}</strong>
     </div>
-
-    <div class="box" class:bad={report.shelter.unsheltered > 0}>
-      <h3>{t('summary.shelter')}</h3>
-      <p>{t('summary.shelter.value', { capacity: report.shelter.capacity, villagers: report.villagers })}</p>
-      <p class="status">
-        {report.shelter.unsheltered > 0 ? tp('summary.shelter.without', report.shelter.unsheltered) : t('summary.shelter.all')}
-      </p>
+    <div class="tile" class:good={fed} class:bad={!fed}>
+      <span class="visually-hidden">{t('summary.food')}</span>
+      <span class="icon"><ArtIcon name="food" size={64} /><span class="mark" aria-hidden="true">{fed ? '✓' : '✗'}</span></span>
+      <strong>{fed ? t('summary.food.allFed') : tp('summary.food.hungry', report.food.hungry)}</strong>
     </div>
-
-    <div class="box mood">
-      <h3>{t('summary.mood')}</h3>
-      <table>
-        <tbody>
-          <tr><th scope="row">{t('summary.mood.food')}</th><td>{signed(report.mood.food)}</td></tr>
-          <tr><th scope="row">{t('summary.mood.shelter')}</th><td>{signed(report.mood.shelter)}</td></tr>
-          <tr>
-            <th scope="row">{t('summary.mood.recreation', { n: report.recreation })}</th>
-            <td>{signed(report.mood.recreation)}</td>
-          </tr>
-          <tr class="total"><th scope="row">{t('summary.mood.total')}</th><td>{signed(report.mood.total)}</td></tr>
-        </tbody>
-      </table>
+    <div class="tile" class:good={sheltered} class:bad={!sheltered}>
+      <span class="visually-hidden">{t('summary.shelter')}</span>
+      <span class="icon"><ArtIcon name="shelter" size={64} /><span class="mark" aria-hidden="true">{sheltered ? '✓' : '✗'}</span></span>
+      <strong>{sheltered ? t('summary.shelter.all') : tp('summary.shelter.without', report.shelter.unsheltered)}</strong>
     </div>
-
-    <div class="box happiness">
-      <MoodFace mood={report.mood.total} size={56} />
-      <div>
-        <h3>{t('summary.happiness')}</h3>
-        <p class="big">{formatNumber(report.happiness)}</p>
-      </div>
+    <div class="tile" class:good={report.mood.total > 0} class:bad={report.mood.total < 0}>
+      <MoodFace mood={report.mood.total} size={64} />
+      <strong><span class="delta">{signed(report.mood.total)}</span> {t('summary.mood')}</strong>
+      <span class="visually-hidden">{t('summary.mood.total')}</span>
     </div>
   </div>
-  <p class="muted next">{t('summary.next')}</p>
+
+  <details class="more">
+    <summary>{t('tile.more')}</summary>
+    <ul>
+      <li>{t('summary.food.eaten', { eaten: report.food.eaten, need: report.food.need })}</li>
+      {#if report.food.spoiled > 0}<li class="warn">{t('summary.food.spoiled', { n: report.food.spoiled })}</li>{/if}
+      <li>{t('summary.food.left', { n: report.food.after })}</li>
+      <li>{t('summary.shelter.value', { capacity: report.shelter.capacity, villagers: report.villagers })}</li>
+      <li>{t('summary.mood.food')}: {signed(report.mood.food)}</li>
+      <li>{t('summary.mood.shelter')}: {signed(report.mood.shelter)}</li>
+      <li>{t('summary.mood.recreation', { n: report.recreation })}: {signed(report.mood.recreation)}</li>
+      <li><strong>{t('summary.happiness')}: {formatNumber(report.happiness)}</strong></li>
+      {#if report.vote.outcome === 'tie'}<li>{t('summary.tieHint')}</li>{/if}
+    </ul>
+  </details>
+  <p class="next">{t('summary.next')}</p>
 </section>
 
 <style>
   .summary h2 {
-    margin: 0;
+    margin: 0 0 0.6em;
     font-size: 1.6em;
+    text-align: center;
   }
-  .vote-line {
-    font-size: 1.15em;
-    font-weight: 800;
-    margin: 0.3em 0 0.8em;
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9.5em, 1fr));
+    gap: 0.7em;
+  }
+  .tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4em;
+    padding: 0.8em 0.6em;
+    border-radius: var(--radius);
+    background: var(--card-2);
+    border: 3px solid var(--line);
+    text-align: center;
+  }
+  .tile strong {
+    font-size: 1.1em;
+    line-height: 1.2;
+  }
+  .good {
+    background: var(--ok-soft);
+    border-color: #9bd3a0;
+  }
+  .bad {
+    background: var(--danger-soft);
+    border-color: #efa49d;
+  }
+  .icon {
+    position: relative;
+    display: inline-grid;
+  }
+  .mark {
+    position: absolute;
+    right: -0.5em;
+    bottom: -0.3em;
+    display: grid;
+    place-items: center;
+    width: 1.6em;
+    height: 1.6em;
+    border-radius: 50%;
+    color: #fff;
+    font-weight: 900;
+    background: var(--ok);
+    box-shadow: var(--shadow);
+  }
+  .bad .mark {
+    background: var(--danger);
+  }
+  .delta {
+    font-size: 1.4em;
+    font-weight: 900;
+  }
+  .good .delta {
     color: var(--ok);
   }
-  .vote-line.tie {
+  .bad .delta {
     color: var(--danger);
   }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(13em, 1fr));
-    gap: 0.75em;
+  .more {
+    margin-top: 0.8em;
   }
-  .box {
-    padding: 0.75em 1em;
-    border-radius: var(--radius-small);
-    background: var(--ok-soft);
-  }
-  .box.bad {
-    background: var(--danger-soft);
-  }
-  .box.mood {
-    background: var(--card-2);
-  }
-  .box.happiness {
+  .more summary {
+    font-weight: 800;
+    color: var(--primary-dark);
+    cursor: pointer;
+    min-height: 40px;
     display: flex;
     align-items: center;
-    gap: 0.75em;
-    background: var(--primary-soft);
   }
-  h3 {
-    margin: 0 0 0.3em;
-    font-size: 1em;
-  }
-  p {
-    margin: 0.15em 0;
-  }
-  .status {
-    font-weight: 800;
+  .more ul {
+    margin: 0.3em 0 0;
+    padding-left: 1.2em;
   }
   .warn {
     color: var(--warn);
     font-weight: 700;
   }
-  .big {
-    font-size: 2em;
-    font-weight: 900;
-    line-height: 1;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  th {
-    text-align: left;
-    font-weight: 600;
-  }
-  td {
-    text-align: right;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-  }
-  .total th,
-  .total td {
-    border-top: 2px solid var(--line);
-    font-weight: 900;
-    padding-top: 0.2em;
-  }
   .next {
-    margin-top: 0.75em;
+    margin: 0.8em 0 0;
+    text-align: center;
+    color: var(--muted);
+    font-weight: 700;
   }
 </style>

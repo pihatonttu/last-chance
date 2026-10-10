@@ -20,7 +20,6 @@ import {
   SKILLS,
   TERRAINS,
   TICKER_KINDS,
-  VOTE_BLOCKS,
   VOTE_REFUSALS,
 } from '../src/lib/enums.ts';
 import { gradeName, questionText } from '../src/lib/format.ts';
@@ -64,7 +63,6 @@ function familyKeys(): string[] {
   for (const r of JOIN_REFUSALS) keys.push(`joinRefusal.${r}`);
   for (const c of ERROR_CODES) keys.push(`serverError.${c}`);
   for (const r of NICKNAME_REFUSALS) keys.push(`nickname.${r}`);
-  for (const b of VOTE_BLOCKS) keys.push(`vote.blocked.${b}`);
   for (const k of TICKER_KINDS) keys.push(`ticker.${k}`);
   for (const q of QUESTION_IDS) keys.push(`debrief.question.${q}`);
   for (const g of ACTION_GROUPS) keys.push(`debrief.group.${g}`);

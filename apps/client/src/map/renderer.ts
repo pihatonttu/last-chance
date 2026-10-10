@@ -6,6 +6,7 @@
 import { Application, Assets, Container, Graphics, Sprite, Text, TextStyle, type Texture } from 'pixi.js';
 import type { MapView } from '@saari/protocol';
 import type { Coord, Gain, PublicTile } from '@saari/rules';
+import { formatNumber } from '../i18n/index.ts';
 import { gainParts } from '../lib/format.ts';
 import { exploreNeeded, stockMax } from '../lib/rules-info.ts';
 import { clampCamera, fitCamera, panBy, screenToWorld, zoomAt, type Camera } from './camera.ts';
@@ -83,7 +84,7 @@ function pixiPen(g: Graphics): Pen {
 }
 
 interface Floating {
-  text: Text;
+  node: Container;
   born: number;
   baseY: number;
 }
@@ -204,17 +205,41 @@ export class MapRenderer {
 
   setSelected(coord: Coord | null): void {
     this.#selected = coord;
+    if (coord && this.#options.mode === 'student') this.#keepVisible(coord);
     this.#drawHighlight();
     this.#requestRender();
   }
 
+  /**
+   * Pans so a tapped tile is not hidden under its popup: the popup opens bottom-right on
+   * tablets and as a sheet over the lower part on phones.
+   */
+  #keepVisible(coord: Coord): void {
+    const { width, height } = this.#viewSize();
+    const c = tileCenter(coord.x, coord.y);
+    const sx = this.#camera.x + c.x * this.#camera.scale;
+    const sy = this.#camera.y + c.y * this.#camera.scale;
+    const phone = width < 640;
+    const clearX = phone ? sx > 40 && sx < width - 40 : sx > 40 && sx < width - 420;
+    const clearY = phone ? sy > 60 && sy < height * 0.3 : sy > 60 && sy < height - 60;
+    if (clearX && clearY) return;
+    const target = phone ? { x: width / 2, y: height * 0.2 } : { x: Math.min(width * 0.4, width - 460), y: height * 0.45 };
+    this.#camera = panBy(this.#camera, target.x - sx, target.y - sy);
+    this.#setUserMoved(true);
+    this.#applyCamera();
+  }
+
   showEffect(x: number, y: number, gain: Gain): void {
     const parts = gainParts(gain);
-    if (parts.length === 0) return;
+    const first = parts[0];
+    if (!first) return;
     const c = tileCenter(x, y);
-    const color = EFFECT_COLORS[parts[0]!.key];
+    const color = EFFECT_COLORS[first.key];
+    // Wood, stone and food float as "+10" and their picture; the rest in words.
+    const icon = first.key === 'wood' || first.key === 'stone' || first.key === 'food' ? this.#textures?.get(`icons/${first.key}`) : undefined;
+    const words = icon ? [`+${formatNumber(gain[first.key] ?? 0)}`, ...parts.slice(1).map((p) => p.text)] : parts.map((p) => p.text);
     const text = new Text({
-      text: parts.map((p) => p.text).join('  '),
+      text: words.join('  '),
       style: new TextStyle({
         fontFamily: 'Nunito Variable, Nunito, system-ui, sans-serif',
         fontWeight: '800',
@@ -224,12 +249,25 @@ export class MapRenderer {
       }),
       resolution: 2,
     });
-    text.anchor.set(0.5, 1);
+    const node = new Container();
+    node.addChild(text);
+    if (icon) {
+      const picture = new Sprite(icon);
+      const size = EFFECT_STYLE.fontSize * 1.5;
+      picture.anchor.set(0, 0.5);
+      picture.scale.set(size / icon.width);
+      text.anchor.set(1, 0.5);
+      text.position.set(-2, 0);
+      picture.position.set(2, 0);
+      node.addChild(picture);
+    } else {
+      text.anchor.set(0.5, 0.5);
+    }
     // Several effects on one tile stack instead of overlapping.
-    const stacked = this.#floating.filter((f) => Math.abs(f.text.x - c.x) < 1 && performance.now() - f.born < 600).length;
-    text.position.set(c.x, c.y - 18 - stacked * 22);
-    this.#effects.addChild(text);
-    this.#floating.push({ text, born: performance.now(), baseY: text.y });
+    const stacked = this.#floating.filter((f) => Math.abs(f.node.x - c.x) < 1 && performance.now() - f.born < 600).length;
+    node.position.set(c.x, c.y - 30 - stacked * 26);
+    this.#effects.addChild(node);
+    this.#floating.push({ node, born: performance.now(), baseY: node.y });
     this.#requestRender();
   }
 
@@ -461,11 +499,11 @@ export class MapRenderer {
     this.#floating = this.#floating.filter((f) => {
       const t = (now - f.born) / duration;
       if (t >= 1) {
-        f.text.destroy();
+        f.node.destroy({ children: true });
         return false;
       }
-      f.text.alpha = t < 0.7 ? 1 : 1 - (t - 0.7) / 0.3;
-      if (!this.#options.reducedMotion) f.text.y = f.baseY - EFFECT_STYLE.rise * Math.sqrt(t);
+      f.node.alpha = t < 0.7 ? 1 : 1 - (t - 0.7) / 0.3;
+      if (!this.#options.reducedMotion) f.node.y = f.baseY - EFFECT_STYLE.rise * Math.sqrt(t);
       return true;
     });
     this.#app.render();

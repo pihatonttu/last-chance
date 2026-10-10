@@ -1,9 +1,10 @@
 <script lang="ts">
   import type { ActionPreview, Coord, Phase, PublicTile } from '@saari/rules';
   import { t } from '../i18n/index.ts';
-  import { actionName, buildingTitle, gainText, terrainDescription, terrainName, yieldGain } from '../lib/format.ts';
+  import { actionName, buildingTitle, gainText, terrainDescription, terrainName } from '../lib/format.ts';
   import { exploreNeeded, shelterPeople, stockMax, tileUseCapacity, workNeeded } from '../lib/rules-info.ts';
   import type { ActOutcome } from '../state/reducer.ts';
+  import GainChip from './GainChip.svelte';
 
   /**
    * What a tapped tile offers, as a small popup: its name and one big action button.
@@ -113,7 +114,7 @@
           {t('action.pending')}
         {:else}
           <span>{actionName(preview.kind)}</span>
-          {#if preview.yield.type !== 'none'}<span class="gain">{yieldGain(preview.yield)}</span>{/if}
+          <GainChip gain={preview.yield} />
         {/if}
       </button>
       {#if !preview.available && preview.reason}
@@ -185,12 +186,6 @@
   .act {
     width: 100%;
     flex-wrap: wrap;
-  }
-  .gain {
-    padding: 0.05em 0.5em;
-    border-radius: 999px;
-    background: rgb(255 255 255 / 0.22);
-    white-space: nowrap;
   }
   .reason {
     color: var(--danger);

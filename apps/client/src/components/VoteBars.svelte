@@ -1,11 +1,13 @@
 <script lang="ts">
   import type { VoteView } from '@saari/protocol';
-  import type { Resources } from '@saari/rules';
-  import { t, tp } from '../i18n/index.ts';
-  import { optionName } from '../lib/format.ts';
-  import { blockedReasons, costParts, voteShare } from '../lib/vote.ts';
+  import type { Resources, VoteOption } from '@saari/rules';
+  import { formatNumber, t, tp } from '../i18n/index.ts';
+  import { buildingName } from '../lib/format.ts';
+  import { missingFor, optionArt, voteShare } from '../lib/vote.ts';
+  import ArtIcon from './ArtIcon.svelte';
+  import PropPicture from './PropPicture.svelte';
 
-  /** Live vote distribution for the projector. Counts only, never names (P34). */
+  /** Live vote for the projector: pictures, prices and bars. Counts only, never names (P34). */
   interface Props {
     vote: VoteView;
     voters: number;
@@ -14,6 +16,10 @@
     compact?: boolean;
   }
   let { vote, voters, resources, compact = false }: Props = $props();
+
+  function name(option: VoteOption): string {
+    return option.kind === 'none' || option.level === 0 ? t('vote.noneShort') : buildingName(option.kind, option.level);
+  }
 </script>
 
 <section class="vote-bars" aria-labelledby="vote-bars-title">
@@ -22,16 +28,27 @@
   <ol>
     {#each vote.options as option (option.id)}
       {@const count = vote.counts[option.id] ?? 0}
-      {@const share = voteShare(vote, option.id)}
+      {@const missing = missingFor(option, resources)}
       <li class:blocked={option.blocked.length > 0}>
-        <div class="head">
-          <span class="name">{optionName(option)}</span>
-          {#if !compact}<span class="count">{tp('vote.votes', count)}</span>{/if}
-        </div>
-        {#if !compact}<div class="bar"><span style:width="{share * 100}%"></span></div>{/if}
-        <div class="cost">
-          {costParts(option).join(' + ')}{#if option.blocked.length > 0}
-            · {blockedReasons(option, resources).join(', ')}{/if}
+        <PropPicture texture={optionArt(option)} size={52} />
+        <div class="body">
+          <div class="head">
+            <span class="name">
+              {name(option)}
+              {#if option.kind !== 'none' && option.level > 1}<span class="stars">{'★'.repeat(option.level)}</span>{/if}
+            </span>
+            <span class="cost">
+              {#if option.cost.wood > 0}<span class:short={missing.wood > 0}><ArtIcon name="wood" size={20} />{formatNumber(option.cost.wood)}</span>{/if}
+              {#if option.cost.stone > 0}<span class:short={missing.stone > 0}><ArtIcon name="stone" size={20} />{formatNumber(option.cost.stone)}</span>{/if}
+            </span>
+          </div>
+          {#if !compact}
+            <div class="tally">
+              <div class="bar"><span style:width="{voteShare(vote, option.id) * 100}%"></span></div>
+              <span class="count" aria-label={tp('vote.votes', count)}>{formatNumber(count)}</span>
+            </div>
+          {/if}
+          {#if missing.space}<span class="lock">{t('vote.blocked.space')}</span>{/if}
         </div>
       </li>
     {/each}
@@ -54,28 +71,69 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.6em;
+    gap: 0.5em;
+  }
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+  .blocked :global(.pic) {
+    filter: grayscale(1);
+    opacity: 0.55;
+  }
+  .body {
+    flex: 1;
+    min-width: 0;
   }
   .head {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     gap: 0.5em;
     font-weight: 800;
   }
-  .count {
+  .stars {
+    color: var(--gold);
+    margin-left: 0.2em;
+  }
+  .cost {
+    display: inline-flex;
+    gap: 0.4em;
+    font-size: 0.9em;
     font-variant-numeric: tabular-nums;
   }
+  .cost > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.1em;
+  }
+  .short {
+    color: var(--danger);
+  }
+  .tally {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+  }
   .bar {
+    flex: 1;
     height: 0.8em;
-    margin: 0.2em 0;
   }
   .bar > span {
     background: var(--accent);
     transition: width 300ms ease;
   }
-  .cost {
+  .count {
+    min-width: 1.5em;
+    text-align: right;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+  }
+  .lock {
     font-size: 0.8em;
-    color: var(--muted);
+    font-weight: 700;
+    color: var(--danger);
   }
   .blocked .name {
     color: var(--muted);

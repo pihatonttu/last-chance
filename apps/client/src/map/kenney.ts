@@ -63,9 +63,11 @@ export interface TileSprite {
 
 const PROPS = Object.keys(PROP_TOPS).map((name) => `props/${name}`);
 const CLOUDS = ['clouds/cloud-1', 'clouds/cloud-2', 'clouds/cloud-3', 'clouds/cloud-4'] as const;
+/** Pictures for the floating "+10" effects on the map (the HUD's icons). */
+export const RESOURCE_ICONS = ['icons/wood', 'icons/stone', 'icons/food'] as const;
 
 /** Every texture name kenneyTile, kenneyProp and kenneyCloud can return; the renderer preloads these. */
-export const KENNEY_TEXTURES: readonly string[] = ['grass', ...PROPS, ...CLOUDS];
+export const KENNEY_TEXTURES: readonly string[] = ['grass', ...PROPS, ...CLOUDS, ...RESOURCE_ICONS];
 
 /** The Kenney top diamond is 132 x 66; the map's tiles are TILE_W wide. */
 export const KENNEY_SCALE = TILE_W / 132;

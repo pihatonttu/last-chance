@@ -74,6 +74,7 @@
         break;
       case 'game':
         if (message.game.phase === 'vote') panel = 'vote';
+        else if (message.game.phase === 'summary') panel = 'none';
         else if (message.game.phase === 'action' && panel === 'vote') panel = 'none';
         if (message.game.phase === 'action') sound.play('phase-action');
         else if (message.game.phase === 'vote') sound.play('phase-vote');

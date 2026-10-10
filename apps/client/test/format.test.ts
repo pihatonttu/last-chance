@@ -3,7 +3,7 @@ import type { VoteOption } from '@saari/rules';
 import { gainText, optionName, tickerText, yieldGain } from '../src/lib/format.ts';
 import { checkNickname } from '../src/lib/names.ts';
 import { parseOptionId, shelterPeople } from '../src/lib/rules-info.ts';
-import { blockedReasons, costParts, effectText, upgradeText, voteShare } from '../src/lib/vote.ts';
+import { effectText, voteShare } from '../src/lib/vote.ts';
 
 function option(over: Partial<VoteOption>): VoteOption {
   return { id: 'none', kind: 'none', level: 0, upgrade: false, cost: { wood: 0, stone: 0 }, blocked: [], ...over };
@@ -33,16 +33,12 @@ describe('game text', () => {
 });
 
 describe('vote cards', () => {
-  it('cost, effect and blocked reasons', () => {
+  it('what an option does', () => {
     const tent = option({ id: 'shelter-1', kind: 'shelter', level: 1, cost: { wood: 120, stone: 0 }, blocked: ['wood', 'space'] });
-    expect(costParts(tent)).toEqual(['120 puuta']);
-    expect(costParts(option({}))).toEqual(['Ei maksa mitään']);
     expect(effectText(tent, 30)).toBe(`Suoja noin ${shelterPeople(1, 30)} kyläläiselle`);
-    expect(blockedReasons(tent, { food: 0, wood: 80, stone: 0 })).toEqual(['Puu ei riitä (80 / 120)', 'Vapaata niittyä ei ole']);
     const hut = option({ id: 'shelter-2', kind: 'shelter', level: 2, upgrade: true });
-    expect(upgradeText(hut)).toBe('Teltta → Maja');
     expect(effectText(hut, 30)).toMatch(/^Noin \d+ suojapaikkaa lisää$/);
-    expect(upgradeText(option({ id: 'school-2', kind: 'school', level: 2, upgrade: true }))).toBeNull();
+    expect(effectText(option({}), 30)).toBe('Puut ja kivet säästetään');
   });
 
   it('live percentages', () => {

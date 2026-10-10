@@ -14,7 +14,6 @@ import type {
   Resources,
   Skill,
   Terrain,
-  VoteBlock,
   VoteRefusal,
 } from '@saari/rules';
 
@@ -78,8 +77,6 @@ export const VOTE_REFUSALS = keys<VoteRefusal>({
   'unknown-option': true,
   blocked: true,
 });
-
-export const VOTE_BLOCKS = keys<VoteBlock>({ wood: true, stone: true, space: true });
 
 export const JOIN_REFUSALS = keys<JoinRefusal>({
   'unknown-game': true,

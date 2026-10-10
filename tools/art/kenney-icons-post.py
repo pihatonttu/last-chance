@@ -4,7 +4,7 @@ Usage: python -I tools/art/kenney-icons-post.py <render-dir>
 
 <render-dir> is the out-dir of render-kenney.py run with kenney-icons.json. Each icon is
 cropped to its picture, padded to a square, scaled to 96 px (sharp at 48 CSS px on 2x
-screens), palette-reduced and written to apps/client/public/art/kenney/icons/.
+screens; a sprite's own "size" overrides it), palette-reduced and written to apps/client/public/art/kenney/icons/.
 """
 import json
 import os
@@ -25,7 +25,8 @@ for sprite in spec['sprites']:
     side = round(max(image.size) * 1.06)
     square = Image.new('RGBA', (side, side), (0, 0, 0, 0))
     square.alpha_composite(image, ((side - image.width) // 2, (side - image.height) // 2))
-    square = square.resize((SIZE, SIZE), Image.LANCZOS)
+    size = sprite.get('size', SIZE)
+    square = square.resize((size, size), Image.LANCZOS)
     square.quantize(256, method=Image.Quantize.FASTOCTREE, dither=Image.Dither.NONE).save(
         os.path.join(out, sprite['name'] + '.png'), optimize=True
     )
