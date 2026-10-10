@@ -1,7 +1,10 @@
 import type { PublicTile } from '@saari/rules';
 import { describe, expect, it } from 'vitest';
+import { BUILDING_KINDS, LEVELS } from '../src/lib/enums.ts';
 import {
   ART_STYLES,
+  BUILDING_SCALE,
+  kenneyBuilding,
   KENNEY_SCALE,
   KENNEY_TEXTURES,
   kenneyAnchorY,
@@ -32,10 +35,11 @@ const NO_LAND: LandAround = { xm: false, xp: false, ym: false, yp: false };
 const ctx = (stockMax: number | null = null, coastal = false) => ({ stockMax, coastal });
 
 describe('parseArtStyle', () => {
-  it('accepts the known styles and falls back to placeholder', () => {
+  it('accepts the known styles and falls back to the Kenney tiles (P37)', () => {
     for (const s of ART_STYLES) expect(parseArtStyle(s)).toBe(s);
-    expect(parseArtStyle(null)).toBe('placeholder');
-    expect(parseArtStyle('pixel')).toBe('placeholder');
+    expect(parseArtStyle(null)).toBe('kenney');
+    expect(parseArtStyle('pixel')).toBe('kenney');
+    expect(parseArtStyle('kenney-beach')).toBe('kenney');
   });
 });
 
@@ -82,7 +86,7 @@ describe('kenneyTile', () => {
     expect(dy({ terrain: 'forest', stock: 30 })).toBe(0);
     expect(dy({ terrain: 'field', stock: 30 })).toBeCloseTo(16 * KENNEY_SCALE);
     expect(dy({ terrain: 'sea' })).toBeCloseTo(16 * KENNEY_SCALE);
-    const beach = kenneyTile(tile({ terrain: 'sea' }), ctx(null, true), { ...NO_LAND, ym: true }, 'kenney-beach');
+    const beach = kenneyTile(tile({ terrain: 'sea' }), ctx(null, true), { ...NO_LAND, ym: true }, 'kenney');
     expect(beach?.surfaceDy).toBeCloseTo(16 * KENNEY_SCALE);
   });
 
@@ -92,13 +96,8 @@ describe('kenneyTile', () => {
     expect(sea(false)).not.toBe(0xffffff);
   });
 
-  it('plain water everywhere in the block style', () => {
-    const land: LandAround = { xm: true, xp: false, ym: false, yp: false };
-    expect(kenneyTile(tile({ terrain: 'sea' }), ctx(), land, 'kenney')?.texture).toBe('water');
-  });
-
-  it('beach style: sand towards the land, back edges first', () => {
-    const sea = (land: Partial<LandAround>) => kenneyTile(tile({ terrain: 'sea' }), ctx(), { ...NO_LAND, ...land }, 'kenney-beach');
+  it('puts sand on the sea tiles towards the land, back edges first', () => {
+    const sea = (land: Partial<LandAround>) => kenneyTile(tile({ terrain: 'sea' }), ctx(), { ...NO_LAND, ...land }, 'kenney');
     expect(sea({})).toMatchObject({ texture: 'water' });
     expect(sea({ ym: true })).toMatchObject({ texture: 'beach-ne', flipX: false });
     expect(sea({ xm: true })).toMatchObject({ texture: 'beach-nw', flipX: false });
@@ -116,7 +115,7 @@ describe('textures and placement', () => {
       for (const terrain of ['sea', 'meadow', 'forest', 'rock', 'field', 'quarry', 'spring'] as const) {
         for (const stock of [0, 10, 20, 40]) {
           for (const land of lands) {
-            const s = kenneyTile(tile({ x, y: x * 7, terrain, stock }), ctx(40), land, 'kenney-beach');
+            const s = kenneyTile(tile({ x, y: x * 7, terrain, stock }), ctx(40), land, 'kenney');
             if (s) returned.add(s.texture);
           }
         }
@@ -140,14 +139,14 @@ describe('resolveArtStyle', () => {
 
   it('takes ?art= from the address and remembers it', () => {
     const storage = memory();
-    expect(resolveArtStyle('?mock=1&art=kenney-beach', storage)).toBe('kenney-beach');
-    expect(resolveArtStyle('?mock=1', storage)).toBe('kenney-beach');
+    expect(resolveArtStyle('?mock=1&art=placeholder', storage)).toBe('placeholder');
+    expect(resolveArtStyle('?mock=1', storage)).toBe('placeholder');
   });
 
-  it('falls back to placeholder without a choice or storage, and ignores unknown values', () => {
-    expect(resolveArtStyle('', null)).toBe('placeholder');
+  it('falls back to the Kenney tiles without a choice or storage, and ignores unknown values', () => {
+    expect(resolveArtStyle('', null)).toBe('kenney');
     const storage = memory();
-    expect(resolveArtStyle('?art=pixel', storage)).toBe('placeholder');
+    expect(resolveArtStyle('?art=pixel', storage)).toBe('kenney');
   });
 
   it('survives a storage that throws (private mode)', () => {
@@ -159,8 +158,8 @@ describe('resolveArtStyle', () => {
         throw new Error('blocked');
       },
     };
-    expect(resolveArtStyle('?art=kenney', broken)).toBe('kenney');
-    expect(resolveArtStyle('', broken)).toBe('placeholder');
+    expect(resolveArtStyle('?art=placeholder', broken)).toBe('placeholder');
+    expect(resolveArtStyle('', broken)).toBe('kenney');
   });
 });
 
@@ -180,8 +179,8 @@ describe('rememberArtStyle', () => {
   it('stores a choice that the next page load picks up, and shrugs off a broken storage', () => {
     const data = new Map<string, string>();
     const storage = { getItem: (k: string) => data.get(k) ?? null, setItem: (k: string, v: string) => void data.set(k, v) };
-    rememberArtStyle('kenney', storage);
-    expect(resolveArtStyle('', storage)).toBe('kenney');
+    rememberArtStyle('placeholder', storage);
+    expect(resolveArtStyle('', storage)).toBe('placeholder');
     const broken = {
       getItem: () => null,
       setItem: () => {
@@ -190,5 +189,32 @@ describe('rememberArtStyle', () => {
     };
     expect(() => rememberArtStyle('kenney', broken)).not.toThrow();
     expect(() => rememberArtStyle('kenney', null)).not.toThrow();
+  });
+});
+
+describe('kenneyBuilding', () => {
+  it('has a preloaded sprite reaching above the tile for every building kind and level', () => {
+    for (const kind of BUILDING_KINDS) {
+      for (const level of LEVELS) {
+        const b = kenneyBuilding(tile({ building: { kind, level } }), 'kenney');
+        expect(KENNEY_TEXTURES).toContain(b?.texture);
+        expect(b?.top).toBeGreaterThan(20);
+      }
+    }
+  });
+
+  it('grows with the level', () => {
+    const top = (level: 1 | 3) => kenneyBuilding(tile({ building: { kind: 'shelter', level } }), 'kenney')?.top ?? 0;
+    expect(top(3)).toBeGreaterThan(top(1));
+  });
+
+  it('scales the sprite canvas so its 1 x 1 tile matches the map tile', () => {
+    expect(BUILDING_SCALE * 264).toBeCloseTo(96);
+  });
+
+  it('draws nothing without a building, under the fog or in the placeholder style', () => {
+    expect(kenneyBuilding(tile(), 'kenney')).toBeNull();
+    expect(kenneyBuilding(tile({ building: { kind: 'school', level: 1 } }), 'placeholder')).toBeNull();
+    expect(kenneyBuilding(tile({ fog: true, terrain: null, building: { kind: 'school', level: 1 } }), 'kenney')).toBeNull();
   });
 });

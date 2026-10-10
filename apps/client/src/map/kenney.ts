@@ -1,20 +1,25 @@
 /**
- * Kenney CC0 tile art (V5 art spike, P9). Which picture each tile gets is decided here,
- * without PixiJS, so it can be tested; the renderer only loads and places the textures.
+ * Kenney CC0 map art (P9, style C chosen in P37). Which picture each tile gets is decided
+ * here, without PixiJS, so it can be tested; the renderer only loads and places the textures.
  *
  * Land blocks, trees and rocks come from Kenney "Tower Defense", water and beaches from
- * "Isometric Tiles Landscape" (files in public/art/kenney, copied by tools/art/kenney-assets.py).
- * Buildings, crops, the quarry pit, the spring pool and the fog stay vector (sprites.ts).
+ * "Isometric Tiles Landscape" (public/art/kenney, copied by tools/art/kenney-assets.py).
+ * Buildings are rendered from the Survival and Fantasy Town 3D kits in the same view
+ * (public/art/kenney/buildings, tools/art/render-kenney.py). Crops, the quarry pit, the
+ * spring pool, the fog mist and the wreck stay vector (sprites.ts).
  */
 import type { PublicTile } from '@saari/rules';
 import { TILE_W } from './iso.ts';
+import { BUILDING_CANVAS, BUILDING_TOPS } from './kenney-buildings.ts';
 import { tileHash } from './sprites.ts';
 
-export type ArtStyle = 'placeholder' | 'kenney' | 'kenney-beach';
-export const ART_STYLES: readonly ArtStyle[] = ['placeholder', 'kenney', 'kenney-beach'];
+/** `placeholder` = the vector map, kept as the fallback when the art fails to load. */
+export type ArtStyle = 'placeholder' | 'kenney';
+export const ART_STYLES: readonly ArtStyle[] = ['placeholder', 'kenney'];
+const DEFAULT_STYLE: ArtStyle = 'kenney';
 
 export function parseArtStyle(value: string | null): ArtStyle {
-  return ART_STYLES.find((s) => s === value) ?? 'placeholder';
+  return ART_STYLES.find((s) => s === value) ?? DEFAULT_STYLE;
 }
 
 const ART_STYLE_KEY = 'saari.art';
@@ -32,7 +37,7 @@ export function rememberArtStyle(style: ArtStyle, storage: StyleStorage | null):
 
 /**
  * The map style for this browser: `?art=` in the address wins and is remembered, otherwise
- * the remembered choice, otherwise the placeholder. Storage may be missing or throw
+ * the remembered choice, otherwise the Kenney art. Storage may be missing or throw
  * (private mode, blocked site data); the choice then lasts only for this page load.
  */
 export function resolveArtStyle(search: string, storage: StyleStorage | null): ArtStyle {
@@ -45,7 +50,7 @@ export function resolveArtStyle(search: string, storage: StyleStorage | null): A
   try {
     return parseArtStyle(storage?.getItem(ART_STYLE_KEY) ?? null);
   } catch {
-    return 'placeholder';
+    return DEFAULT_STYLE;
   }
 }
 
@@ -84,8 +89,9 @@ const DENSE_FOREST = ['trees-2', 'trees-4', 'trees-7', 'trees-10'] as const;
 const MEDIUM_FOREST = ['trees-1', 'trees-3', 'trees-5', 'trees-8', 'trees-9', 'trees-11', 'trees-12'] as const;
 const SPARSE_FOREST = ['trees-6'] as const;
 const ROCKS = ['rocks-1', 'rocks-2', 'rocks-3', 'rocks-4', 'rocks-5', 'rocks-6', 'rocks-7', 'rocks-8'] as const;
+const BUILDINGS = Object.keys(BUILDING_TOPS).map((name) => `buildings/${name}`);
 
-/** Every texture name kenneyTile can return; the renderer preloads these. */
+/** Every texture name kenneyTile and kenneyBuilding can return; the renderer preloads these. */
 export const KENNEY_TEXTURES: readonly string[] = [
   'grass',
   'dirt',
@@ -97,6 +103,7 @@ export const KENNEY_TEXTURES: readonly string[] = [
   ...MEDIUM_FOREST,
   ...SPARSE_FOREST,
   ...ROCKS,
+  ...BUILDINGS,
 ];
 
 /** The Kenney top diamond is 132 x 66; the map's tiles are TILE_W wide. */
@@ -132,15 +139,13 @@ function pick<T>(list: readonly T[], x: number, y: number): T {
   return list[tileHash(x, y) % list.length]!;
 }
 
-function seaSprite(land: LandAround, coastal: boolean, style: ArtStyle): TileSprite {
-  const water = plain('water', coastal ? NO_TINT : OPEN_SEA_TINT);
-  if (style !== 'kenney-beach') return water;
+function seaSprite(land: LandAround, coastal: boolean): TileSprite {
   // Back edges first: the land in front of a sea tile hides its front edge anyway.
   if (land.ym) return plain('beach-ne');
   if (land.xm) return plain('beach-nw');
   if (land.xp) return plain('beach-se');
   if (land.yp) return sprite('beach-se', true, NO_TINT);
-  return water;
+  return plain('water', coastal ? NO_TINT : OPEN_SEA_TINT);
 }
 
 export function kenneyTile(
@@ -154,7 +159,7 @@ export function kenneyTile(
   if (tile.building) return plain('grass');
   switch (tile.terrain) {
     case 'sea':
-      return seaSprite(land, ctx.coastal, style);
+      return seaSprite(land, ctx.coastal);
     case 'meadow':
     case 'spring':
       return plain('grass');
@@ -169,4 +174,25 @@ export function kenneyTile(
       return plain(pick(set, tile.x, tile.y));
     }
   }
+}
+
+/** Building sprites are rendered at twice the 2D tiles' size, on one shared canvas. */
+export const BUILDING_SCALE = TILE_W / BUILDING_CANVAS.tilePx;
+export const BUILDING_ANCHOR = {
+  x: BUILDING_CANVAS.originX / BUILDING_CANVAS.width,
+  y: BUILDING_CANVAS.originY / BUILDING_CANVAS.height,
+} as const;
+
+export interface BuildingSprite {
+  texture: string;
+  /** How far the building reaches above the tile centre, in world pixels (badge goes above). */
+  top: number;
+}
+
+/** The building standing on a tile, drawn on top of its grass block. */
+export function kenneyBuilding(tile: PublicTile, style: ArtStyle): BuildingSprite | null {
+  if (style === 'placeholder' || tile.fog || !tile.building) return null;
+  const name = `${tile.building.kind}-${tile.building.level}`;
+  const top = BUILDING_TOPS[name];
+  return top === undefined ? null : { texture: `buildings/${name}`, top: top * BUILDING_SCALE };
 }

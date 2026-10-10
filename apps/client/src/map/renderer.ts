@@ -10,7 +10,17 @@ import { gainParts } from '../lib/format.ts';
 import { exploreNeeded, stockMax } from '../lib/rules-info.ts';
 import { clampCamera, fitCamera, panBy, screenToWorld, zoomAt, type Camera } from './camera.ts';
 import { drawOrder, tileCenter, tilesBounds, worldToTile, type Rect } from './iso.ts';
-import { KENNEY_SCALE, KENNEY_TEXTURES, kenneyAnchorY, kenneyTile, landAround, type ArtStyle } from './kenney.ts';
+import {
+  BUILDING_ANCHOR,
+  BUILDING_SCALE,
+  KENNEY_SCALE,
+  KENNEY_TEXTURES,
+  kenneyAnchorY,
+  kenneyBuilding,
+  kenneyTile,
+  landAround,
+  type ArtStyle,
+} from './kenney.ts';
 import {
   drawGround,
   drawHighlight,
@@ -30,7 +40,7 @@ export type MapMode = 'projector' | 'student';
 export interface MapRendererOptions {
   mode: MapMode;
   reducedMotion: boolean;
-  /** Initial map art (V5 spike): placeholder vectors or Kenney tiles. Default placeholder. */
+  /** Initial map art: the Kenney tiles (P37) or the vector fallback. Default placeholder. */
   artStyle?: ArtStyle;
   onTap?: (x: number, y: number) => void;
   /** Called when the user pans or zooms (the "whole island" button appears). */
@@ -84,10 +94,11 @@ interface PointerInfo {
 const TAP_SLOP = 8;
 const TAP_MS = 650;
 
-/** One map tile in the Kenney style: its block texture and the vector bits drawn on top. */
+/** One map tile in the Kenney style: its block, the vector bits on it, and its building. */
 interface TileSlot {
   sprite: Sprite;
   detail: Graphics;
+  building: Sprite;
 }
 
 async function loadKenneyTextures(): Promise<Map<string, Texture>> {
@@ -112,7 +123,7 @@ export class MapRenderer {
   readonly #options: MapRendererOptions;
   readonly #world = new Container();
   readonly #ground = new Graphics();
-  /** Kenney style: per-tile sprite + detail pairs in painter's order. */
+  /** Kenney style: per-tile block, detail and building in painter's order. */
   readonly #tiles = new Container();
   #slots: TileSlot[] = [];
   #textures: Map<string, Texture> | null = null;
@@ -328,14 +339,26 @@ export class MapRenderer {
         const detail = pixiPen(slot.detail.clear());
         const surface = { ...ctx, cy: ctx.cy + look.surfaceDy };
         drawTileDetails(detail, tile, surface);
-        drawObjects(detail, tile, surface, { bakedTerrain: true });
+        drawObjects(detail, tile, surface, { textured: true });
         if (isWreck) drawWreck(detail, surface.cx, surface.cy);
+        const building = kenneyBuilding(tile, style);
+        const buildingTexture = building && this.#textures?.get(building.texture);
+        slot.building.visible = Boolean(buildingTexture);
+        if (building && buildingTexture) {
+          slot.building.texture = buildingTexture;
+          slot.building.anchor.set(BUILDING_ANCHOR.x, BUILDING_ANCHOR.y);
+          slot.building.scale.set(BUILDING_SCALE);
+          slot.building.position.set(ctx.cx, ctx.cy);
+          drawOverlay(overlay, tile, ctx, { buildingTop: ctx.cy - building.top });
+        } else {
+          drawOverlay(overlay, tile, ctx);
+        }
       } else {
         drawGround(ground, tile, ctx);
         drawObjects(objects, tile, ctx);
         if (isWreck) drawWreck(objects, ctx.cx, ctx.cy);
+        drawOverlay(overlay, tile, ctx);
       }
-      drawOverlay(overlay, tile, ctx);
     });
     this.#drawHighlight();
     this.#requestRender();
@@ -347,10 +370,11 @@ export class MapRenderer {
       const slot = this.#slots.pop()!;
       slot.sprite.destroy();
       slot.detail.destroy();
+      slot.building.destroy();
     }
     while (this.#slots.length < count) {
-      const slot: TileSlot = { sprite: new Sprite(), detail: new Graphics() };
-      this.#tiles.addChild(slot.sprite, slot.detail);
+      const slot: TileSlot = { sprite: new Sprite(), detail: new Graphics(), building: new Sprite() };
+      this.#tiles.addChild(slot.sprite, slot.detail, slot.building);
       this.#slots.push(slot);
     }
   }

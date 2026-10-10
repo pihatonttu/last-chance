@@ -406,8 +406,8 @@ function scalePoints(points: readonly number[], cx: number, cy: number, s: numbe
 }
 
 export interface ObjectOptions {
-  /** Trees and boulders come with the tile texture (Kenney style); draw only the rest. */
-  bakedTerrain?: boolean;
+  /** Trees, boulders and buildings come as textures (Kenney style); draw only the rest. */
+  textured?: boolean;
 }
 
 /** Upright things in painter's order: trees, boulders, buildings, mist. */
@@ -421,11 +421,11 @@ export function drawObjects(pen: Pen, tile: PublicTile, ctx: TileContext, option
     pen.circle(cx + 18 + dx, cy + 1, 10, FOG_LOOK.mist, FOG_LOOK.mistAlpha);
     return;
   }
+  if (options.textured) return;
   if (tile.building) {
     drawBuilding(pen, tile.building.kind, tile.building.level, cx, cy);
     return;
   }
-  if (options.bakedTerrain) return;
   if (tile.terrain === 'forest') {
     const count = treeCount(tile.stock ?? 0, ctx.stockMax ?? 1);
     const spots: readonly [number, number, number][] = [
@@ -442,8 +442,13 @@ export function drawObjects(pen: Pen, tile: PublicTile, ctx: TileContext, option
   }
 }
 
+export interface OverlayOptions {
+  /** Highest point of a textured building (world y); the badge floats above it. */
+  buildingTop?: number;
+}
+
 /** Top layer: building badges with level pips and exploration progress rings. */
-export function drawOverlay(pen: Pen, tile: PublicTile, ctx: TileContext): void {
+export function drawOverlay(pen: Pen, tile: PublicTile, ctx: TileContext, options: OverlayOptions = {}): void {
   const { cx, cy } = ctx;
   if (tile.fog) {
     if (ctx.exploreShare <= 0) return;
@@ -459,7 +464,7 @@ export function drawOverlay(pen: Pen, tile: PublicTile, ctx: TileContext): void 
   const building = tile.building;
   if (!building) return;
   const look = BUILDING_LOOK[building.kind];
-  const top = buildingTop(building.kind, building.level, cy);
+  const top = options.buildingTop ?? buildingTop(building.kind, building.level, cy);
   const by = top - BADGE_LOOK.radius - 4;
   pen.circle(cx, by, BADGE_LOOK.radius, BADGE_LOOK.fill, 1, { color: OUTLINE, width: 2 });
   for (const poly of GLYPHS[look.glyph]) pen.poly(scalePoints(poly, cx, by, BADGE_LOOK.glyphScale), look.accent, 1);

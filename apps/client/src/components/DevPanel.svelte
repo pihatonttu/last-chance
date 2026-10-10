@@ -35,7 +35,7 @@
     speed = next;
   }
 
-  /** V5 art spike: compare the map styles on the same game. */
+  /** Kenney art or the vector fallback, on the same game. */
   function cycleArt(): void {
     setArtStyle(ART_STYLES[(ART_STYLES.indexOf(art.style) + 1) % ART_STYLES.length]!);
   }

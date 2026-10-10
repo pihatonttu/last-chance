@@ -138,7 +138,7 @@ saari/
 | V2 ✓ | Sääntömoottori, data ja tapahtumaloki (`packages/rules`, 157 testiä 2026-10-09) | Vitest kattaa jokaisen toiminnon, rakennuksen, kierroksen lopun ja lokin |
 | V3 ✓ | Botit ja simulaattori, tasapainon viritys (`05-tasapaino.md`) | raportti 2/15/30 pelaajalla: hyvä yhteistyö voittaa ja huono häviää |
 | V4 ✓ | Palvelin: huoneet, ajastimet, tauko, paluu, moderointi, kokeilutila, jälkipuinnin tallennus ja poisto | 30 bottia pelaa koko pelin WebSocketin yli testissä (`apps/server`, 101 testiä, 2026-10-09) |
-| V5 (osin) | Grafiikkakokeilu | Samu on valinnut tyylin. **Tehty 2026-10-10:** Kenneyn ruudut (Tower Defense + Isometric Landscape, CC0) kahtena tyylinä: palikat ja palikat + rannat. Valinta osoitteella `?art=kenney` / `?art=kenney-beach` tai demopaneelin Kartta-napilla (mock-tila), vertailukuva `docs/art/2026-10-10-kenney-vertailu.jpg`. Rakennukset, sumu ja pellon sato ovat yhä vektoreita. **Puuttuu:** Samun valinta. |
+| V5 ✓ | Grafiikkakokeilu | Samu valitsi 2026-10-10 Kenneyn palikat ja rannat (P37). Maasto on Kenneyn 2D-ruuduista (`tools/art/kenney-assets.py`), rakennukset Blenderillä renderöidyistä Kenneyn 3D-malleista (`tools/art/render-kenney.py` + `kenney-buildings-post.py`). Sumu, pellon sato, lähde, louhos ja hylky ovat vektoreita. Vektorikartta: `?art=placeholder`. |
 | V6 (osin) | Asiakas: oppilas-, projektori- ja jälkipuintinäkymät, nimimerkkisuodatin | Playwright-testi: opettaja ja 3 oppilasta pelaavat pelin läpi. **Tehty 2026-10-09:** näkymät ja suodatin, väliaikaisgrafiikka; tarkistettu selaimessa ja `tools/smoke-public.mjs`:llä. **Puuttuu:** Playwright-testi. |
 | V7 | Opettajan ohjesivu, tietosuojaseloste, lopullinen nimi ja domain | tekstit hyväksytty |
 | V8 ✓ | Julkaisu novaservulle ja valvonta | `https://last-chance.novanet.fi` toimii 2026-10-09 (`docs/08-julkaisu.md`) |
@@ -165,8 +165,7 @@ saari/
 - **Kuntien hyväksyntäkäytännöt.** Lievennys: henkilötietoja ei tallenneta (P23), ja
   tietosuojaseloste on selkeä.
 - **Tasapaino.** Uudet säännöt viritetään simulaattorilla, eikä alkuperäisiä lukuja ole.
-- **Isometriset reunat Kenneyn sarjoilla.** Grafiikkakokeilu ratkaisee tyylin ennen
-  käyttöliittymätyötä.
+- ~~**Isometriset reunat Kenneyn sarjoilla.**~~ Ratkaistu: palikat ja rannat (P37).
 - **Suodattimen aukot.** Opettajan varatyökalut ovat varmistus (P13).
 
 ## 13. Lykätyt päätökset

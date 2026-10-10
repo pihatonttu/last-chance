@@ -1,4 +1,4 @@
-/** The map art of this page (V5 spike): `?art=` or the remembered choice; the demo panel switches it live. */
+/** The map art of this page: `?art=` or the remembered choice (default Kenney, P37); the demo panel switches it live. */
 import { rememberArtStyle, resolveArtStyle, type ArtStyle } from './kenney.ts';
 
 function browserStorage(): Storage | null {

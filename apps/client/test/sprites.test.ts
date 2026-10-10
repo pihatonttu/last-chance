@@ -130,21 +130,28 @@ describe('sprite mapping', () => {
 });
 
 describe('Kenney style details', () => {
-  it('skips trees and boulders baked into the textures but keeps buildings and mist', () => {
-    for (const terrain of ['forest', 'rock'] as const) {
-      const t = tile(3, 4, { terrain, stock: 40 });
+  it('skips trees, boulders and buildings that come as textures, but keeps the mist', () => {
+    const textured: Partial<PublicTile>[] = [{ terrain: 'forest', stock: 40 }, { terrain: 'rock' }, { building: { kind: 'school', level: 2 } }];
+    for (const over of textured) {
+      const t = tile(3, 4, over);
       const { pen, calls } = recordingPen();
-      drawObjects(pen, t, ctx(t), { bakedTerrain: true });
+      drawObjects(pen, t, ctx(t), { textured: true });
       expect(calls).toHaveLength(0);
     }
-    const house = tile(2, 2, { terrain: 'meadow', building: { kind: 'school', level: 2 } });
-    const built = recordingPen();
-    drawObjects(built.pen, house, ctx(house), { bakedTerrain: true });
-    expect(built.calls.length).toBeGreaterThan(2);
     const fog = tile(1, 1, { fog: true, terrain: null, stock: null, work: null, uses: null });
     const mist = recordingPen();
-    drawObjects(mist.pen, fog, ctx(fog), { bakedTerrain: true });
+    drawObjects(mist.pen, fog, ctx(fog), { textured: true });
     expect(mist.calls.length).toBeGreaterThan(0);
+  });
+
+  it('puts the building badge just above a textured building when given its top', () => {
+    const t = tile(2, 2, { building: { kind: 'shelter', level: 3 } });
+    const c = ctx(t);
+    const { pen, calls } = recordingPen();
+    drawOverlay(pen, t, c, { buildingTop: c.cy - 100 });
+    const badge = calls.find((call) => call.kind === 'circle' && call.numbers[3] === 0xffffff);
+    expect(badge?.numbers[1]).toBeLessThan(c.cy - 100);
+    expect(badge?.numbers[1]).toBeGreaterThan(c.cy - 100 - 30);
   });
 
   it('shows the crop left on a field as plants, more when fuller', () => {

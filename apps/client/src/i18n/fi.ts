@@ -501,5 +501,4 @@ export const fi = {
   'dev.art': 'Kartta: {style}',
   'dev.art.placeholder': 'paikkamerkit',
   'dev.art.kenney': 'Kenney',
-  'dev.art.kenney-beach': 'Kenney + rannat',
 } satisfies Record<string, string>;

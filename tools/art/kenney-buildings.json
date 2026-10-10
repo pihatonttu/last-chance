@@ -1,0 +1,531 @@
+{
+  "//": "Map building sprites rendered from Kenney 3D kits by render-kenney.py. Kits: survival = Survival Kit 2.0, town = Fantasy Town Kit 2.0 (CC0).",
+  "canvas": [
+    320,
+    400
+  ],
+  "origin": [
+    160,
+    330
+  ],
+  "tilePx": 264,
+  "swatches": {
+    "town-roof-red": {
+      "kit": "town",
+      "from": [
+        0,
+        384
+      ],
+      "into": [
+        64,
+        384
+      ],
+      "size": [
+        64,
+        128
+      ]
+    },
+    "town-roof-blue": {
+      "kit": "town",
+      "from": [
+        192,
+        128
+      ],
+      "into": [
+        64,
+        384
+      ],
+      "size": [
+        64,
+        128
+      ]
+    },
+    "town-roof-grey": {
+      "kit": "town",
+      "from": [
+        448,
+        384
+      ],
+      "into": [
+        64,
+        384
+      ],
+      "size": [
+        64,
+        128
+      ]
+    },
+    "town-red-purple": {
+      "kit": "town",
+      "from": [
+        320,
+        128
+      ],
+      "into": [
+        0,
+        384
+      ],
+      "size": [
+        64,
+        128
+      ]
+    },
+    "survival-canvas-red": {
+      "kit": "survival",
+      "from": [
+        192,
+        256
+      ],
+      "into": [
+        64,
+        256
+      ],
+      "size": [
+        64,
+        128
+      ]
+    },
+    "survival-canvas-blue": {
+      "kit": "survival",
+      "from": [
+        256,
+        256
+      ],
+      "into": [
+        64,
+        256
+      ],
+      "size": [
+        64,
+        128
+      ]
+    }
+  },
+  "sprites": [
+    {
+      "name": "shelter-1",
+      "recolor": [
+        "survival-canvas-red"
+      ],
+      "parts": [
+        {
+          "model": "survival/tent-canvas",
+          "scale": 1.45
+        }
+      ]
+    },
+    {
+      "name": "shelter-2",
+      "recolor": [
+        "town-roof-red"
+      ],
+      "parts": [
+        {
+          "model": "town/wall-wood-window-shutters",
+          "turn": 0,
+          "z": 0.0,
+          "scale": 0.55
+        },
+        {
+          "model": "town/wall-wood",
+          "turn": 90,
+          "z": 0.0,
+          "scale": 0.55
+        },
+        {
+          "model": "town/wall-wood",
+          "turn": 180,
+          "z": 0.0,
+          "scale": 0.55
+        },
+        {
+          "model": "town/wall-wood-door",
+          "turn": 270,
+          "z": 0.0,
+          "scale": 0.55
+        },
+        {
+          "model": "town/roof-point",
+          "z": 0.55,
+          "scale": 0.55
+        }
+      ]
+    },
+    {
+      "name": "shelter-3",
+      "recolor": [
+        "town-roof-red"
+      ],
+      "parts": [
+        {
+          "model": "town/wall-wood-window-shutters",
+          "turn": 0,
+          "z": 0.0,
+          "scale": 0.68
+        },
+        {
+          "model": "town/wall-wood",
+          "turn": 90,
+          "z": 0.0,
+          "scale": 0.68
+        },
+        {
+          "model": "town/wall-wood",
+          "turn": 180,
+          "z": 0.0,
+          "scale": 0.68
+        },
+        {
+          "model": "town/wall-wood-door",
+          "turn": 270,
+          "z": 0.0,
+          "scale": 0.68
+        },
+        {
+          "model": "town/roof-gable",
+          "z": 0.68,
+          "scale": 0.68
+        },
+        {
+          "model": "town/chimney",
+          "turn": 180,
+          "z": 0.68,
+          "scale": 0.68
+        }
+      ]
+    },
+    {
+      "name": "school-1",
+      "recolor": [
+        "survival-canvas-blue"
+      ],
+      "parts": [
+        {
+          "model": "survival/structure-canvas",
+          "scale": 1.5
+        },
+        {
+          "model": "town/stall-bench",
+          "at": [
+            0.12,
+            0
+          ],
+          "scale": 0.6
+        },
+        {
+          "model": "town/stall-bench",
+          "at": [
+            -0.12,
+            0
+          ],
+          "scale": 0.6
+        }
+      ]
+    },
+    {
+      "name": "school-2",
+      "recolor": [
+        "town-roof-blue"
+      ],
+      "parts": [
+        {
+          "model": "town/wall-wood-window-shutters",
+          "turn": 0,
+          "z": 0.0,
+          "scale": 0.62
+        },
+        {
+          "model": "town/wall-wood",
+          "turn": 90,
+          "z": 0.0,
+          "scale": 0.62
+        },
+        {
+          "model": "town/wall-wood",
+          "turn": 180,
+          "z": 0.0,
+          "scale": 0.62
+        },
+        {
+          "model": "town/wall-wood-door",
+          "turn": 270,
+          "z": 0.0,
+          "scale": 0.62
+        },
+        {
+          "model": "town/roof-gable",
+          "z": 0.62,
+          "scale": 0.62
+        }
+      ]
+    },
+    {
+      "name": "school-3",
+      "recolor": [
+        "town-roof-blue"
+      ],
+      "parts": [
+        {
+          "model": "town/wall-wood-window-shutters",
+          "turn": 0,
+          "z": 0.0,
+          "scale": 0.6
+        },
+        {
+          "model": "town/wall-wood",
+          "turn": 90,
+          "z": 0.0,
+          "scale": 0.6
+        },
+        {
+          "model": "town/wall-wood",
+          "turn": 180,
+          "z": 0.0,
+          "scale": 0.6
+        },
+        {
+          "model": "town/wall-wood-door",
+          "turn": 270,
+          "z": 0.0,
+          "scale": 0.6
+        },
+        {
+          "model": "town/wall-wood-window-shutters",
+          "turn": 0,
+          "z": 0.6,
+          "scale": 0.6
+        },
+        {
+          "model": "town/wall-wood",
+          "turn": 90,
+          "z": 0.6,
+          "scale": 0.6
+        },
+        {
+          "model": "town/wall-wood",
+          "turn": 180,
+          "z": 0.6,
+          "scale": 0.6
+        },
+        {
+          "model": "town/wall-wood-window-shutters",
+          "turn": 270,
+          "z": 0.6,
+          "scale": 0.6
+        },
+        {
+          "model": "town/roof-gable",
+          "z": 1.2,
+          "scale": 0.6
+        }
+      ]
+    },
+    {
+      "name": "workshop-1",
+      "parts": [
+        {
+          "model": "survival/workbench",
+          "at": [
+            0.02,
+            0.08
+          ],
+          "scale": 1.7
+        },
+        {
+          "model": "survival/resource-planks",
+          "at": [
+            -0.24,
+            -0.18
+          ],
+          "scale": 1.6
+        },
+        {
+          "model": "survival/resource-wood",
+          "at": [
+            0.24,
+            -0.24
+          ],
+          "turn": 30,
+          "scale": 1.8
+        }
+      ]
+    },
+    {
+      "name": "workshop-2",
+      "parts": [
+        {
+          "model": "survival/structure-roof",
+          "scale": 1.5
+        },
+        {
+          "model": "survival/workbench-anvil",
+          "at": [
+            0,
+            0.05
+          ],
+          "scale": 1.5
+        },
+        {
+          "model": "survival/resource-planks",
+          "at": [
+            0.2,
+            -0.24
+          ],
+          "turn": 45,
+          "scale": 1.2
+        }
+      ]
+    },
+    {
+      "name": "workshop-3",
+      "recolor": [
+        "town-roof-grey"
+      ],
+      "parts": [
+        {
+          "model": "town/wall-wood-window-shutters",
+          "turn": 0,
+          "z": 0.0,
+          "scale": 0.64
+        },
+        {
+          "model": "town/wall-wood",
+          "turn": 90,
+          "z": 0.0,
+          "scale": 0.64
+        },
+        {
+          "model": "town/wall-wood",
+          "turn": 180,
+          "z": 0.0,
+          "scale": 0.64
+        },
+        {
+          "model": "town/wall-wood-door",
+          "turn": 270,
+          "z": 0.0,
+          "scale": 0.64
+        },
+        {
+          "model": "town/roof-gable",
+          "z": 0.64,
+          "scale": 0.64
+        },
+        {
+          "model": "town/chimney",
+          "turn": 180,
+          "z": 0.64,
+          "scale": 0.64
+        },
+        {
+          "model": "survival/workbench-anvil",
+          "at": [
+            0.41,
+            -0.08
+          ],
+          "scale": 1.3
+        }
+      ]
+    },
+    {
+      "name": "gathering-1",
+      "parts": [
+        {
+          "model": "survival/campfire-pit",
+          "scale": 2.2
+        },
+        {
+          "model": "survival/tree-log",
+          "at": [
+            -0.32,
+            0
+          ],
+          "scale": 0.45
+        },
+        {
+          "model": "survival/tree-log",
+          "at": [
+            0,
+            0.32
+          ],
+          "turn": 90,
+          "scale": 0.45
+        }
+      ]
+    },
+    {
+      "name": "gathering-2",
+      "parts": [
+        {
+          "model": "survival/campfire-pit",
+          "scale": 2.0
+        },
+        {
+          "model": "town/stall-bench",
+          "at": [
+            -0.32,
+            0
+          ],
+          "scale": 0.7
+        },
+        {
+          "model": "town/stall-bench",
+          "at": [
+            0,
+            0.32
+          ],
+          "turn": 90,
+          "scale": 0.7
+        },
+        {
+          "model": "town/lantern",
+          "at": [
+            -0.38,
+            0.38
+          ],
+          "scale": 0.5
+        }
+      ]
+    },
+    {
+      "name": "gathering-3",
+      "recolor": [
+        "town-red-purple"
+      ],
+      "parts": [
+        {
+          "model": "town/stall-red",
+          "at": [
+            -0.22,
+            0.22
+          ],
+          "scale": 0.55
+        },
+        {
+          "model": "town/fountain-round",
+          "at": [
+            0.1,
+            -0.1
+          ],
+          "scale": 0.33
+        },
+        {
+          "model": "town/lantern",
+          "at": [
+            0.4,
+            0.4
+          ],
+          "scale": 0.5
+        },
+        {
+          "model": "town/lantern",
+          "at": [
+            -0.4,
+            -0.4
+          ],
+          "scale": 0.5
+        }
+      ]
+    }
+  ]
+}
