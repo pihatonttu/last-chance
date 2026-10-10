@@ -2,6 +2,7 @@
   import type { YouView } from '@saari/protocol';
   import { formatNumber, t } from '../i18n/index.ts';
   import { actionsPerMonth, maxSkillLevel, skillNeeded, toolsMultiplier } from '../lib/rules-info.ts';
+  import PropPicture from './PropPicture.svelte';
 
   let { you, month }: { you: YouView; month: number } = $props();
 
@@ -31,6 +32,7 @@
     {#each skills as skill (skill.key)}
       {@const needed = skillNeeded(skill.level)}
       <div class="skill">
+        <span class="pic"><PropPicture texture={skill.key === 'education' ? 'props/school-1' : 'props/workshop-1'} size={44} /></span>
         <span class="name">{t(`skill.${skill.key}`)}</span>
         <span class="level">{t('play.skills.level', { level: skill.level, max })}</span>
         <span class="effect">{skill.effect}</span>
@@ -67,16 +69,19 @@
   }
   .skill {
     display: grid;
-    grid-template-columns: auto auto 1fr;
+    grid-template-columns: auto auto auto 1fr;
     grid-template-areas:
-      'name level effect'
-      'bar bar small';
+      'pic name level effect'
+      'pic bar bar small';
     align-items: center;
     gap: 0.15rem 0.5rem;
     padding: 0.4rem 0.6rem;
     border-radius: var(--radius-small);
     background: var(--card-2);
     font-size: 0.9rem;
+  }
+  .pic {
+    grid-area: pic;
   }
   .name {
     grid-area: name;

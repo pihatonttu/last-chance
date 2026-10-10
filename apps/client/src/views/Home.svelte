@@ -1,6 +1,5 @@
 <script lang="ts">
   import Footer from '../components/Footer.svelte';
-  import IslandArt from '../components/IslandArt.svelte';
   import { t } from '../i18n/index.ts';
   import { isGameCode, normalizeCode } from '../lib/routes.ts';
   import { createGame, gameStatus } from '../net/api.ts';
@@ -56,11 +55,11 @@
 
 <main class="page home">
   <header class="hero">
-    <IslandArt />
     <div>
       <h1>{t('app.name')}</h1>
       <p class="tagline">{t('app.tagline')}</p>
     </div>
+    <img class="hero-art" src="{import.meta.env.BASE_URL}art/kenney/hero.png" alt="" width="640" height="363" />
   </header>
 
   <div class="choices">
@@ -113,10 +112,26 @@
 
 <style>
   .hero {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto;
     align-items: center;
     gap: 1.25rem;
-    margin: 1rem 0 1.75rem;
+    margin: 0.5rem 0 1.25rem;
+  }
+  .hero-art {
+    width: min(46vw, 440px);
+    height: auto;
+  }
+  @media (max-width: 640px) {
+    .hero {
+      grid-template-columns: 1fr;
+      text-align: center;
+    }
+    .hero-art {
+      order: -1;
+      width: min(100%, 360px);
+      justify-self: center;
+    }
   }
   .hero h1 {
     font-size: clamp(2.4rem, 6vw, 3.6rem);

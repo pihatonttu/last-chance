@@ -301,7 +301,6 @@
         {:else if panel === 'me' && you}
           <div class="popup popup-top card" role="dialog" aria-label={t('play.skills.title')}>
             <button type="button" class="close" aria-label={t('common.close')} onclick={closePanel}>✕</button>
-            {#if you.countsFromMonth > game.month}<p class="note">{t('play.countsFrom', { month: you.countsFromMonth })}</p>{/if}
             <SkillStatus {you} month={game.month} />
           </div>
         {/if}
@@ -477,11 +476,6 @@
     font-size: 1.1rem;
     font-weight: 900;
     cursor: pointer;
-  }
-  .note {
-    margin: 0 0 0.5rem;
-    font-weight: 700;
-    color: var(--warn);
   }
   .vote-open {
     position: absolute;
