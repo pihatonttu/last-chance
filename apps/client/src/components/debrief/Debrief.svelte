@@ -3,10 +3,19 @@
   import { formatNumber, LOCALE, t, tp } from '../../i18n/index.ts';
   import { ACTION_GROUPS } from '../../lib/enums.ts';
   import { gradeName, optionName, questionText } from '../../lib/format.ts';
+  import { parseOptionId } from '../../lib/rules-info.ts';
+  import ArtIcon from '../ArtIcon.svelte';
+  import MoodFace from '../MoodFace.svelte';
+  import PropPicture from '../PropPicture.svelte';
   import MiniChart from './MiniChart.svelte';
   import ShareBar, { type ShareSegment } from './ShareBar.svelte';
 
-  /** The debrief (design doc §13.2), shared by the teacher's named copy and the stored pseudonymised one. */
+  /**
+   * The debrief (design doc §13.2), shared by the teacher's named copy and the stored
+   * pseudonymised one. It is read together on the projector, so it leads with pictures:
+   * the village's story month by month and the questions to talk about. Charts, tables and
+   * per-player detail wait behind "show more" (P38).
+   */
   let { debrief }: { debrief: DebriefData } = $props();
 
   /** Validated categorical order (dataviz palette slots 1–6) + neutral grey for unused. */
@@ -51,6 +60,21 @@
   const groupSegments = $derived(segments(groupCounts, unusedTotal));
   const groupTotal = $derived(groupSegments.reduce((sum, s) => sum + s.value, 0));
   const share = (value: number) => (groupTotal > 0 ? Math.round((value / groupTotal) * 100) : 0);
+
+  /** A picture for each kind of action in the legend (the map's own art). */
+  const GROUP_ART: Record<ActionGroup | 'unused', { icon?: 'food' | 'wood'; prop?: string }> = {
+    food: { icon: 'food' },
+    fields: { prop: 'props/field-3' },
+    materials: { icon: 'wood' },
+    explore: { prop: 'props/boat' },
+    skills: { prop: 'props/school-1' },
+    recreation: { prop: 'props/gathering-1' },
+    unused: {},
+  };
+  const builtArt = (option: string | null) => {
+    const parsed = option ? parseOptionId(option) : null;
+    return parsed ? `props/${parsed.kind}-${parsed.level}` : null;
+  };
 </script>
 
 <article class="debrief" class:named={debrief.named}>
@@ -63,6 +87,7 @@
       {#if debrief.endedEarly}<p class="meta">{t('debrief.endedEarly')}</p>{/if}
     </div>
     <div class="result">
+      <span class="stars" aria-hidden="true">{#each [1, 2, 3, 4, 5, 6] as star (star)}<span class:on={star <= debrief.grade}>★</span>{/each}</span>
       <span class="grade">{gradeName(debrief.grade)}</span>
       <span>{t('end.grade', { grade: debrief.grade })} · {t('end.happiness', { n: debrief.happiness })}</span>
     </div>
@@ -71,6 +96,66 @@
 
   <section class="block">
     <h2>{t('debrief.chart.title')}</h2>
+    <div class="scroll">
+      <table class="story">
+        <tbody>
+          <tr>
+            <th scope="row">{t('debrief.chart.month')}</th>
+            {#each debrief.months as m (m.month)}<td class="month">{m.month}</td>{/each}
+          </tr>
+          <tr>
+            <th scope="row">{t('debrief.table.built')}</th>
+            {#each debrief.months as m (m.month)}
+              <td>
+                {#if m.vote.outcome === 'built'}
+                  <span title={optionName({ id: m.vote.option ?? 'none' })}><PropPicture texture={builtArt(m.vote.option ?? null)} size={44} /></span>
+                {:else if m.vote.outcome === 'tie'}
+                  <span class="tie" title={t('debrief.table.tie')}>=</span>
+                {:else}
+                  <span class="nothing">–</span>
+                {/if}
+              </td>
+            {/each}
+          </tr>
+          <tr>
+            <th scope="row"><ArtIcon name="food" size={28} /><span class="visually-hidden">{t('debrief.story.food')}</span></th>
+            {#each debrief.months as m (m.month)}
+              <td>
+                {#if m.food.hungry > 0}<span class="bad" title={tp('debrief.story.hungry', m.food.hungry)}>✗ {m.food.hungry}</span>
+                {:else}<span class="good">✓</span>{/if}
+              </td>
+            {/each}
+          </tr>
+          <tr>
+            <th scope="row"><ArtIcon name="shelter" size={28} /><span class="visually-hidden">{t('debrief.story.shelter')}</span></th>
+            {#each debrief.months as m (m.month)}
+              <td>
+                {#if m.shelter.unsheltered > 0}<span class="bad" title={tp('debrief.story.unsheltered', m.shelter.unsheltered)}>✗ {m.shelter.unsheltered}</span>
+                {:else}<span class="good">✓</span>{/if}
+              </td>
+            {/each}
+          </tr>
+          <tr>
+            <th scope="row"><MoodFace mood={0} size={26} /><span class="visually-hidden">{t('debrief.chart.mood')}</span></th>
+            {#each debrief.months as m (m.month)}<td title={String(m.mood.total)}><MoodFace mood={m.mood.total} size={30} /></td>{/each}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block questions">
+    <h2>{t('debrief.questions.title')}</h2>
+    <ol>
+      {#each debrief.questions as question (question.id)}
+        <li>{questionText(question)}</li>
+      {/each}
+    </ol>
+  </section>
+
+  <section class="block">
+    <details class="table-view">
+    <summary>{t('debrief.chart.more')}</summary>
     <div class="charts">
       <MiniChart
         title={t('debrief.chart.food')}
@@ -112,6 +197,7 @@
         {/each}
       </ol>
     {/if}
+    </details>
     <details class="table-view">
       <summary>{t('debrief.chart.tableToggle')}</summary>
       <div class="scroll">
@@ -181,6 +267,11 @@
       {#each groupSegments as segment (segment.key)}
         <li>
           <span class="swatch" style:background={segment.color}></span>
+          {#if GROUP_ART[segment.key as ActionGroup | 'unused']?.icon}
+            <ArtIcon name={GROUP_ART[segment.key as ActionGroup | 'unused']!.icon!} size={24} />
+          {:else if GROUP_ART[segment.key as ActionGroup | 'unused']?.prop}
+            <PropPicture texture={GROUP_ART[segment.key as ActionGroup | 'unused']!.prop!} size={28} />
+          {/if}
           {segment.label}
           <strong>{formatNumber(segment.value)}</strong>
           <span class="pct">({share(segment.value)} %)</span>
@@ -188,7 +279,8 @@
       {/each}
     </ul>
     {#if debrief.named && debrief.players.length > 0}
-      <h3>{t('debrief.actions.players')}</h3>
+      <details class="table-view">
+      <summary>{t('debrief.actions.players')}</summary>
       <ul class="per-player">
         {#each debrief.players as player (player.id)}
           <li>
@@ -198,6 +290,7 @@
           </li>
         {/each}
       </ul>
+      </details>
     {/if}
   </section>
 
@@ -227,7 +320,7 @@
         : t('debrief.spring.never')}
     </p>
     {#if debrief.named && debrief.players.length > 0}
-      <details class="table-view" open>
+      <details class="table-view">
         <summary>{t('debrief.votes.table')}</summary>
         <div class="scroll">
           <table class="votes-table">
@@ -254,14 +347,6 @@
     {/if}
   </section>
 
-  <section class="block questions">
-    <h2>{t('debrief.questions.title')}</h2>
-    <ol>
-      {#each debrief.questions as question (question.id)}
-        <li>{questionText(question)}</li>
-      {/each}
-    </ol>
-  </section>
 </article>
 
 <style>
@@ -294,6 +379,47 @@
   .grade {
     font-size: 1.5rem;
     font-weight: 900;
+  }
+  .stars {
+    font-size: 1.6rem;
+    line-height: 1;
+    color: #d5dbe0;
+    letter-spacing: 0.05em;
+  }
+  .stars .on {
+    color: var(--gold);
+  }
+  .story th {
+    text-align: left;
+    vertical-align: middle;
+  }
+  .story td {
+    text-align: center;
+    vertical-align: middle;
+    min-width: 3.2rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .story .month {
+    font-weight: 900;
+    color: var(--muted);
+  }
+  .good {
+    color: var(--ok);
+    font-weight: 900;
+    font-size: 1.2rem;
+  }
+  .bad {
+    color: var(--danger);
+    font-weight: 900;
+    white-space: nowrap;
+  }
+  .tie {
+    font-weight: 900;
+    color: var(--warn);
+    font-size: 1.3rem;
+  }
+  .nothing {
+    color: var(--muted);
   }
   .badge {
     grid-column: 1 / -1;
@@ -456,10 +582,14 @@
     font-size: 1.6rem;
     font-weight: 900;
   }
+  .questions {
+    border: 3px solid var(--primary);
+  }
   .questions ol {
     margin: 0;
-    padding-left: 1.3rem;
-    font-size: 1.1rem;
+    padding-left: 1.6rem;
+    font-size: 1.25rem;
+    font-weight: 700;
   }
   .questions li {
     margin-bottom: 0.6rem;

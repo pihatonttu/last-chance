@@ -64,13 +64,8 @@
   </header>
 
   <div class="choices">
-    <section class="card choice" aria-labelledby="teacher-title">
-      <h2 id="teacher-title">{t('home.teacher.title')}</h2>
-      <p class="muted">{t('home.teacher.text')}</p>
-      <a class="btn btn-primary btn-big" href={href('/opettaja')} onclick={router.link}>{t('home.teacher.button')}</a>
-    </section>
-
-    <section class="card choice" aria-labelledby="join-title">
+    <!-- Most visitors are pupils with a code: joining comes first. -->
+    <section class="card choice join" aria-labelledby="join-title">
       <h2 id="join-title">{t('home.join.title')}</h2>
       <p class="muted">{t('home.join.text')}</p>
       <form onsubmit={join} novalidate>
@@ -95,6 +90,12 @@
           <p id="code-error" class="error" role="alert">{error}</p>
         {/if}
       </form>
+    </section>
+
+    <section class="card choice teacher" aria-labelledby="teacher-title">
+      <h2 id="teacher-title">{t('home.teacher.title')}</h2>
+      <p class="muted">{t('home.teacher.text')}</p>
+      <a class="btn btn-secondary btn-big" href={href('/opettaja')} onclick={router.link}>{t('home.teacher.button')}</a>
     </section>
   </div>
 
@@ -130,6 +131,14 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 1.25rem;
+  }
+  @media (min-width: 760px) {
+    .choices {
+      grid-template-columns: 1.5fr 1fr;
+    }
+  }
+  .join {
+    border: 3px solid var(--primary);
   }
   .choice {
     display: flex;

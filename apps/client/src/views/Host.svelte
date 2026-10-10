@@ -305,9 +305,10 @@
     padding: 1.5rem 1rem 3rem;
   }
   .end-card {
-    max-width: 52rem;
+    max-width: 60rem;
     margin: 2rem auto;
-    font-size: clamp(16px, 1.4vw, 28px);
+    /* Read from the back of the classroom. */
+    font-size: clamp(18px, 1.9vw, 34px);
   }
   .debrief-wrap {
     max-width: 1100px;

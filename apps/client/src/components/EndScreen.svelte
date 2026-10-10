@@ -54,6 +54,10 @@
   .ship {
     animation: bob 3s ease-in-out infinite;
   }
+  .ship :global(img) {
+    width: 7.5em;
+    height: 7.5em;
+  }
   @keyframes bob {
     50% {
       transform: translateY(-6px) rotate(-1.5deg);
