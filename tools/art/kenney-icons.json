@@ -1,0 +1,76 @@
+{
+  "//": "HUD icons rendered from Kenney 3D kits by render-kenney.py, then cropped by kenney-icons-post.py.",
+  "canvas": [
+    240,
+    240
+  ],
+  "origin": [
+    120,
+    170
+  ],
+  "tilePx": 200,
+  "srgbFactorKits": [
+    "nature"
+  ],
+  "swatches": {
+    "survival-canvas-red": {
+      "kit": "survival",
+      "from": [
+        192,
+        256
+      ],
+      "into": [
+        64,
+        256
+      ],
+      "size": [
+        64,
+        128
+      ]
+    }
+  },
+  "sprites": [
+    {
+      "name": "wood",
+      "parts": [
+        {
+          "model": "nature/log_stackLarge",
+          "z": 0.05
+        }
+      ]
+    },
+    {
+      "name": "stone",
+      "parts": [
+        {
+          "model": "nature/stone_largeA",
+          "z": 0.05,
+          "materials": {
+            "stone": "#aab4bd"
+          }
+        }
+      ]
+    },
+    {
+      "name": "food",
+      "parts": [
+        {
+          "model": "survival/fish-large",
+          "scale": 3
+        }
+      ]
+    },
+    {
+      "name": "shelter",
+      "recolor": [
+        "survival-canvas-red"
+      ],
+      "parts": [
+        {
+          "model": "survival/tent-canvas",
+          "scale": 1.6
+        }
+      ]
+    }
+  ]
+}

@@ -13,6 +13,7 @@ export const fi = {
   'common.back': 'Takaisin',
   'common.home': 'Etusivulle',
   'common.loading': 'Ladataan…',
+  'common.close': 'Sulje',
   'serverError.bad-message': 'Palvelin ei ymmärtänyt viestiä. Päivitä sivu.',
   'serverError.server-error': 'Palvelimella tapahtui virhe. Yritä uudelleen.',
   'serverError.not-joined': 'Yhteys peliin katkesi. Päivitä sivu.',
@@ -122,6 +123,7 @@ export const fi = {
   'host.soundOff': 'Äänet pois',
 
   // ---------------------------------------------------------------- top bar
+  'bar.resources': 'Kylän yhteiset tavarat',
   'bar.wood': 'Puu',
   'bar.stone': 'Kivi',
   'bar.food': 'Ruoka',
@@ -168,8 +170,8 @@ export const fi = {
   'terrain.quarry.name': 'Louhos',
   'terrain.quarry.description': 'Louhoksesta saa kiveä. Mitä vähemmän kiveä on jäljellä, sitä vähemmän sitä irtoaa.',
   'tile.landing': 'Rantautumispaikka: tähän hylky ajoi.',
-  'tile.select': 'Napauta saaren ruutua, niin näet, mitä siinä voi tehdä.',
-  'tile.coords': 'Ruutu {x}, {y}',
+  'tile.select': 'Napauta ruutua kartalla',
+  'tile.more': 'Lisätietoja',
   'tile.stock.forest': 'Puuta jäljellä {n} / {max}',
   'tile.stock.field': 'Satoa jäljellä {n} / {max}',
   'tile.stock.quarry': 'Kiveä jäljellä {n} / {max}',
@@ -292,8 +294,9 @@ export const fi = {
   'play.waiting.you': 'Nimimerkkisi',
   'play.waiting.count.one': 'Peliin on liittynyt {n} pelaaja.',
   'play.waiting.count.other': 'Peliin on liittynyt {n} pelaajaa.',
-  'play.actionsLeft': 'Toimintoja jäljellä {left} / {max}',
-  'play.noActionsLeft': 'Toimintosi on käytetty. Seuraa tilannetta ja keskustele muiden kanssa!',
+  'play.energy': 'Energia',
+  'play.energyValue': 'Energiaa jäljellä {left} / {max}',
+  'play.noActionsLeft': 'Energia on käytetty tältä kuulta. Katso, mitä muut tekevät!',
   'play.countsFrom': 'Sinut lasketaan kyläläiseksi kuukaudesta {month} alkaen.',
   'play.skills.title': 'Oma kehitys',
   'play.skills.level': 'Taso {level} / {max}',
@@ -307,7 +310,6 @@ export const fi = {
   'play.soundOn': 'Äänet päällä',
   'play.soundOff': 'Äänet pois',
   'play.recenter': 'Koko saari',
-  'play.tab.tile': 'Ruutu',
   'play.tab.vote': 'Äänestys',
 
   'skill.education': 'Koulutus',
@@ -315,6 +317,7 @@ export const fi = {
 
   // ---------------------------------------------------------------- vote
   'vote.title': 'Mitä rakennetaan?',
+  'vote.hide': 'Katso karttaa',
   'vote.subtitle': 'Äänestä yhtä vaihtoehtoa. Voit vaihtaa ääntäsi äänestyksen aikana.',
   'vote.upcoming': 'Kuukauden lopuksi äänestetään. Vaihtoehdot nyt:',
   'vote.cost.wood': '{n} puuta',

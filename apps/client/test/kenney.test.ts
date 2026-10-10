@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { BUILDING_KINDS, LEVELS } from '../src/lib/enums.ts';
 import {
   ART_STYLES,
+  fogLook,
   kenneyCloud,
   kenneyProp,
   KENNEY_SCALE,
@@ -56,7 +57,7 @@ describe('kenneyTile', () => {
     }
   });
 
-  it('greys out a grass block under the fog and never shows the hidden terrain', () => {
+  it('darkens a block under the fog and never shows the hidden terrain', () => {
     const s = kenneyTile(tile({ fog: true, terrain: null }), ctx(), NO_LAND, 'kenney');
     expect(s?.texture).toBe('grass');
     expect(s?.tint).not.toBe(0xffffff);
@@ -243,17 +244,52 @@ describe('kenneyProp', () => {
   });
 });
 
+describe('fogLook', () => {
+  const grid = (tiles: PublicTile[]) => {
+    const byKey = new Map(tiles.map((t) => [`${t.x},${t.y}`, t]));
+    return (x: number, y: number) => byKey.get(`${x},${y}`);
+  };
+  const fog = (x: number, y: number) => tile({ x, y, fog: true, terrain: null });
+
+  it('marks fog next to explored land, diagonals included, as the place to explore (green box)', () => {
+    const at = grid([tile({ x: 1, y: 1, terrain: 'meadow' }), fog(2, 2), fog(2, 1), fog(3, 3)]);
+    expect(fogLook(fog(2, 2), at, 'kenney')).toBe('explorable');
+    expect(fogLook(fog(2, 1), at, 'kenney')).toBe('explorable');
+    expect(fogLook(fog(3, 3), at, 'kenney')).toBe('hidden');
+  });
+
+  it('does not count the sea or other fog as a place to explore from', () => {
+    const at = grid([tile({ x: 1, y: 1, terrain: 'sea' }), fog(2, 1), fog(2, 2)]);
+    expect(fogLook(fog(2, 2), at, 'kenney')).toBe('hidden');
+  });
+
+  it('is nothing for explored tiles or in the placeholder style', () => {
+    const at = grid([tile({ x: 1, y: 1, terrain: 'meadow' }), fog(2, 2)]);
+    expect(fogLook(tile({ x: 1, y: 1 }), at, 'kenney')).toBeNull();
+    expect(fogLook(fog(2, 2), at, 'placeholder')).toBeNull();
+  });
+});
+
 describe('kenneyCloud', () => {
-  it('covers every fogged tile with one of the preloaded clouds, varied but stable per tile', () => {
-    const cloud = (x: number, y: number) => kenneyCloud(tile({ x, y, fog: true, terrain: null }), 'kenney');
+  const fog = (x: number, y: number) => tile({ x, y, fog: true, terrain: null });
+  const nothingKnown = () => undefined;
+
+  it('covers hidden fog with one of the preloaded clouds, varied but stable per tile', () => {
+    const cloud = (x: number, y: number) => kenneyCloud(fog(x, y), nothingKnown, 'kenney');
     expect(cloud(2, 3)).toEqual(cloud(2, 3));
     const seen = new Set(Array.from({ length: 40 }, (_, i) => cloud(i, i * 5)?.texture));
     expect(seen.size).toBeGreaterThan(2);
     for (const t of seen) expect(KENNEY_TEXTURES).toContain(t);
   });
 
-  it('leaves explored tiles clear and draws nothing in the placeholder style', () => {
-    expect(kenneyCloud(tile(), 'kenney')).toBeNull();
-    expect(kenneyCloud(tile({ fog: true, terrain: null }), 'placeholder')).toBeNull();
+  it('leaves the places to explore uncovered so their green box shows', () => {
+    const known = tile({ x: 1, y: 1, terrain: 'meadow' });
+    const at = (x: number, y: number) => (x === 1 && y === 1 ? known : undefined);
+    expect(kenneyCloud(fog(2, 2), at, 'kenney')).toBeNull();
+  });
+
+  it('draws nothing over explored tiles or in the placeholder style', () => {
+    expect(kenneyCloud(tile(), nothingKnown, 'kenney')).toBeNull();
+    expect(kenneyCloud(fog(2, 2), nothingKnown, 'placeholder')).toBeNull();
   });
 });

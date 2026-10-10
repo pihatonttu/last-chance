@@ -3,6 +3,8 @@ Map art by Kenney (www.kenney.nl), CC0 1.0 - see LICENSE-kenney.txt.
 Tiles (grass, trees, rocks): Tower Defense (isometric), copied by tools/art/kenney-assets.py
 Tiles (water, beaches): Isometric Tiles Landscape, copied by tools/art/kenney-assets.py
 clouds/: Background Elements Remastered, copied by tools/art/kenney-assets.py
+icons/: rendered from the same kits by tools/art/render-kenney.py with tools/art/kenney-icons.json,
+        cropped by tools/art/kenney-icons-post.py
 props/: rendered from Survival Kit 2.0, Fantasy Town Kit 2.0, Nature Kit and Pirate Kit (3D)
         by tools/art/render-kenney.py with tools/art/kenney-props.json,
         post-processed by tools/art/kenney-props-post.py

@@ -12,6 +12,7 @@ import { clampCamera, fitCamera, panBy, screenToWorld, zoomAt, type Camera } fro
 import { drawOrder, tileCenter, tilesBounds, worldToTile, type Rect } from './iso.ts';
 import {
   CLOUD_SCALE,
+  fogLook,
   KENNEY_SCALE,
   KENNEY_TEXTURES,
   kenneyAnchorY,
@@ -24,6 +25,7 @@ import {
   type ArtStyle,
 } from './kenney.ts';
 import {
+  drawExploreBox,
   drawGround,
   drawHighlight,
   drawObjects,
@@ -95,9 +97,10 @@ interface PointerInfo {
 const TAP_SLOP = 8;
 const TAP_MS = 650;
 
-/** One map tile in the Kenney style: its block, what stands on it, and its fog cloud. */
+/** One map tile in the Kenney style: its block, the explore box on it, what stands on it, and its cloud. */
 interface TileSlot {
   block: Sprite;
+  detail: Graphics;
   prop: Sprite;
   cloud: Sprite;
 }
@@ -124,10 +127,8 @@ export class MapRenderer {
   readonly #options: MapRendererOptions;
   readonly #world = new Container();
   readonly #ground = new Graphics();
-  /** Kenney style: per-tile block and prop in painter's order. */
+  /** Kenney style: per-tile block, explore box, prop and cloud in painter's order. */
   readonly #tiles = new Container();
-  /** Kenney style: fog clouds above all land, so neighbouring clouds join up. */
-  readonly #clouds = new Container();
   #slots: TileSlot[] = [];
   #textures: Map<string, Texture> | null = null;
   #style: ArtStyle;
@@ -157,7 +158,7 @@ export class MapRenderer {
     this.#options = options;
     this.#textures = textures;
     this.#style = options.artStyle ?? 'placeholder';
-    this.#world.addChild(this.#ground, this.#tiles, this.#objects, this.#clouds, this.#highlight, this.#overlay, this.#effects);
+    this.#world.addChild(this.#ground, this.#tiles, this.#objects, this.#highlight, this.#overlay, this.#effects);
     app.stage.addChild(this.#world);
   }
 
@@ -348,7 +349,9 @@ export class MapRenderer {
           slot.prop.scale.set(PROP_SCALE);
           slot.prop.position.set(ctx.cx, ctx.cy + prop.dy);
         }
-        const cloud = kenneyCloud(tile, style);
+        const detail = pixiPen(slot.detail.clear());
+        if (fogLook(tile, at, style) === 'explorable') drawExploreBox(detail, ctx.cx, ctx.cy);
+        const cloud = kenneyCloud(tile, at, style);
         const cloudTexture = cloud && this.#textures?.get(cloud.texture);
         slot.cloud.visible = Boolean(cloudTexture);
         if (cloud && cloudTexture) {
@@ -375,13 +378,14 @@ export class MapRenderer {
     while (this.#slots.length > count) {
       const slot = this.#slots.pop()!;
       slot.block.destroy();
+      slot.detail.destroy();
       slot.prop.destroy();
       slot.cloud.destroy();
     }
     while (this.#slots.length < count) {
-      const slot: TileSlot = { block: new Sprite(), prop: new Sprite(), cloud: new Sprite() };
-      this.#tiles.addChild(slot.block, slot.prop);
-      this.#clouds.addChild(slot.cloud);
+      const slot: TileSlot = { block: new Sprite(), detail: new Graphics(), prop: new Sprite(), cloud: new Sprite() };
+      // Clouds in painter's order too: a green box in front stays on top of the cloud behind it.
+      this.#tiles.addChild(slot.block, slot.detail, slot.prop, slot.cloud);
       this.#slots.push(slot);
     }
   }

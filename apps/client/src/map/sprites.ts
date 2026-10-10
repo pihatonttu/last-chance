@@ -457,6 +457,18 @@ const NULL_PEN: Pen = {
   arc: () => undefined,
 };
 
+export const EXPLORE_LOOK = { top: 0x9df5c4, left: 0x5fcf95, right: 0x3fae78, alpha: 0.62, height: 16 } as const;
+
+/** Kenney style: a see-through green box on a fogged tile that can be explored now (inspired by the original game). */
+export function drawExploreBox(pen: Pen, cx: number, cy: number): void {
+  const h = EXPLORE_LOOK.height;
+  const [, , rx, ry, bx, by, lx, ly] = diamond(cx, cy, 0.92) as [number, number, number, number, number, number, number, number];
+  const edge = { color: 0xffffff, width: 1.5, alpha: 0.75 };
+  pen.poly([lx, ly, bx, by, bx, by - h, lx, ly - h], EXPLORE_LOOK.left, EXPLORE_LOOK.alpha, edge);
+  pen.poly([bx, by, rx, ry, rx, ry - h, bx, by - h], EXPLORE_LOOK.right, EXPLORE_LOOK.alpha, edge);
+  pen.poly(diamond(cx, cy - h, 0.92), EXPLORE_LOOK.top, EXPLORE_LOOK.alpha, edge);
+}
+
 /** The wreck the class came ashore from, drawn on the sea next to the landing. */
 export function drawWreck(pen: Pen, cx: number, cy: number): void {
   pen.poly([cx - 26, cy - 4, cx + 22, cy - 12, cx + 28, cy - 2, cx + 8, cy + 10, cx - 18, cy + 8], WRECK_LOOK.hull, 1, {

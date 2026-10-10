@@ -2,7 +2,14 @@
   import type { SoundService } from '../audio/sound.svelte.ts';
   import Icon from './Icon.svelte';
 
-  let { sound, onLabel, offLabel }: { sound: SoundService; onLabel: string; offLabel: string } = $props();
+  interface Props {
+    sound: SoundService;
+    onLabel: string;
+    offLabel: string;
+    /** Icon only; the label stays for screen readers and as a tooltip. */
+    compact?: boolean;
+  }
+  let { sound, onLabel, offLabel, compact = false }: Props = $props();
 </script>
 
 <button
@@ -13,5 +20,5 @@
   title={sound.muted ? offLabel : onLabel}
 >
   <Icon name={sound.muted ? 'mute' : 'sound'} />
-  <span>{sound.muted ? offLabel : onLabel}</span>
+  <span class:visually-hidden={compact}>{sound.muted ? offLabel : onLabel}</span>
 </button>

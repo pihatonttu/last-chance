@@ -1,10 +1,15 @@
 <script lang="ts">
   import type { ActionPreview, Coord, Phase, PublicTile } from '@saari/rules';
-  import { formatNumber, t } from '../i18n/index.ts';
+  import { t } from '../i18n/index.ts';
   import { actionName, buildingTitle, gainText, terrainDescription, terrainName, yieldGain } from '../lib/format.ts';
   import { exploreNeeded, shelterPeople, stockMax, tileUseCapacity, workNeeded } from '../lib/rules-info.ts';
   import type { ActOutcome } from '../state/reducer.ts';
 
+  /**
+   * What a tapped tile offers, as a small popup: its name and one big action button.
+   * The rest (description, stock, work, uses) waits behind "More info" so the screen
+   * stays calm for young players.
+   */
   interface Props {
     tile: PublicTile;
     landing: Coord;
@@ -14,8 +19,9 @@
     pending: boolean;
     lastAct: ActOutcome | null;
     onact: () => void;
+    onclose: () => void;
   }
-  let { tile, landing, villagers, phase, preview, pending, lastAct, onact }: Props = $props();
+  let { tile, landing, villagers, phase, preview, pending, lastAct, onact, onclose }: Props = $props();
 
   const isLanding = $derived(tile.x === landing.x && tile.y === landing.y);
   const title = $derived(tile.building ? buildingTitle(tile.building.kind, tile.building.level) : terrainName(tile));
@@ -89,16 +95,10 @@
 </script>
 
 <section class="tile-panel" aria-labelledby="tile-title" aria-live="polite">
-  <h2 id="tile-title">{title}</h2>
-  {#if isLanding}<p class="landing">{t('tile.landing')}</p>{/if}
-  <p class="description">{description}</p>
-
-  {#each meters as meter (meter.label)}
-    <div class="meter">
-      <span>{meter.label}</span>
-      <div class="bar" aria-hidden="true"><span style:width="{Math.min(1, meter.share) * 100}%"></span></div>
-    </div>
-  {/each}
+  <header>
+    <h2 id="tile-title">{title}</h2>
+    <button type="button" class="close" aria-label={t('common.close')} onclick={onclose}>✕</button>
+  </header>
 
   <div class="action">
     {#if phase !== 'action'}
@@ -116,9 +116,6 @@
           {#if preview.yield.type !== 'none'}<span class="gain">{yieldGain(preview.yield)}</span>{/if}
         {/if}
       </button>
-      {#each detail as line (line)}
-        <p class="detail">{line}</p>
-      {/each}
       {#if !preview.available && preview.reason}
         <p class="reason" role="status">{t(`refusal.${preview.reason}`)}</p>
       {/if}
@@ -131,41 +128,59 @@
       {/if}
     {/if}
   </div>
-  <p class="coords muted">{t('tile.coords', { x: formatNumber(tile.x), y: formatNumber(tile.y) })}</p>
+
+  <details class="more">
+    <summary>{t('tile.more')}</summary>
+    {#if isLanding}<p class="landing">{t('tile.landing')}</p>{/if}
+    <p>{description}</p>
+    {#each meters as meter (meter.label)}
+      <div class="meter">
+        <span>{meter.label}</span>
+        <div class="bar" aria-hidden="true"><span style:width="{Math.min(1, meter.share) * 100}%"></span></div>
+      </div>
+    {/each}
+    {#each detail as line (line)}
+      <p class="detail">{line}</p>
+    {/each}
+  </details>
 </section>
 
 <style>
   .tile-panel {
     display: flex;
     flex-direction: column;
+    gap: 0.6rem;
+  }
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
     gap: 0.5rem;
   }
   h2 {
     margin: 0;
-    font-size: 1.4rem;
+    font-size: 1.35rem;
+    line-height: 1.2;
   }
-  .landing {
-    margin: 0;
-    font-weight: 800;
-    color: var(--primary-dark);
-  }
-  .description {
-    margin: 0;
-  }
-  .meter {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    font-weight: 700;
-    font-size: 0.92rem;
+  .close {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    margin: -0.35rem -0.35rem 0 0;
+    border: none;
+    border-radius: 999px;
+    background: var(--card-2);
+    font-size: 1.1rem;
+    font-weight: 900;
+    cursor: pointer;
   }
   .action {
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-    margin-top: 0.25rem;
-    padding-top: 0.75rem;
-    border-top: 2px solid var(--line);
+  }
+  .action p {
+    margin: 0;
   }
   .act {
     width: 100%;
@@ -177,22 +192,42 @@
     background: rgb(255 255 255 / 0.22);
     white-space: nowrap;
   }
-  .detail {
-    margin: 0;
-    font-weight: 700;
-  }
   .reason {
-    margin: 0;
     color: var(--danger);
     font-weight: 800;
   }
   .done {
-    margin: 0;
     color: var(--ok);
     font-weight: 800;
   }
-  .coords {
-    margin: 0;
-    font-size: 0.8rem;
+  .more {
+    border-top: 2px solid var(--line);
+    padding-top: 0.4rem;
+  }
+  .more summary {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    font-weight: 800;
+    color: var(--primary-dark);
+    cursor: pointer;
+  }
+  .more p {
+    margin: 0.35rem 0;
+  }
+  .landing {
+    font-weight: 800;
+    color: var(--primary-dark);
+  }
+  .meter {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin: 0.4rem 0;
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+  .detail {
+    font-weight: 700;
   }
 </style>

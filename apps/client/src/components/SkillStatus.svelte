@@ -20,18 +20,10 @@
       effect: t('play.skills.toolsEffect', { m: formatNumber(toolsMultiplier(you.tools)) }),
     },
   ]);
-  const pips = $derived(Array.from({ length: you.maxActions }, (_, i) => i < you.actionsLeft));
 </script>
 
-<section class="status" aria-label={t('play.skills.title')}>
-  <div class="actions" class:empty={you.actionsLeft === 0}>
-    <span class="label">{t('play.actionsLeft', { left: you.actionsLeft, max: you.maxActions })}</span>
-    <span class="pips" aria-hidden="true">
-      {#each pips as full, i (i)}
-        <span class="pip" class:full></span>
-      {/each}
-    </span>
-  </div>
+<section class="status" aria-labelledby="skills-title">
+  <h2 id="skills-title">{t('play.skills.title')}</h2>
   {#if you.countsFromMonth > month}
     <p class="note">{t('play.countsFrom', { month: you.countsFromMonth })}</p>
   {/if}
@@ -59,33 +51,9 @@
     flex-direction: column;
     gap: 0.5rem;
   }
-  .actions {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: var(--radius-small);
-    background: var(--primary-soft);
-    font-weight: 800;
-  }
-  .actions.empty {
-    background: var(--card-2);
-    color: var(--muted);
-  }
-  .pips {
-    display: flex;
-    gap: 0.3rem;
-  }
-  .pip {
-    width: 1rem;
-    height: 1rem;
-    border-radius: 50%;
-    border: 2px solid var(--primary-dark);
-    background: transparent;
-  }
-  .pip.full {
-    background: var(--primary);
+  h2 {
+    margin: 0;
+    font-size: 1.15rem;
   }
   .note {
     margin: 0;

@@ -6,6 +6,7 @@
   import Banner from '../components/Banner.svelte';
   import DevPanel from '../components/DevPanel.svelte';
   import EndScreen from '../components/EndScreen.svelte';
+  import EnergyMeter from '../components/EnergyMeter.svelte';
   import MonthSummary from '../components/MonthSummary.svelte';
   import SkillStatus from '../components/SkillStatus.svelte';
   import SoundToggle from '../components/SoundToggle.svelte';
@@ -46,7 +47,8 @@
   let joining = $state(false);
   let selected = $state<Coord | null>(null);
   let pendingAct = $state<Coord | null>(null);
-  let tab = $state<'tile' | 'vote'>('tile');
+  /** One popup at a time over the map, so the screen never fills up with text. */
+  let panel = $state<'none' | 'tile' | 'vote' | 'me'>('none');
 
   function onMessage(message: ServerMessage): void {
     switch (message.t) {
@@ -71,8 +73,8 @@
         if (message.ok) sound.play('action');
         break;
       case 'game':
-        if (message.game.phase === 'vote') tab = 'vote';
-        else if (message.game.phase === 'action') tab = 'tile';
+        if (message.game.phase === 'vote') panel = 'vote';
+        else if (message.game.phase === 'action' && panel === 'vote') panel = 'none';
         if (message.game.phase === 'action') sound.play('phase-action');
         else if (message.game.phase === 'vote') sound.play('phase-vote');
         else if (message.game.phase === 'ended') sound.play('game-end');
@@ -135,7 +137,16 @@
 
   function select(x: number, y: number): void {
     selected = { x, y };
-    tab = 'tile';
+    panel = 'tile';
+  }
+
+  function closePanel(): void {
+    if (panel === 'tile') selected = null;
+    panel = 'none';
+  }
+
+  function onkeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape' && panel !== 'none') closePanel();
   }
 
   function act(): void {
@@ -144,6 +155,8 @@
     session.act(selected.x, selected.y);
   }
 </script>
+
+<svelte:window {onkeydown} />
 
 {#if client.kicked}
   <main class="page center">
@@ -223,68 +236,83 @@
   {:else if game.map}
     <div class="play">
       <TopBar {game} clockOffset={client.clockOffset} phaseTotalMs={client.phaseTotalMs} />
-      <div class="body">
-        <div class="map-area">
-          <MapView
-            map={game.map}
-            villagers={game.village.villagers}
-            mode="student"
-            {selected}
-            effects={client.effects}
-            onselect={select}
-            label={t('map.label.student')}
-          />
-          {#if game.phase === 'summary' && game.lastReport}
-            <div class="overlay">
-              <div class="card overlay-card"><MonthSummary report={game.lastReport} /></div>
-            </div>
+      <div class="map-area">
+        <MapView
+          map={game.map}
+          villagers={game.village.villagers}
+          mode="student"
+          {selected}
+          effects={client.effects}
+          onselect={select}
+          label={t('map.label.student')}
+        />
+
+        <div class="corner top-right">
+          {#if you}
+            <button type="button" class="me" aria-expanded={panel === 'me'} onclick={() => (panel = panel === 'me' ? 'none' : 'me')}>
+              <span class="dot" style:background={you.color}></span>{you.nickname}
+            </button>
           {/if}
+          <SoundToggle {sound} onLabel={t('play.soundOn')} offLabel={t('play.soundOff')} compact />
         </div>
-        <aside class="panel">
-          <div class="panel-head">
-            {#if you}<span class="you"><span class="dot" style:background={you.color}></span>{you.nickname}</span>{/if}
-            <SoundToggle {sound} onLabel={t('play.soundOn')} offLabel={t('play.soundOff')} />
+
+        {#if game.phase === 'action' && you}
+          <div class="corner bottom-left">
+            {#if you.actionsLeft === 0}<p class="bubble">{t('play.noActionsLeft')}</p>{/if}
+            <EnergyMeter left={you.actionsLeft} max={you.maxActions} />
           </div>
-          {#if you && game.phase === 'action'}<SkillStatus {you} month={game.month} />{/if}
-          {#if you && you.actionsLeft === 0 && game.phase === 'action'}
-            <p class="hint-box">{t('play.noActionsLeft')}</p>
+          {#if panel === 'none' && you.actionsLeft > 0}
+            <p class="tap-hint" aria-hidden="true">{t('tile.select')}</p>
           {/if}
-          <div class="tabs" role="tablist">
-            <button type="button" role="tab" class="tab" aria-selected={tab === 'tile'} onclick={() => (tab = 'tile')}>
-              {t('play.tab.tile')}
-            </button>
-            <button type="button" role="tab" class="tab" aria-selected={tab === 'vote'} onclick={() => (tab = 'vote')}>
-              {t('play.tab.vote')}
-            </button>
+        {/if}
+
+        {#if panel === 'tile' && selectedTile}
+          <div class="popup card">
+            <TilePanel
+              tile={selectedTile}
+              landing={game.map.landing}
+              villagers={game.village.villagers}
+              phase={game.phase}
+              {preview}
+              pending={pendingAct !== null}
+              lastAct={client.lastAct}
+              onact={act}
+              onclose={closePanel}
+            />
           </div>
-          <div class="tab-body" role="tabpanel">
-            {#if tab === 'vote' && game.vote}
-              <VoteCards
-                vote={game.vote}
-                phase={game.phase}
-                myVote={you?.vote ?? null}
-                pending={client.pendingVote}
-                villagers={game.village.villagers}
-                resources={game.village.resources}
-                lastVote={client.lastVote}
-                onvote={(option) => session.vote(option)}
-              />
-            {:else if selectedTile && game.map}
-              <TilePanel
-                tile={selectedTile}
-                landing={game.map.landing}
-                villagers={game.village.villagers}
-                phase={game.phase}
-                {preview}
-                pending={pendingAct !== null}
-                lastAct={client.lastAct}
-                onact={act}
-              />
-            {:else}
-              <p class="muted">{t('tile.select')}</p>
-            {/if}
+        {:else if panel === 'vote' && game.vote}
+          <div class="popup popup-tall card" role="dialog" aria-label={t('play.tab.vote')}>
+            <button type="button" class="btn btn-secondary btn-small hide" onclick={closePanel}>{t('vote.hide')}</button>
+            <VoteCards
+              vote={game.vote}
+              phase={game.phase}
+              myVote={you?.vote ?? null}
+              pending={client.pendingVote}
+              villagers={game.village.villagers}
+              resources={game.village.resources}
+              lastVote={client.lastVote}
+              onvote={(option) => session.vote(option)}
+            />
           </div>
-        </aside>
+        {:else if panel === 'me' && you}
+          <div class="popup popup-top card" role="dialog" aria-label={t('play.skills.title')}>
+            <button type="button" class="close" aria-label={t('common.close')} onclick={closePanel}>✕</button>
+            {#if you.countsFromMonth > game.month}<p class="note">{t('play.countsFrom', { month: you.countsFromMonth })}</p>{/if}
+            <SkillStatus {you} month={game.month} />
+          </div>
+        {/if}
+
+        {#if game.vote && panel === 'none' && game.phase !== 'summary'}
+          <button type="button" class="btn btn-primary vote-open" class:pulse={game.phase === 'vote'} onclick={() => (panel = 'vote')}>
+            {t('play.tab.vote')}
+          </button>
+        {/if}
+
+        {#if game.phase === 'summary' && game.lastReport}
+          <div class="overlay">
+            <div class="card overlay-card"><MonthSummary report={game.lastReport} /></div>
+          </div>
+        {/if}
       </div>
     </div>
   {/if}
@@ -346,57 +374,144 @@
     height: 100dvh;
     overflow: hidden;
   }
-  .body {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(300px, 34vw, 400px);
-    min-height: 0;
-  }
   .map-area {
     position: relative;
     min-height: 0;
   }
-  .panel {
+  .corner {
+    position: absolute;
     display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    padding: 0.6rem 0.75rem 1rem;
-    overflow-y: auto;
-    background: var(--card);
-    border-left: 3px solid var(--line);
+    gap: 0.4rem;
+    pointer-events: none;
   }
-  .panel-head {
-    display: flex;
-    justify-content: space-between;
+  .corner > :global(*) {
+    pointer-events: auto;
+  }
+  .top-right {
+    top: 0.75rem;
+    right: 0.75rem;
     align-items: center;
-    gap: 0.5rem;
   }
-  .hint-box {
+  .bottom-left {
+    left: 0.75rem;
+    bottom: 0.75rem;
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: min(20rem, calc(100% - 1.5rem));
+  }
+  .me {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 44px;
+    padding: 0 0.9rem;
+    border: 2px solid var(--line);
+    border-radius: 999px;
+    background: var(--card);
+    font: inherit;
+    font-weight: 800;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+  }
+  .bubble {
     margin: 0;
     padding: 0.5rem 0.75rem;
     border-radius: var(--radius-small);
     background: var(--warn-soft);
     color: var(--warn);
     font-weight: 700;
+    box-shadow: var(--shadow);
   }
-  .tabs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.35rem;
-    padding: 0.25rem;
-    border-radius: 12px;
-    background: var(--card-2);
-  }
-  .tab {
-    min-height: 44px;
-    border: none;
-    border-radius: 9px;
-    background: transparent;
+  .tap-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 0.9rem;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: 0.45rem 1rem;
+    border-radius: 999px;
+    background: rgb(29 42 51 / 0.72);
+    color: #fff;
     font-weight: 800;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .popup {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    width: min(24rem, calc(100% - 1.5rem));
+    max-height: calc(100% - 1.5rem);
+    overflow-y: auto;
+    padding: 1rem;
+    box-shadow: var(--shadow);
+  }
+  .popup-tall {
+    top: 0.75rem;
+    width: min(26rem, calc(100% - 1.5rem));
+  }
+  .popup-top {
+    top: 4.25rem;
+    bottom: auto;
+  }
+  .popup .hide {
+    float: right;
+    margin: 0 0 0.5rem 0.5rem;
+  }
+  .popup .close {
+    float: right;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 999px;
+    background: var(--card-2);
+    font-size: 1.1rem;
+    font-weight: 900;
     cursor: pointer;
   }
-  .tab[aria-selected='true'] {
-    background: var(--primary);
-    color: #fff;
+  .note {
+    margin: 0 0 0.5rem;
+    font-weight: 700;
+    color: var(--warn);
+  }
+  .vote-open {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    box-shadow: var(--shadow);
+  }
+  .pulse {
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    50% {
+      transform: scale(1.06);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pulse {
+      animation: none;
+    }
+  }
+  @media (max-width: 640px) {
+    .popup {
+      right: 0;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      max-height: 70%;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .popup-tall {
+      top: auto;
+      max-height: 85%;
+    }
+    .popup-top {
+      top: auto;
+    }
+    .tap-hint {
+      bottom: 6.5rem;
+    }
   }
   .overlay {
     position: absolute;

@@ -3,10 +3,12 @@
  * here, without PixiJS, so it can be tested; the renderer only loads and places the textures.
  *
  * Land blocks, trees and rocks come from Kenney "Tower Defense", water and beaches from
- * "Isometric Tiles Landscape", the fog clouds from "Background Elements" (public/art/kenney,
- * copied by tools/art/kenney-assets.py). Buildings, fields, the quarry, the spring and the
- * wreck are rendered from Kenney 3D kits in the same view (public/art/kenney/props,
- * tools/art/render-kenney.py). Only the badges and exploration rings stay vector (sprites.ts).
+ * "Isometric Tiles Landscape" (public/art/kenney, copied by tools/art/kenney-assets.py).
+ * Buildings, fields, the quarry, the spring and the wreck are rendered from Kenney 3D kits
+ * in the same view (public/art/kenney/props, tools/art/render-kenney.py). The fog is Kenney
+ * clouds ("Background Elements"), except over the places to explore now, which show a green
+ * box instead (inspired by the original game); those boxes, the badges and the exploration
+ * rings are vector (sprites.ts).
  */
 import type { PublicTile } from '@saari/rules';
 import { TILE_W } from './iso.ts';
@@ -229,6 +231,27 @@ export function kenneyProp(
   }
 }
 
+/**
+ * How a fogged tile looks: `explorable` (a green box: explored land is next to it, so it
+ * can be explored now) or `hidden` (under a cloud). Mirrors the engine's rule: any of the eight
+ * neighbours is explored land, never the sea.
+ */
+export function fogLook(
+  tile: PublicTile,
+  at: (x: number, y: number) => PublicTile | undefined,
+  style: ArtStyle,
+): 'explorable' | 'hidden' | null {
+  if (style === 'placeholder' || !tile.fog) return null;
+  for (let dy = -1; dy <= 1; dy++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      if (dx === 0 && dy === 0) continue;
+      const n = at(tile.x + dx, tile.y + dy);
+      if (n && !n.fog && n.terrain !== null && n.terrain !== 'sea') return 'explorable';
+    }
+  }
+  return 'hidden';
+}
+
 /** Kenney clouds are 196-250 px wide; this makes them a little wider than a tile so they join up. */
 export const CLOUD_SCALE = 0.55;
 
@@ -240,9 +263,13 @@ export interface CloudSprite {
   flipX: boolean;
 }
 
-/** The cloud over an unexplored tile (the original game also hid the unknown under clouds). */
-export function kenneyCloud(tile: PublicTile, style: ArtStyle): CloudSprite | null {
-  if (style === 'placeholder' || !tile.fog) return null;
+/** The cloud over hidden fog; the places to explore stay uncovered so their green box shows. */
+export function kenneyCloud(
+  tile: PublicTile,
+  at: (x: number, y: number) => PublicTile | undefined,
+  style: ArtStyle,
+): CloudSprite | null {
+  if (fogLook(tile, at, style) !== 'hidden') return null;
   const h = tileHash(tile.x, tile.y);
   return {
     texture: CLOUDS[h % CLOUDS.length]!,

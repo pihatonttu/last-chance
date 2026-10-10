@@ -9,6 +9,7 @@ import {
   drawGround,
   drawHighlight,
   drawObjects,
+  drawExploreBox,
   drawOverlay,
   drawWreck,
   EFFECT_COLORS,
@@ -142,6 +143,13 @@ describe('Kenney style details', () => {
       drawObjects(pen, t, ctx(t), { textured: true });
       expect(calls).toHaveLength(0);
     }
+  });
+
+  it('draws the place to explore as a see-through box with a top and two sides', () => {
+    const { pen, calls } = recordingPen();
+    drawExploreBox(pen, 10, 20);
+    expect(calls.filter((c) => c.kind === 'poly')).toHaveLength(3);
+    for (const call of calls) for (const n of call.numbers) expect(Number.isFinite(n)).toBe(true);
   });
 
   it('puts the building badge just above a textured building when given its top', () => {

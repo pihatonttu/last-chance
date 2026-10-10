@@ -143,8 +143,8 @@
   }
   .recenter {
     position: absolute;
-    right: 0.75rem;
-    bottom: 0.75rem;
+    left: 0.75rem;
+    top: 0.75rem;
     min-height: 44px;
     padding: 0 1rem;
     border: 2px solid var(--ink);
