@@ -411,13 +411,8 @@ export function drawObjects(pen: Pen, tile: PublicTile, ctx: TileContext, option
   }
 }
 
-export interface OverlayOptions {
-  /** Highest point of a textured building (world y); the badge floats above it. */
-  buildingTop?: number;
-}
-
 /** Top layer: building badges with level pips and exploration progress rings. */
-export function drawOverlay(pen: Pen, tile: PublicTile, ctx: TileContext, options: OverlayOptions = {}): void {
+export function drawOverlay(pen: Pen, tile: PublicTile, ctx: TileContext): void {
   const { cx, cy } = ctx;
   if (tile.fog) {
     if (ctx.exploreShare <= 0) return;
@@ -433,7 +428,7 @@ export function drawOverlay(pen: Pen, tile: PublicTile, ctx: TileContext, option
   const building = tile.building;
   if (!building) return;
   const look = BUILDING_LOOK[building.kind];
-  const top = options.buildingTop ?? buildingTop(building.kind, building.level, cy);
+  const top = buildingTop(building.kind, building.level, cy);
   const by = top - BADGE_LOOK.radius - 4;
   pen.circle(cx, by, BADGE_LOOK.radius, BADGE_LOOK.fill, 1, { color: OUTLINE, width: 2 });
   for (const poly of GLYPHS[look.glyph]) pen.poly(scalePoints(poly, cx, by, BADGE_LOOK.glyphScale), look.accent, 1);
@@ -457,7 +452,33 @@ const NULL_PEN: Pen = {
   arc: () => undefined,
 };
 
-export const EXPLORE_LOOK = { top: 0x9df5c4, left: 0x5fcf95, right: 0x3fae78, alpha: 0.62, height: 16 } as const;
+export const SHORE_LOOK = { sand: 0xf0dca6, wetSand: 0xd8c08a, shallow: 0x8fd8ee, reef: 0x4ea9d2, foam: 0xffffff } as const;
+
+/**
+ * Kenney style: the water round the island, in two layers drawn for every coastal tile in
+ * turn (all `reef` first, then all `shallow`). Overlapping ellipses of one colour merge,
+ * so the coast is round instead of stepped.
+ */
+export function drawShallowWater(pen: Pen, tile: Pick<PublicTile, 'x' | 'y'>, cx: number, cy: number, layer: 'reef' | 'shallow'): void {
+  if (layer === 'reef') {
+    pen.ellipse(cx, cy, HALF_W * 2, HALF_H * 2, SHORE_LOOK.reef, 1);
+    return;
+  }
+  pen.ellipse(cx, cy, HALF_W * 1.4, HALF_H * 1.4, SHORE_LOOK.shallow, 1);
+  const h = tileHash(tile.x, tile.y);
+  if (h % 3 === 0) {
+    const ox = ((h >> 4) % 24) - 12;
+    pen.arc(cx + ox, cy + 2, 7, Math.PI * 1.15, Math.PI * 1.85, { color: SHORE_LOOK.foam, width: 2, alpha: 0.6 });
+  }
+}
+
+/** Kenney style: sand under a land block, round the island at the water; `wet` for every tile first, then `dry`. */
+export function drawShore(pen: Pen, cx: number, cy: number, layer: 'wet' | 'dry'): void {
+  if (layer === 'wet') pen.ellipse(cx, cy + 2, HALF_W * 1.32, HALF_H * 1.32, SHORE_LOOK.wetSand, 1);
+  else pen.ellipse(cx, cy, HALF_W * 1.22, HALF_H * 1.22, SHORE_LOOK.sand, 1);
+}
+
+export const EXPLORE_LOOK = { top: 0x9df5c4, left: 0x5fcf95, right: 0x3fae78, alpha: 0.5, height: 10 } as const;
 
 /** Kenney style: a see-through green box on a fogged tile that can be explored now (inspired by the original game). */
 export function drawExploreBox(pen: Pen, cx: number, cy: number): void {

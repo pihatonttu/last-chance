@@ -11,6 +11,8 @@ import {
   drawObjects,
   drawExploreBox,
   drawOverlay,
+  drawShallowWater,
+  drawShore,
   drawWreck,
   EFFECT_COLORS,
   fieldColor,
@@ -152,14 +154,16 @@ describe('Kenney style details', () => {
     for (const call of calls) for (const n of call.numbers) expect(Number.isFinite(n)).toBe(true);
   });
 
-  it('puts the building badge just above a textured building when given its top', () => {
-    const t = tile(2, 2, { building: { kind: 'shelter', level: 3 } });
-    const c = ctx(t);
+  it('draws the shallow water and the shore with finite coordinates', () => {
     const { pen, calls } = recordingPen();
-    drawOverlay(pen, t, c, { buildingTop: c.cy - 100 });
-    const badge = calls.find((call) => call.kind === 'circle' && call.numbers[3] === 0xffffff);
-    expect(badge?.numbers[1]).toBeLessThan(c.cy - 100);
-    expect(badge?.numbers[1]).toBeGreaterThan(c.cy - 100 - 30);
+    for (let x = 0; x < 6; x++) {
+      drawShallowWater(pen, { x, y: 1 }, x * 10, 20, 'reef');
+      drawShallowWater(pen, { x, y: 1 }, x * 10, 20, 'shallow');
+    }
+    drawShore(pen, 0, 0, 'wet');
+    drawShore(pen, 0, 0, 'dry');
+    expect(calls.filter((c) => c.kind === 'ellipse').length).toBe(12 + 2);
+    for (const call of calls) for (const n of call.numbers) expect(Number.isFinite(n)).toBe(true);
   });
 });
 

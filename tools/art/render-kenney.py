@@ -172,8 +172,10 @@ def place(part, kit_images):
     s = part.get('scale', 1)
     holder.scale = (s, s, s)
     fix_srgb = kit in spec.get('srgbFactorKits', [])
-    if fix_srgb or 'materials' in part:
-        set_colours(added, fix_srgb, part.get('materials', {}))
+    # Kit-wide palette first (e.g. the Nature Kit's teal greens to the map's green), then the part's own.
+    overrides = {**spec.get('kitMaterials', {}).get(kit, {}), **part.get('materials', {})}
+    if fix_srgb or overrides:
+        set_colours(added, fix_srgb, overrides)
     for o in added:
         if o.type == 'MESH':
             matte(o.data.materials)

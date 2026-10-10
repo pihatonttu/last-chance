@@ -1,14 +1,13 @@
 /**
- * Kenney CC0 map art (P9, style C chosen in P37). Which picture each tile gets is decided
- * here, without PixiJS, so it can be tested; the renderer only loads and places the textures.
+ * Kenney CC0 map art (P9, P37). Which picture each tile gets is decided here, without
+ * PixiJS, so it can be tested; the renderer only loads and places the textures.
  *
- * Land blocks, trees and rocks come from Kenney "Tower Defense", water and beaches from
- * "Isometric Tiles Landscape" (public/art/kenney, copied by tools/art/kenney-assets.py).
- * Buildings, fields, the quarry, the spring and the wreck are rendered from Kenney 3D kits
- * in the same view (public/art/kenney/props, tools/art/render-kenney.py). The fog is Kenney
- * clouds ("Background Elements"), except over the places to explore now, which show a green
- * box instead (inspired by the original game); those boxes, the badges and the exploration
- * rings are vector (sprites.ts).
+ * Every land tile is a Kenney "Tower Defense" grass block (public/art/kenney, copied by
+ * tools/art/kenney-assets.py). What stands on it (forest, rocks, meadow flowers, fields, the
+ * quarry, the spring, buildings, the boat at the landing) is rendered from Kenney 3D kits in
+ * the same view (public/art/kenney/props, tools/art/kenney-props-spec.py). The sea is the
+ * background with a shallow-water ring round the island; hidden land is under Kenney clouds,
+ * and the places to explore now show a green box (both inspired by the original game).
  */
 import type { PublicTile } from '@saari/rules';
 import { TILE_W } from './iso.ts';
@@ -56,58 +55,17 @@ export function resolveArtStyle(search: string, storage: StyleStorage | null): A
   }
 }
 
-/** Which grid neighbours are land (fog counts: only land is ever fogged). */
-export interface LandAround {
-  /** x - 1: the tile's north-west edge on screen. */
-  xm: boolean;
-  /** x + 1: south-east edge. */
-  xp: boolean;
-  /** y - 1: north-east edge. */
-  ym: boolean;
-  /** y + 1: south-west edge. */
-  yp: boolean;
-}
-
-/** The four grid neighbours of x, y; outside the map (undefined) is open sea. */
-export function landAround(at: (x: number, y: number) => PublicTile | undefined, x: number, y: number): LandAround {
-  const land = (t: PublicTile | undefined) => t !== undefined && (t.fog || t.terrain !== 'sea');
-  return { xm: land(at(x - 1, y)), xp: land(at(x + 1, y)), ym: land(at(x, y - 1)), yp: land(at(x, y + 1)) };
-}
-
 export interface TileSprite {
   texture: string;
-  /** Mirror horizontally (a south-west beach is the south-east one mirrored). */
-  flipX: boolean;
   /** Multiplied into the texture; 0xffffff = unchanged. */
   tint: number;
-  /**
-   * How far below the tile centre the block's top surface lies, in world pixels. Thin
-   * blocks (water, dirt) sit lower than grass; details drawn on them follow the surface.
-   */
-  surfaceDy: number;
 }
 
-const DENSE_FOREST = ['trees-2', 'trees-4', 'trees-7', 'trees-10'] as const;
-const MEDIUM_FOREST = ['trees-1', 'trees-3', 'trees-5', 'trees-8', 'trees-9', 'trees-11', 'trees-12'] as const;
-const SPARSE_FOREST = ['trees-6'] as const;
-const ROCKS = ['rocks-1', 'rocks-2', 'rocks-3', 'rocks-4', 'rocks-5', 'rocks-6', 'rocks-7', 'rocks-8'] as const;
 const PROPS = Object.keys(PROP_TOPS).map((name) => `props/${name}`);
 const CLOUDS = ['clouds/cloud-1', 'clouds/cloud-2', 'clouds/cloud-3', 'clouds/cloud-4'] as const;
 
 /** Every texture name kenneyTile, kenneyProp and kenneyCloud can return; the renderer preloads these. */
-export const KENNEY_TEXTURES: readonly string[] = [
-  'grass',
-  'water',
-  'beach-ne',
-  'beach-nw',
-  'beach-se',
-  ...DENSE_FOREST,
-  ...MEDIUM_FOREST,
-  ...SPARSE_FOREST,
-  ...ROCKS,
-  ...PROPS,
-  ...CLOUDS,
-];
+export const KENNEY_TEXTURES: readonly string[] = ['grass', ...PROPS, ...CLOUDS];
 
 /** The Kenney top diamond is 132 x 66; the map's tiles are TILE_W wide. */
 export const KENNEY_SCALE = TILE_W / 132;
@@ -115,67 +73,36 @@ export const KENNEY_SCALE = TILE_W / 132;
 /**
  * Vertical anchor that lines up the block bottoms: every picture ends in a 66 px diamond
  * and a side below it, so the point 66 px above the bottom goes on the tile centre.
- * Grass blocks have a 33 px side, which puts their top surface exactly on the centre;
- * taller pictures have trees or rocks above it.
+ * Grass blocks have a 33 px side, which puts their top surface exactly on the centre.
  */
 export function kenneyAnchorY(height: number): number {
   return (height - 66) / height;
 }
 
-/** Water blocks have a 17 px side instead of 33: their surface is 16 px below the land. */
-const THIN_BLOCKS: ReadonlySet<string> = new Set(['water', 'beach-ne', 'beach-nw', 'beach-se']);
-const THIN_DROP = 16 * KENNEY_SCALE;
+/** The sea's surface, in world pixels below the land's top: most of the blocks' sides show. */
+export const WATER_DY = Math.round(33 * KENNEY_SCALE * 0.75);
 
 /** Grey for land under the fog: the shape is known, the contents are not. */
 export const FOG_TINT = 0xb9c3cb;
-/** Open sea darker than the coast, as on the placeholder map; the coast keeps Kenney's water. */
-export const OPEN_SEA_TINT = 0x9cc7ed;
-const NO_TINT = 0xffffff;
+/** Slightly different greens so the island does not look like a chessboard. */
+const GRASS_TINTS = [0xffffff, 0xf3f8ee, 0xfafff2, 0xeef5ec] as const;
 
-function sprite(texture: string, flipX: boolean, tint: number): TileSprite {
-  return { texture, flipX, tint, surfaceDy: THIN_BLOCKS.has(texture) ? THIN_DROP : 0 };
+function pick<T>(list: readonly T[], x: number, y: number, salt = 0): T {
+  return list[(tileHash(x, y) >>> salt) % list.length]!;
 }
 
-const plain = (texture: string, tint = NO_TINT): TileSprite => sprite(texture, false, tint);
-
-function pick<T>(list: readonly T[], x: number, y: number): T {
-  return list[tileHash(x, y) % list.length]!;
-}
-
-function seaSprite(land: LandAround, coastal: boolean): TileSprite {
-  // Back edges first: the land in front of a sea tile hides its front edge anyway.
-  if (land.ym) return plain('beach-ne');
-  if (land.xm) return plain('beach-nw');
-  if (land.xp) return plain('beach-se');
-  if (land.yp) return sprite('beach-se', true, NO_TINT);
-  return plain('water', coastal ? NO_TINT : OPEN_SEA_TINT);
-}
-
-export function kenneyTile(
-  tile: PublicTile,
-  ctx: { stockMax: number | null; coastal: boolean },
-  land: LandAround,
-  style: ArtStyle,
-): TileSprite | null {
+/** The block a land tile stands on; the sea has none (it is the background). */
+export function kenneyTile(tile: PublicTile, style: ArtStyle): TileSprite | null {
   if (style === 'placeholder') return null;
-  if (tile.fog || tile.terrain === null) return plain('grass', FOG_TINT);
-  if (tile.building) return plain('grass');
-  switch (tile.terrain) {
-    case 'sea':
-      return seaSprite(land, ctx.coastal);
-    case 'meadow':
-    case 'spring':
-    case 'field':
-    case 'quarry':
-      return plain('grass');
-    case 'rock':
-      return plain(pick(ROCKS, tile.x, tile.y));
-    case 'forest': {
-      const share = (tile.stock ?? 0) / Math.max(1, ctx.stockMax ?? 1);
-      const set = share > 2 / 3 ? DENSE_FOREST : share > 1 / 3 ? MEDIUM_FOREST : SPARSE_FOREST;
-      return plain(pick(set, tile.x, tile.y));
-    }
-  }
+  if (tile.fog || tile.terrain === null) return { texture: 'grass', tint: FOG_TINT };
+  if (tile.terrain === 'sea') return null;
+  return { texture: 'grass', tint: pick(GRASS_TINTS, tile.x, tile.y, 3) };
+}
+
+/** Shallow water round the island (the fishing water); the open sea is the background. */
+export function kenneyWater(tile: PublicTile, ctx: { coastal: boolean }, style: ArtStyle): 'shallow' | null {
+  if (style === 'placeholder' || tile.fog || tile.terrain !== 'sea') return null;
+  return ctx.coastal ? 'shallow' : null;
 }
 
 /** Prop sprites are rendered at twice the 2D tiles' size, on one shared canvas. */
@@ -187,45 +114,48 @@ export const PROP_ANCHOR = {
 
 export interface PropSprite {
   texture: string;
-  /** How far the sprite reaches above its ground, in world pixels (badge goes above buildings). */
-  top: number;
-  /** Ground below the tile centre, in world pixels (the wreck sits on the lower water). */
+  /** Ground below the tile centre, in world pixels (the boat floats on the lower water). */
   dy: number;
 }
 
-function prop(name: string, dy = 0): PropSprite | null {
-  const top = PROP_TOPS[name];
-  return top === undefined ? null : { texture: `props/${name}`, top: top * PROP_SCALE, dy };
-}
+const prop = (name: string, dy = 0): PropSprite => ({ texture: `props/${name}`, dy });
 
-/** Field crop stage by the food left: bare soil, sprouts, young wheat, ripe wheat. */
-function fieldStage(stock: number, max: number): number {
-  if (stock <= 0) return 0;
+/** 1..3 by the stock left: fields and forests show how much is left. */
+function stage(stock: number, max: number): number {
   const share = stock / Math.max(1, max);
   return share > 2 / 3 ? 3 : share > 1 / 3 ? 2 : 1;
 }
 
 /**
- * What stands on a tile, drawn on top of its block: a building, a field's crop, the
- * quarry, the spring, or (on the sea tile next to the landing) the wreck.
+ * What stands on a tile, drawn on top of its block: a building, a forest by the wood left,
+ * rocks, meadow grass, a field's crop, the quarry, the spring, or (on the sea next to the
+ * landing) the boat the class came ashore in.
  */
 export function kenneyProp(
   tile: PublicTile,
   ctx: { stockMax: number | null },
   style: ArtStyle,
-  wreck = false,
+  landingBoat = false,
 ): PropSprite | null {
   if (style === 'placeholder' || tile.fog) return null;
   if (tile.building) return prop(`${tile.building.kind}-${tile.building.level}`);
+  const stock = tile.stock ?? 0;
+  const max = ctx.stockMax ?? 1;
   switch (tile.terrain) {
     case 'field':
-      return prop(`field-${fieldStage(tile.stock ?? 0, ctx.stockMax ?? 1)}`);
+      return prop(`field-${stock <= 0 ? 0 : stage(stock, max)}`);
+    case 'forest':
+      return prop(`forest-${stage(stock, max)}${pick(['a', 'b'], tile.x, tile.y)}`);
+    case 'rock':
+      return prop(`rock-${pick(['a', 'b'], tile.x, tile.y, 2)}`);
+    case 'meadow':
+      return prop(`meadow-${pick(['a', 'b', 'c'], tile.x, tile.y, 5)}`);
     case 'quarry':
       return prop('quarry');
     case 'spring':
       return prop('spring');
     case 'sea':
-      return wreck ? prop('wreck', THIN_DROP) : null;
+      return landingBoat ? prop('boat', WATER_DY) : null;
     default:
       return null;
   }
@@ -233,8 +163,8 @@ export function kenneyProp(
 
 /**
  * How a fogged tile looks: `explorable` (a green box: explored land is next to it, so it
- * can be explored now) or `hidden` (under a cloud). Mirrors the engine's rule: any of the eight
- * neighbours is explored land, never the sea.
+ * can be explored now) or `hidden` (under a cloud). Mirrors the engine's rule: any of the
+ * eight neighbours is explored land, never the sea.
  */
 export function fogLook(
   tile: PublicTile,

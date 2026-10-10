@@ -1,4 +1,4 @@
-import type { PublicTile } from '@saari/rules';
+import type { PublicTile, Terrain } from '@saari/rules';
 import { describe, expect, it } from 'vitest';
 import { BUILDING_KINDS, LEVELS } from '../src/lib/enums.ts';
 import {
@@ -10,12 +10,12 @@ import {
   KENNEY_TEXTURES,
   kenneyAnchorY,
   kenneyTile,
-  landAround,
+  kenneyWater,
   parseArtStyle,
   rememberArtStyle,
   resolveArtStyle,
   PROP_SCALE,
-  type LandAround,
+  WATER_DY,
 } from '../src/map/kenney.ts';
 
 function tile(over: Partial<PublicTile> = {}): PublicTile {
@@ -33,8 +33,8 @@ function tile(over: Partial<PublicTile> = {}): PublicTile {
   };
 }
 
-const NO_LAND: LandAround = { xm: false, xp: false, ym: false, yp: false };
 const ctx = (stockMax: number | null = null, coastal = false) => ({ stockMax, coastal });
+const LAND: Terrain[] = ['meadow', 'forest', 'rock', 'field', 'quarry', 'spring'];
 
 describe('parseArtStyle', () => {
   it('accepts the known styles and falls back to the Kenney tiles (P37)', () => {
@@ -47,84 +47,123 @@ describe('parseArtStyle', () => {
 
 describe('kenneyTile', () => {
   it('draws nothing in the placeholder style', () => {
-    expect(kenneyTile(tile(), ctx(), NO_LAND, 'placeholder')).toBeNull();
+    expect(kenneyTile(tile(), 'placeholder')).toBeNull();
   });
 
-  it('puts meadows, springs, fields, quarries and building plots on a grass block at full height', () => {
-    expect(kenneyTile(tile(), ctx(), NO_LAND, 'kenney')).toMatchObject({ texture: 'grass', flipX: false, surfaceDy: 0 });
-    for (const over of [{ terrain: 'spring' }, { terrain: 'field', stock: 30 }, { terrain: 'quarry', stock: 60 }, { building: { kind: 'school', level: 1 } }] as const) {
-      expect(kenneyTile(tile(over), ctx(60), NO_LAND, 'kenney')).toMatchObject({ texture: 'grass', surfaceDy: 0 });
+  it('puts every land tile on a grass block; what stands on it is a prop', () => {
+    for (const terrain of LAND) expect(kenneyTile(tile({ terrain, stock: 30 }), 'kenney')?.texture).toBe('grass');
+    expect(kenneyTile(tile({ building: { kind: 'school', level: 1 } }), 'kenney')?.texture).toBe('grass');
+  });
+
+  it('varies the grass a little per tile, deterministically, so the island does not look tiled', () => {
+    const tint = (x: number, y: number) => kenneyTile(tile({ x, y }), 'kenney')?.tint ?? 0;
+    expect(tint(2, 5)).toBe(tint(2, 5));
+    const seen = new Set(Array.from({ length: 30 }, (_, i) => tint(i, i * 3)));
+    expect(seen.size).toBeGreaterThan(1);
+    for (const t of seen) for (const shift of [16, 8, 0]) expect((t >> shift) & 255).toBeGreaterThanOrEqual(0xe8);
+  });
+
+  it('greys a block under the fog and never shows the hidden terrain', () => {
+    const s = kenneyTile(tile({ fog: true, terrain: null }), 'kenney');
+    expect(s?.texture).toBe('grass');
+    expect((s!.tint >> 16) & 255).toBeLessThan(0xe0);
+  });
+
+  it('leaves the sea to the background: no blocks, no grid', () => {
+    expect(kenneyTile(tile({ terrain: 'sea' }), 'kenney')).toBeNull();
+    expect(kenneyTile(tile({ terrain: 'sea' }), 'kenney')).toBeNull();
+  });
+});
+
+describe('kenneyWater', () => {
+  it('shows the shallow water next to the island, where the class can fish', () => {
+    expect(kenneyWater(tile({ terrain: 'sea' }), ctx(null, true), 'kenney')).toBe('shallow');
+    expect(kenneyWater(tile({ terrain: 'sea' }), ctx(null, false), 'kenney')).toBeNull();
+  });
+
+  it('is nothing on land or in the placeholder style', () => {
+    expect(kenneyWater(tile(), ctx(null, true), 'kenney')).toBeNull();
+    expect(kenneyWater(tile({ terrain: 'sea' }), ctx(null, true), 'placeholder')).toBeNull();
+  });
+});
+
+describe('kenneyProp', () => {
+  const prop = (over: Partial<PublicTile>, stockMax: number | null = null, wreck = false) =>
+    kenneyProp(tile(over), ctx(stockMax), 'kenney', wreck);
+
+  it('has a preloaded sprite for every building kind and level, a different one per level', () => {
+    for (const kind of BUILDING_KINDS) {
+      const textures = new Set<string | undefined>();
+      for (const level of LEVELS) {
+        const b = prop({ building: { kind, level } });
+        expect(KENNEY_TEXTURES).toContain(b?.texture);
+        expect(b?.dy).toBe(0);
+        textures.add(b?.texture);
+      }
+      expect(textures.size).toBe(LEVELS.length);
     }
   });
 
-  it('darkens a block under the fog and never shows the hidden terrain', () => {
-    const s = kenneyTile(tile({ fog: true, terrain: null }), ctx(), NO_LAND, 'kenney');
-    expect(s?.texture).toBe('grass');
-    expect(s?.tint).not.toBe(0xffffff);
+  it('grows the crop on a field with the stock left: bare, sprouts, young, ripe', () => {
+    const field = (stock: number) => prop({ terrain: 'field', stock }, 30)?.texture;
+    expect(field(0)).toBe('props/field-0');
+    expect(field(5)).toBe('props/field-1');
+    expect(field(15)).toBe('props/field-2');
+    expect(field(30)).toBe('props/field-3');
   });
 
   it('thins the forest as it is cut', () => {
-    const at = (stock: number) => kenneyTile(tile({ terrain: 'forest', stock }), ctx(40), NO_LAND, 'kenney')?.texture;
-    expect(['trees-2', 'trees-4', 'trees-7', 'trees-10']).toContain(at(40));
-    expect(['trees-1', 'trees-3', 'trees-5', 'trees-8', 'trees-9', 'trees-11', 'trees-12']).toContain(at(20));
-    expect(at(5)).toBe('trees-6');
+    const forest = (stock: number) => prop({ terrain: 'forest', stock }, 40)?.texture;
+    expect(forest(40)).toMatch(/^props\/forest-3[ab]$/);
+    expect(forest(20)).toMatch(/^props\/forest-2[ab]$/);
+    expect(forest(5)).toMatch(/^props\/forest-1[ab]$/);
   });
 
-  it('varies rocks by tile, deterministically', () => {
-    const rock = (x: number, y: number) => kenneyTile(tile({ x, y, terrain: 'rock' }), ctx(), NO_LAND, 'kenney')?.texture;
-    expect(rock(1, 1)).toBe(rock(1, 1));
-    const seen = new Set(Array.from({ length: 40 }, (_, i) => rock(i, i * 3)));
-    expect(seen.size).toBeGreaterThan(2);
-    for (const r of seen) expect(r).toMatch(/^rocks-[1-8]$/);
+  it('varies rocks and meadows by tile, deterministically', () => {
+    const look = (terrain: Terrain, x: number, y: number) => kenneyProp(tile({ x, y, terrain }), ctx(), 'kenney')?.texture;
+    expect(look('rock', 1, 1)).toBe(look('rock', 1, 1));
+    const rocks = new Set(Array.from({ length: 30 }, (_, i) => look('rock', i, i * 3)));
+    const meadows = new Set(Array.from({ length: 30 }, (_, i) => look('meadow', i, i * 3)));
+    expect(rocks.size).toBe(2);
+    expect(meadows.size).toBe(3);
   });
 
-  it('sets the thin water blocks lower than the land', () => {
-    const dy = (over: Partial<PublicTile>) => kenneyTile(tile(over), ctx(30, true), NO_LAND, 'kenney')?.surfaceDy;
-    expect(dy({ terrain: 'meadow' })).toBe(0);
-    expect(dy({ terrain: 'forest', stock: 30 })).toBe(0);
-    expect(dy({ terrain: 'sea' })).toBeCloseTo(16 * KENNEY_SCALE);
-    const beach = kenneyTile(tile({ terrain: 'sea' }), ctx(null, true), { ...NO_LAND, ym: true }, 'kenney');
-    expect(beach?.surfaceDy).toBeCloseTo(16 * KENNEY_SCALE);
+  it('marks quarries and springs, and puts the boat the class came in on the water at the landing', () => {
+    expect(prop({ terrain: 'quarry', stock: 60 }, 60)?.texture).toBe('props/quarry');
+    expect(prop({ terrain: 'spring' })?.texture).toBe('props/spring');
+    const boat = prop({ terrain: 'sea' }, null, true);
+    expect(boat?.texture).toBe('props/boat');
+    expect(boat?.dy).toBe(WATER_DY);
   });
 
-  it('deepens the open sea and keeps the coast light, like the placeholder map', () => {
-    const sea = (coastal: boolean) => kenneyTile(tile({ terrain: 'sea' }), ctx(null, coastal), NO_LAND, 'kenney')?.tint;
-    expect(sea(true)).toBe(0xffffff);
-    expect(sea(false)).not.toBe(0xffffff);
+  it('only returns preloaded textures', () => {
+    for (let x = 0; x < 20; x++) {
+      for (const terrain of LAND) {
+        for (const stock of [0, 5, 15, 30, 40, 60]) {
+          const p = kenneyProp(tile({ x, y: x * 7, terrain, stock }), ctx(terrain === 'forest' ? 40 : 30), 'kenney');
+          if (p) expect(KENNEY_TEXTURES).toContain(p.texture);
+        }
+      }
+    }
   });
 
-  it('puts sand on the sea tiles towards the land, back edges first', () => {
-    const sea = (land: Partial<LandAround>) => kenneyTile(tile({ terrain: 'sea' }), ctx(), { ...NO_LAND, ...land }, 'kenney');
-    expect(sea({})).toMatchObject({ texture: 'water' });
-    expect(sea({ ym: true })).toMatchObject({ texture: 'beach-ne', flipX: false });
-    expect(sea({ xm: true })).toMatchObject({ texture: 'beach-nw', flipX: false });
-    expect(sea({ xp: true })).toMatchObject({ texture: 'beach-se', flipX: false });
-    expect(sea({ yp: true })).toMatchObject({ texture: 'beach-se', flipX: true });
-    expect(sea({ ym: true, xp: true })).toMatchObject({ texture: 'beach-ne' });
+  it('draws nothing on the open sea, under the fog or in the placeholder style', () => {
+    expect(prop({ terrain: 'sea' })).toBeNull();
+    expect(prop({ fog: true, terrain: null, building: { kind: 'school', level: 1 } })).toBeNull();
+    expect(kenneyProp(tile({ building: { kind: 'school', level: 1 } }), ctx(), 'placeholder')).toBeNull();
   });
 });
 
 describe('textures and placement', () => {
-  it('lists every texture kenneyTile can return', () => {
-    const lands: LandAround[] = [NO_LAND, { ...NO_LAND, ym: true }, { ...NO_LAND, xm: true }, { ...NO_LAND, xp: true }, { ...NO_LAND, yp: true }];
-    const returned = new Set<string>();
-    for (let x = 0; x < 30; x++) {
-      for (const terrain of ['sea', 'meadow', 'forest', 'rock', 'field', 'quarry', 'spring'] as const) {
-        for (const stock of [0, 10, 20, 40]) {
-          for (const land of lands) {
-            const s = kenneyTile(tile({ x, y: x * 7, terrain, stock }), ctx(40), land, 'kenney');
-            if (s) returned.add(s.texture);
-          }
-        }
-      }
-    }
-    for (const t of returned) expect(KENNEY_TEXTURES).toContain(t);
+  it('scales the 132 px Kenney diamond and the prop canvas to the map tile', () => {
+    expect(KENNEY_SCALE * 132).toBeCloseTo(96);
+    expect(PROP_SCALE * 264).toBeCloseTo(96);
+    expect(kenneyAnchorY(99)).toBeCloseTo(33 / 99);
   });
 
-  it('scales the 132 px Kenney diamond to the map tile and anchors at its centre', () => {
-    expect(KENNEY_SCALE * 132).toBeCloseTo(96);
-    expect(kenneyAnchorY(99)).toBeCloseTo(33 / 99);
-    expect(kenneyAnchorY(127)).toBeCloseTo(61 / 127);
+  it('puts the water surface below the land, above the block bottoms', () => {
+    expect(WATER_DY).toBeGreaterThan(0);
+    expect(WATER_DY).toBeLessThan(33 * KENNEY_SCALE);
   });
 });
 
@@ -160,18 +199,6 @@ describe('resolveArtStyle', () => {
   });
 });
 
-describe('landAround', () => {
-  it('reads the four grid neighbours, counting fog as land and the map edge as sea', () => {
-    const tiles = new Map<string, PublicTile>([
-      ['2,1', tile({ x: 2, y: 1, terrain: 'forest' })],
-      ['1,2', tile({ x: 1, y: 2, terrain: 'sea' })],
-      ['3,2', tile({ x: 3, y: 2, fog: true, terrain: null })],
-    ]);
-    const at = (x: number, y: number) => tiles.get(`${x},${y}`);
-    expect(landAround(at, 2, 2)).toEqual({ xm: false, xp: true, ym: true, yp: false });
-  });
-});
-
 describe('rememberArtStyle', () => {
   it('stores a choice that the next page load picks up, and shrugs off a broken storage', () => {
     const data = new Map<string, string>();
@@ -186,61 +213,6 @@ describe('rememberArtStyle', () => {
     };
     expect(() => rememberArtStyle('kenney', broken)).not.toThrow();
     expect(() => rememberArtStyle('kenney', null)).not.toThrow();
-  });
-});
-
-describe('kenneyProp', () => {
-  const prop = (over: Partial<PublicTile>, stockMax: number | null = null, wreck = false) =>
-    kenneyProp(tile(over), ctx(stockMax), 'kenney', wreck);
-
-  it('has a preloaded sprite reaching above the tile for every building kind and level', () => {
-    for (const kind of BUILDING_KINDS) {
-      for (const level of LEVELS) {
-        const b = prop({ building: { kind, level } });
-        expect(KENNEY_TEXTURES).toContain(b?.texture);
-        expect(b?.top).toBeGreaterThan(20);
-        expect(b?.dy).toBe(0);
-      }
-    }
-  });
-
-  it('grows buildings with the level', () => {
-    const top = (level: 1 | 3) => prop({ building: { kind: 'shelter', level } })?.top ?? 0;
-    expect(top(3)).toBeGreaterThan(top(1));
-  });
-
-  it('grows the crop on a field with the stock left: bare, sprouts, young, ripe', () => {
-    const field = (stock: number) => prop({ terrain: 'field', stock }, 30)?.texture;
-    expect(field(0)).toBe('props/field-0');
-    expect(field(5)).toBe('props/field-1');
-    expect(field(15)).toBe('props/field-2');
-    expect(field(30)).toBe('props/field-3');
-  });
-
-  it('marks quarries and springs, and puts the wreck on the water surface', () => {
-    expect(prop({ terrain: 'quarry', stock: 60 }, 60)?.texture).toBe('props/quarry');
-    expect(prop({ terrain: 'spring' })?.texture).toBe('props/spring');
-    const wreck = prop({ terrain: 'sea' }, null, true);
-    expect(wreck?.texture).toBe('props/wreck');
-    expect(wreck?.dy).toBeCloseTo(16 * KENNEY_SCALE);
-  });
-
-  it('only lists preloaded textures', () => {
-    const fields = [0, 5, 15, 30].map((stock): Partial<PublicTile> => ({ terrain: 'field', stock }));
-    for (const over of [{ terrain: 'quarry' }, { terrain: 'spring' }, ...fields] satisfies Partial<PublicTile>[]) {
-      expect(KENNEY_TEXTURES).toContain(prop(over, 30)?.texture);
-    }
-    expect(KENNEY_TEXTURES).toContain(prop({ terrain: 'sea' }, null, true)?.texture);
-  });
-
-  it('draws nothing on bare terrain, under the fog or in the placeholder style', () => {
-    for (const terrain of ['meadow', 'forest', 'rock', 'sea'] as const) expect(prop({ terrain, stock: 40 }, 40)).toBeNull();
-    expect(prop({ fog: true, terrain: null, building: { kind: 'school', level: 1 } })).toBeNull();
-    expect(kenneyProp(tile({ building: { kind: 'school', level: 1 } }), ctx(), 'placeholder')).toBeNull();
-  });
-
-  it('scales the sprite canvas so its 1 x 1 tile matches the map tile', () => {
-    expect(PROP_SCALE * 264).toBeCloseTo(96);
   });
 });
 

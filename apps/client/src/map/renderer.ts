@@ -19,9 +19,10 @@ import {
   kenneyCloud,
   kenneyProp,
   kenneyTile,
-  landAround,
+  kenneyWater,
   PROP_ANCHOR,
   PROP_SCALE,
+  WATER_DY,
   type ArtStyle,
 } from './kenney.ts';
 import {
@@ -30,6 +31,8 @@ import {
   drawHighlight,
   drawObjects,
   drawOverlay,
+  drawShallowWater,
+  drawShore,
   drawWreck,
   EFFECT_COLORS,
   EFFECT_STYLE,
@@ -327,19 +330,34 @@ export class MapRenderer {
     const style = this.#textures ? this.#style : 'placeholder';
     this.#fitSlots(style === 'placeholder' ? 0 : ordered.length);
     const at = (x: number, y: number) => this.#tile(map, x, y);
+    const contexts = ordered.map((tile) => this.#context(map, tile));
+    if (style !== 'placeholder') {
+      // Under the island, layer by layer so the shapes merge: reef, shallow water, wet sand, sand.
+      const coastal = ordered.flatMap((tile, i) => (kenneyWater(tile, contexts[i]!, style) === 'shallow' ? [i] : []));
+      const land = ordered.flatMap((tile, i) => (tile.fog || tile.terrain !== 'sea' ? [i] : []));
+      for (const layer of ['reef', 'shallow'] as const) {
+        for (const i of coastal) drawShallowWater(ground, ordered[i]!, contexts[i]!.cx, contexts[i]!.cy + WATER_DY, layer);
+      }
+      for (const layer of ['wet', 'dry'] as const) {
+        for (const i of land) drawShore(ground, contexts[i]!.cx, contexts[i]!.cy + WATER_DY, layer);
+      }
+    }
     ordered.forEach((tile, i) => {
-      const ctx = this.#context(map, tile);
+      const ctx = contexts[i]!;
       const isWreck = wreck !== null && tile.x === wreck.x && tile.y === wreck.y;
-      const look = kenneyTile(tile, ctx, landAround(at, tile.x, tile.y), style);
       const slot = this.#slots[i];
-      const texture = look && this.#textures?.get(look.texture);
-      if (look && slot && texture) {
+      if (slot) {
         // Each tile's block, then what stands on it, so nearer tiles cover farther ones.
-        slot.block.texture = texture;
-        slot.block.anchor.set(0.5, kenneyAnchorY(texture.height));
-        slot.block.scale.set(KENNEY_SCALE * (look.flipX ? -1 : 1), KENNEY_SCALE);
-        slot.block.position.set(ctx.cx, ctx.cy);
-        slot.block.tint = look.tint;
+        const look = kenneyTile(tile, style);
+        const texture = look && this.#textures?.get(look.texture);
+        slot.block.visible = Boolean(texture);
+        if (look && texture) {
+          slot.block.texture = texture;
+          slot.block.anchor.set(0.5, kenneyAnchorY(texture.height));
+          slot.block.scale.set(KENNEY_SCALE);
+          slot.block.position.set(ctx.cx, ctx.cy);
+          slot.block.tint = look.tint;
+        }
         const prop = kenneyProp(tile, ctx, style, isWreck);
         const propTexture = prop && this.#textures?.get(prop.texture);
         slot.prop.visible = Boolean(propTexture);
@@ -360,8 +378,8 @@ export class MapRenderer {
           slot.cloud.scale.set(CLOUD_SCALE * (cloud.flipX ? -1 : 1), CLOUD_SCALE);
           slot.cloud.position.set(ctx.cx + cloud.dx, ctx.cy + cloud.dy);
         }
-        const buildingTop = tile.building && prop ? ctx.cy - prop.top : undefined;
-        drawOverlay(overlay, tile, ctx, buildingTop === undefined ? {} : { buildingTop });
+        // Buildings explain themselves by their look and size; only exploration shows a ring.
+        if (tile.fog) drawOverlay(overlay, tile, ctx);
       } else {
         drawGround(ground, tile, ctx);
         drawObjects(objects, tile, ctx);
@@ -390,6 +408,15 @@ export class MapRenderer {
     }
   }
 
+  /** Where a tile's surface is: the sea lies lower than the land in the Kenney style. */
+  #surfaceY(coord: Coord): number {
+    const c = tileCenter(coord.x, coord.y);
+    const map = this.#map;
+    const tile = map ? this.#tile(map, coord.x, coord.y) : undefined;
+    const lowered = this.#textures && this.#style !== 'placeholder' && tile && !tile.fog && tile.terrain === 'sea';
+    return lowered ? c.y + WATER_DY : c.y;
+  }
+
   /** The sea tile south of the landing where the wreck lies. */
   #wreckTile(map: MapView): Coord | null {
     const { x, y } = map.landing;
@@ -410,12 +437,10 @@ export class MapRenderer {
   #drawHighlight(): void {
     const pen = pixiPen(this.#highlight.clear());
     if (this.#hover && this.#options.mode === 'student') {
-      const c = tileCenter(this.#hover.x, this.#hover.y);
-      drawHighlight(pen, c.x, c.y, 'hover');
+      drawHighlight(pen, tileCenter(this.#hover.x, this.#hover.y).x, this.#surfaceY(this.#hover), 'hover');
     }
     if (this.#selected) {
-      const c = tileCenter(this.#selected.x, this.#selected.y);
-      drawHighlight(pen, c.x, c.y, 'selected');
+      drawHighlight(pen, tileCenter(this.#selected.x, this.#selected.y).x, this.#surfaceY(this.#selected), 'selected');
     }
   }
 
