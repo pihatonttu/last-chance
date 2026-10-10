@@ -7,6 +7,7 @@
   import DevPanel from '../components/DevPanel.svelte';
   import EndScreen from '../components/EndScreen.svelte';
   import EnergyMeter from '../components/EnergyMeter.svelte';
+  import HowToPlay from '../components/HowToPlay.svelte';
   import MonthSummary from '../components/MonthSummary.svelte';
   import SkillStatus from '../components/SkillStatus.svelte';
   import SoundToggle from '../components/SoundToggle.svelte';
@@ -220,6 +221,8 @@
         <p>{t('play.waiting.text')}</p>
         <p class="muted">{tp('play.waiting.count', game.playerCount)}</p>
         <SoundToggle {sound} onLabel={t('play.soundOn')} offLabel={t('play.soundOff')} />
+        <h2 class="howto-title">{t('lobby.howTo.title')}</h2>
+        <HowToPlay length={game.length} />
       </div>
     </main>
   {:else if game.phase === 'ended'}
@@ -362,6 +365,11 @@
   .waiting {
     text-align: center;
     align-items: center;
+    width: min(100%, 46rem);
+  }
+  .howto-title {
+    margin: 0.5rem 0 0;
+    font-size: 1.2rem;
   }
   .you {
     display: inline-flex;
