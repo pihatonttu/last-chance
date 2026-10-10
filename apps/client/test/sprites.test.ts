@@ -10,7 +10,6 @@ import {
   drawHighlight,
   drawObjects,
   drawOverlay,
-  drawTileDetails,
   drawWreck,
   EFFECT_COLORS,
   fieldColor,
@@ -130,18 +129,19 @@ describe('sprite mapping', () => {
 });
 
 describe('Kenney style details', () => {
-  it('skips trees, boulders and buildings that come as textures, but keeps the mist', () => {
-    const textured: Partial<PublicTile>[] = [{ terrain: 'forest', stock: 40 }, { terrain: 'rock' }, { building: { kind: 'school', level: 2 } }];
+  it('skips everything that comes as textures: trees, boulders, buildings and the fog', () => {
+    const textured: Partial<PublicTile>[] = [
+      { terrain: 'forest', stock: 40 },
+      { terrain: 'rock' },
+      { building: { kind: 'school', level: 2 } },
+      { fog: true, terrain: null, stock: null, work: null, uses: null },
+    ];
     for (const over of textured) {
       const t = tile(3, 4, over);
       const { pen, calls } = recordingPen();
       drawObjects(pen, t, ctx(t), { textured: true });
       expect(calls).toHaveLength(0);
     }
-    const fog = tile(1, 1, { fog: true, terrain: null, stock: null, work: null, uses: null });
-    const mist = recordingPen();
-    drawObjects(mist.pen, fog, ctx(fog), { textured: true });
-    expect(mist.calls.length).toBeGreaterThan(0);
   });
 
   it('puts the building badge just above a textured building when given its top', () => {
@@ -152,32 +152,6 @@ describe('Kenney style details', () => {
     const badge = calls.find((call) => call.kind === 'circle' && call.numbers[3] === 0xffffff);
     expect(badge?.numbers[1]).toBeLessThan(c.cy - 100);
     expect(badge?.numbers[1]).toBeGreaterThan(c.cy - 100 - 30);
-  });
-
-  it('shows the crop left on a field as plants, more when fuller', () => {
-    const plants = (stock: number) => {
-      const t = tile(3, 4, { terrain: 'field', stock });
-      const { pen, calls } = recordingPen();
-      drawTileDetails(pen, t, ctx(t));
-      for (const call of calls) for (const n of call.numbers) expect(Number.isFinite(n)).toBe(true);
-      return calls.filter((c) => c.kind === 'line' && c.numbers.at(-2) === FIELD_LOOK.crop).length;
-    };
-    expect(plants(0)).toBe(0);
-    expect(plants(10)).toBeGreaterThan(0);
-    expect(plants(30)).toBeGreaterThan(plants(10));
-  });
-
-  it('draws the spring pool and quarry pit, and nothing the textures already show', () => {
-    const drawn = (over: Partial<PublicTile>) => {
-      const t = tile(3, 4, over);
-      const { pen, calls } = recordingPen();
-      drawTileDetails(pen, t, ctx(t));
-      return calls.length;
-    };
-    expect(drawn({ terrain: 'spring' })).toBeGreaterThan(0);
-    expect(drawn({ terrain: 'quarry', stock: 60 })).toBeGreaterThan(0);
-    for (const terrain of ['sea', 'meadow', 'forest', 'rock'] as const) expect(drawn({ terrain, stock: 40 })).toBe(0);
-    expect(drawn({ fog: true, terrain: null })).toBe(0);
   });
 });
 

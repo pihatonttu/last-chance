@@ -255,7 +255,7 @@ export function drawGround(pen: Pen, tile: PublicTile, ctx: TileContext): void {
       if (tile.terrain === 'spring') drawSpringPool(pen, cx, cy);
       return;
     case 'field':
-      drawFurrows(pen, cx, cy, 0);
+      drawFurrows(pen, cx, cy);
       return;
     case 'quarry':
       drawQuarryPit(pen, cx, cy);
@@ -271,8 +271,8 @@ function drawSpringPool(pen: Pen, cx: number, cy: number): void {
   pen.ellipse(cx - 7, cy - 1, 7, 3, SPRING_LOOK.shine, 0.7);
 }
 
-/** Three furrows across the field, with `plants` (0..12) crop sprouts along them. */
-function drawFurrows(pen: Pen, cx: number, cy: number, plants: number): void {
+/** Three furrows across the field. */
+function drawFurrows(pen: Pen, cx: number, cy: number): void {
   const d = diamond(cx, cy, 0.86);
   const [tx, ty, rx, ry, bx, by, lx, ly] = d as [number, number, number, number, number, number, number, number];
   for (let i = 1; i <= 3; i++) {
@@ -282,12 +282,6 @@ function drawFurrows(pen: Pen, cx: number, cy: number, plants: number): void {
     const x1 = lerp(rx, bx, k);
     const y1 = lerp(ry, by, k);
     pen.line([x0, y0, x1, y1], { color: FIELD_LOOK.furrow, width: 2, alpha: 0.35 });
-    for (let j = 1; j <= 4; j++) {
-      if ((i - 1) * 4 + j > plants) break;
-      const px = lerp(x0, x1, j / 5);
-      const py = lerp(y0, y1, j / 5);
-      pen.line([px - 3, py, px, py - 7, px + 3, py], { color: FIELD_LOOK.crop, width: 2 });
-    }
   }
 }
 
@@ -303,31 +297,6 @@ function drawQuarryPit(pen: Pen, cx: number, cy: number): void {
     width: 1,
     alpha: 0.4,
   });
-}
-
-/**
- * Kenney style: what the block textures cannot show, drawn on top of the block. Grass,
- * water, trees and rocks are in the textures; the crop left, the spring and the pit are not.
- */
-export function drawTileDetails(pen: Pen, tile: PublicTile, ctx: TileContext): void {
-  if (tile.fog || tile.terrain === null || tile.building) return;
-  const { cx, cy } = ctx;
-  switch (tile.terrain) {
-    case 'field': {
-      const max = ctx.stockMax ?? 1;
-      const share = max > 0 ? (tile.stock ?? 0) / max : 0;
-      drawFurrows(pen, cx, cy, Math.min(12, Math.ceil(12 * share)));
-      return;
-    }
-    case 'spring':
-      drawSpringPool(pen, cx, cy);
-      return;
-    case 'quarry':
-      drawQuarryPit(pen, cx, cy);
-      return;
-    default:
-      return;
-  }
 }
 
 // ---------------------------------------------------------------- object layer
@@ -406,12 +375,13 @@ function scalePoints(points: readonly number[], cx: number, cy: number, s: numbe
 }
 
 export interface ObjectOptions {
-  /** Trees, boulders and buildings come as textures (Kenney style); draw only the rest. */
+  /** Trees, boulders, buildings and fog clouds come as textures (Kenney style): draw nothing. */
   textured?: boolean;
 }
 
 /** Upright things in painter's order: trees, boulders, buildings, mist. */
 export function drawObjects(pen: Pen, tile: PublicTile, ctx: TileContext, options: ObjectOptions = {}): void {
+  if (options.textured) return;
   const { cx, cy } = ctx;
   if (tile.fog || tile.terrain === null) {
     const h = tileHash(tile.x, tile.y);
@@ -421,7 +391,6 @@ export function drawObjects(pen: Pen, tile: PublicTile, ctx: TileContext, option
     pen.circle(cx + 18 + dx, cy + 1, 10, FOG_LOOK.mist, FOG_LOOK.mistAlpha);
     return;
   }
-  if (options.textured) return;
   if (tile.building) {
     drawBuilding(pen, tile.building.kind, tile.building.level, cx, cy);
     return;

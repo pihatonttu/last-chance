@@ -3,14 +3,14 @@
  * here, without PixiJS, so it can be tested; the renderer only loads and places the textures.
  *
  * Land blocks, trees and rocks come from Kenney "Tower Defense", water and beaches from
- * "Isometric Tiles Landscape" (public/art/kenney, copied by tools/art/kenney-assets.py).
- * Buildings are rendered from the Survival and Fantasy Town 3D kits in the same view
- * (public/art/kenney/buildings, tools/art/render-kenney.py). Crops, the quarry pit, the
- * spring pool, the fog mist and the wreck stay vector (sprites.ts).
+ * "Isometric Tiles Landscape", the fog clouds from "Background Elements" (public/art/kenney,
+ * copied by tools/art/kenney-assets.py). Buildings, fields, the quarry, the spring and the
+ * wreck are rendered from Kenney 3D kits in the same view (public/art/kenney/props,
+ * tools/art/render-kenney.py). Only the badges and exploration rings stay vector (sprites.ts).
  */
 import type { PublicTile } from '@saari/rules';
 import { TILE_W } from './iso.ts';
-import { BUILDING_CANVAS, BUILDING_TOPS } from './kenney-buildings.ts';
+import { PROP_CANVAS, PROP_TOPS } from './kenney-props.ts';
 import { tileHash } from './sprites.ts';
 
 /** `placeholder` = the vector map, kept as the fallback when the art fails to load. */
@@ -89,12 +89,12 @@ const DENSE_FOREST = ['trees-2', 'trees-4', 'trees-7', 'trees-10'] as const;
 const MEDIUM_FOREST = ['trees-1', 'trees-3', 'trees-5', 'trees-8', 'trees-9', 'trees-11', 'trees-12'] as const;
 const SPARSE_FOREST = ['trees-6'] as const;
 const ROCKS = ['rocks-1', 'rocks-2', 'rocks-3', 'rocks-4', 'rocks-5', 'rocks-6', 'rocks-7', 'rocks-8'] as const;
-const BUILDINGS = Object.keys(BUILDING_TOPS).map((name) => `buildings/${name}`);
+const PROPS = Object.keys(PROP_TOPS).map((name) => `props/${name}`);
+const CLOUDS = ['clouds/cloud-1', 'clouds/cloud-2', 'clouds/cloud-3', 'clouds/cloud-4'] as const;
 
-/** Every texture name kenneyTile and kenneyBuilding can return; the renderer preloads these. */
+/** Every texture name kenneyTile, kenneyProp and kenneyCloud can return; the renderer preloads these. */
 export const KENNEY_TEXTURES: readonly string[] = [
   'grass',
-  'dirt',
   'water',
   'beach-ne',
   'beach-nw',
@@ -103,7 +103,8 @@ export const KENNEY_TEXTURES: readonly string[] = [
   ...MEDIUM_FOREST,
   ...SPARSE_FOREST,
   ...ROCKS,
-  ...BUILDINGS,
+  ...PROPS,
+  ...CLOUDS,
 ];
 
 /** The Kenney top diamond is 132 x 66; the map's tiles are TILE_W wide. */
@@ -119,8 +120,8 @@ export function kenneyAnchorY(height: number): number {
   return (height - 66) / height;
 }
 
-/** Blocks with a 17 px side instead of 33: their top surface is 16 px lower. */
-const THIN_BLOCKS: ReadonlySet<string> = new Set(['dirt', 'water', 'beach-ne', 'beach-nw', 'beach-se']);
+/** Water blocks have a 17 px side instead of 33: their surface is 16 px below the land. */
+const THIN_BLOCKS: ReadonlySet<string> = new Set(['water', 'beach-ne', 'beach-nw', 'beach-se']);
 const THIN_DROP = 16 * KENNEY_SCALE;
 
 /** Grey for land under the fog: the shape is known, the contents are not. */
@@ -162,10 +163,9 @@ export function kenneyTile(
       return seaSprite(land, ctx.coastal);
     case 'meadow':
     case 'spring':
-      return plain('grass');
     case 'field':
     case 'quarry':
-      return plain('dirt');
+      return plain('grass');
     case 'rock':
       return plain(pick(ROCKS, tile.x, tile.y));
     case 'forest': {
@@ -176,23 +176,78 @@ export function kenneyTile(
   }
 }
 
-/** Building sprites are rendered at twice the 2D tiles' size, on one shared canvas. */
-export const BUILDING_SCALE = TILE_W / BUILDING_CANVAS.tilePx;
-export const BUILDING_ANCHOR = {
-  x: BUILDING_CANVAS.originX / BUILDING_CANVAS.width,
-  y: BUILDING_CANVAS.originY / BUILDING_CANVAS.height,
+/** Prop sprites are rendered at twice the 2D tiles' size, on one shared canvas. */
+export const PROP_SCALE = TILE_W / PROP_CANVAS.tilePx;
+export const PROP_ANCHOR = {
+  x: PROP_CANVAS.originX / PROP_CANVAS.width,
+  y: PROP_CANVAS.originY / PROP_CANVAS.height,
 } as const;
 
-export interface BuildingSprite {
+export interface PropSprite {
   texture: string;
-  /** How far the building reaches above the tile centre, in world pixels (badge goes above). */
+  /** How far the sprite reaches above its ground, in world pixels (badge goes above buildings). */
   top: number;
+  /** Ground below the tile centre, in world pixels (the wreck sits on the lower water). */
+  dy: number;
 }
 
-/** The building standing on a tile, drawn on top of its grass block. */
-export function kenneyBuilding(tile: PublicTile, style: ArtStyle): BuildingSprite | null {
-  if (style === 'placeholder' || tile.fog || !tile.building) return null;
-  const name = `${tile.building.kind}-${tile.building.level}`;
-  const top = BUILDING_TOPS[name];
-  return top === undefined ? null : { texture: `buildings/${name}`, top: top * BUILDING_SCALE };
+function prop(name: string, dy = 0): PropSprite | null {
+  const top = PROP_TOPS[name];
+  return top === undefined ? null : { texture: `props/${name}`, top: top * PROP_SCALE, dy };
+}
+
+/** Field crop stage by the food left: bare soil, sprouts, young wheat, ripe wheat. */
+function fieldStage(stock: number, max: number): number {
+  if (stock <= 0) return 0;
+  const share = stock / Math.max(1, max);
+  return share > 2 / 3 ? 3 : share > 1 / 3 ? 2 : 1;
+}
+
+/**
+ * What stands on a tile, drawn on top of its block: a building, a field's crop, the
+ * quarry, the spring, or (on the sea tile next to the landing) the wreck.
+ */
+export function kenneyProp(
+  tile: PublicTile,
+  ctx: { stockMax: number | null },
+  style: ArtStyle,
+  wreck = false,
+): PropSprite | null {
+  if (style === 'placeholder' || tile.fog) return null;
+  if (tile.building) return prop(`${tile.building.kind}-${tile.building.level}`);
+  switch (tile.terrain) {
+    case 'field':
+      return prop(`field-${fieldStage(tile.stock ?? 0, ctx.stockMax ?? 1)}`);
+    case 'quarry':
+      return prop('quarry');
+    case 'spring':
+      return prop('spring');
+    case 'sea':
+      return wreck ? prop('wreck', THIN_DROP) : null;
+    default:
+      return null;
+  }
+}
+
+/** Kenney clouds are 196-250 px wide; this makes them a little wider than a tile so they join up. */
+export const CLOUD_SCALE = 0.55;
+
+export interface CloudSprite {
+  texture: string;
+  /** Offset from the tile centre in world pixels, so the cloud cover does not look tiled. */
+  dx: number;
+  dy: number;
+  flipX: boolean;
+}
+
+/** The cloud over an unexplored tile (the original game also hid the unknown under clouds). */
+export function kenneyCloud(tile: PublicTile, style: ArtStyle): CloudSprite | null {
+  if (style === 'placeholder' || !tile.fog) return null;
+  const h = tileHash(tile.x, tile.y);
+  return {
+    texture: CLOUDS[h % CLOUDS.length]!,
+    dx: ((h >>> 4) % 13) - 6,
+    dy: ((h >>> 8) % 9) - 4 - 10,
+    flipX: ((h >>> 12) & 1) === 1,
+  };
 }

@@ -4,7 +4,7 @@ Run headless with Blender 4.2+:
   blender -b --factory-startup -P tools/art/render-kenney.py -- <spec.json> <kits-dir> <out-dir>
 
 <kits-dir> holds the unzipped kits as subfolders named in the spec (e.g. survival/,
-town/), each with "Models/GLB format/*.glb". The spec lists sprites; each sprite is a
+town/), each with "Models/GLB format/*.glb" (or "Models/GLTF format/*.glb"). The spec lists sprites; each sprite is a
 group of models placed on one map tile (1 x 1 world units, origin at the tile centre on
 the ground). Every sprite is rendered on the same canvas with the tile centre at the
 same pixel, so the client needs one anchor for all of them (apps/client/src/map/kenney.ts).
@@ -57,7 +57,8 @@ def reset_scene():
     scene.view_settings.gamma = 1
 
     # Ambient 0.3 + sun 0.855 along L gives top 1.0, left 0.774, right 0.428 (linear),
-    # i.e. 100 / 89 / 68 % in sRGB like the 2D tiles.
+    # i.e. 100 / 89 / 68 % in sRGB like the 2D tiles. Blender divides sun strength by pi
+    # for diffuse surfaces, so the lamp gets 0.855 * pi.
     world = bpy.data.worlds.new('World')
     scene.world = world
     world.use_nodes = True
@@ -65,7 +66,7 @@ def reset_scene():
     bg.inputs['Color'].default_value = (0.3, 0.3, 0.3, 1)
     bg.inputs['Strength'].default_value = 1
     sun_data = bpy.data.lights.new('Sun', 'SUN')
-    sun_data.energy = 0.855
+    sun_data.energy = 0.855 * math.pi
     sun_data.use_shadow = False
     sun = bpy.data.objects.new('Sun', sun_data)
     toward_light = Vector((0.150, -0.554, 0.819)).normalized()
@@ -103,9 +104,57 @@ def matte(materials):
                     node.inputs[name].default_value = value
 
 
+def model_path(kit, model):
+    # Most kits ship "GLB format/"; the Nature Kit keeps its .glb files in "GLTF format/".
+    for folder in ('GLB format', 'GLTF format'):
+        path = os.path.join(kits_dir, kit, 'Models', folder, model + '.glb')
+        if os.path.exists(path):
+            return path
+    raise FileNotFoundError(f'{kit}/{model}')
+
+
+def srgb_to_linear(c):
+    return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+
+def hex_rgb(value):
+    value = value.lstrip('#')
+    return [int(value[k:k + 2], 16) / 255 for k in (0, 2, 4)]
+
+
+def set_colours(objects, fix_srgb, overrides):
+    """Material colours of one part.
+
+    fix_srgb: the kit stored sRGB values in glTF's linear colour factors (Nature Kit), so
+    convert them. overrides: {material name: "#rrggbb"} to match the map (e.g. the Nature
+    Kit's teal grass to the Tower Defense green, its white wheat to gold). Materials are
+    copied first so other parts keep theirs.
+    """
+    for o in objects:
+        if o.type != 'MESH':
+            continue
+        for i, mat in enumerate(o.data.materials):
+            if not mat or not mat.use_nodes:
+                continue
+            mat = mat.copy()
+            o.data.materials[i] = mat
+            name = mat.name.split('.')[0]
+            for node in mat.node_tree.nodes:
+                if node.type != 'BSDF_PRINCIPLED' or node.inputs['Base Color'].links:
+                    continue
+                base = node.inputs['Base Color']
+                if name in overrides:
+                    rgb = [srgb_to_linear(c) for c in hex_rgb(overrides[name])]
+                elif fix_srgb:
+                    rgb = [srgb_to_linear(c) for c in base.default_value[:3]]
+                else:
+                    continue
+                base.default_value = (*rgb, 1)
+
+
 def place(part, kit_images):
     kit, model = part['model'].split('/')
-    path = os.path.join(kits_dir, kit, 'Models', 'GLB format', model + '.glb')
+    path = model_path(kit, model)
     before = set(bpy.data.objects)
     images_before = set(bpy.data.images)
     bpy.ops.import_scene.gltf(filepath=path)
@@ -118,9 +167,13 @@ def place(part, kit_images):
         o.parent = holder
     x, y = part.get('at', [0, 0])
     holder.location = (x, y, part.get('z', 0))
-    holder.rotation_euler = (0, 0, math.radians(part.get('turn', 0)))
+    tilt_x, tilt_y = part.get('tilt', [0, 0])
+    holder.rotation_euler = (math.radians(tilt_x), math.radians(tilt_y), math.radians(part.get('turn', 0)))
     s = part.get('scale', 1)
     holder.scale = (s, s, s)
+    fix_srgb = kit in spec.get('srgbFactorKits', [])
+    if fix_srgb or 'materials' in part:
+        set_colours(added, fix_srgb, part.get('materials', {}))
     for o in added:
         if o.type == 'MESH':
             matte(o.data.materials)
