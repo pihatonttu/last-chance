@@ -10,6 +10,7 @@ import {
   drawHighlight,
   drawObjects,
   drawOverlay,
+  drawTileDetails,
   drawWreck,
   EFFECT_COLORS,
   fieldColor,
@@ -125,6 +126,51 @@ describe('sprite mapping', () => {
     drawHighlight(pen, 0, 0, 'hover');
     drawHighlight(pen, 0, 0, 'selected');
     expect(calls.length).toBeGreaterThan(3);
+  });
+});
+
+describe('Kenney style details', () => {
+  it('skips trees and boulders baked into the textures but keeps buildings and mist', () => {
+    for (const terrain of ['forest', 'rock'] as const) {
+      const t = tile(3, 4, { terrain, stock: 40 });
+      const { pen, calls } = recordingPen();
+      drawObjects(pen, t, ctx(t), { bakedTerrain: true });
+      expect(calls).toHaveLength(0);
+    }
+    const house = tile(2, 2, { terrain: 'meadow', building: { kind: 'school', level: 2 } });
+    const built = recordingPen();
+    drawObjects(built.pen, house, ctx(house), { bakedTerrain: true });
+    expect(built.calls.length).toBeGreaterThan(2);
+    const fog = tile(1, 1, { fog: true, terrain: null, stock: null, work: null, uses: null });
+    const mist = recordingPen();
+    drawObjects(mist.pen, fog, ctx(fog), { bakedTerrain: true });
+    expect(mist.calls.length).toBeGreaterThan(0);
+  });
+
+  it('shows the crop left on a field as plants, more when fuller', () => {
+    const plants = (stock: number) => {
+      const t = tile(3, 4, { terrain: 'field', stock });
+      const { pen, calls } = recordingPen();
+      drawTileDetails(pen, t, ctx(t));
+      for (const call of calls) for (const n of call.numbers) expect(Number.isFinite(n)).toBe(true);
+      return calls.filter((c) => c.kind === 'line' && c.numbers.at(-2) === FIELD_LOOK.crop).length;
+    };
+    expect(plants(0)).toBe(0);
+    expect(plants(10)).toBeGreaterThan(0);
+    expect(plants(30)).toBeGreaterThan(plants(10));
+  });
+
+  it('draws the spring pool and quarry pit, and nothing the textures already show', () => {
+    const drawn = (over: Partial<PublicTile>) => {
+      const t = tile(3, 4, over);
+      const { pen, calls } = recordingPen();
+      drawTileDetails(pen, t, ctx(t));
+      return calls.length;
+    };
+    expect(drawn({ terrain: 'spring' })).toBeGreaterThan(0);
+    expect(drawn({ terrain: 'quarry', stock: 60 })).toBeGreaterThan(0);
+    for (const terrain of ['sea', 'meadow', 'forest', 'rock'] as const) expect(drawn({ terrain, stock: 40 })).toBe(0);
+    expect(drawn({ fog: true, terrain: null })).toBe(0);
   });
 });
 

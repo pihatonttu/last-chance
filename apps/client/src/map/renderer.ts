@@ -3,18 +3,20 @@
  * handles pan / zoom / pinch / tap for students, fits the whole island on the
  * projector, and floats "+10 puuta" effects. Renders on demand to spare old devices.
  */
-import { Application, Container, Graphics, Text, TextStyle } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Sprite, Text, TextStyle, type Texture } from 'pixi.js';
 import type { MapView } from '@saari/protocol';
 import type { Coord, Gain, PublicTile } from '@saari/rules';
 import { gainParts } from '../lib/format.ts';
 import { exploreNeeded, stockMax } from '../lib/rules-info.ts';
 import { clampCamera, fitCamera, panBy, screenToWorld, zoomAt, type Camera } from './camera.ts';
 import { drawOrder, tileCenter, tilesBounds, worldToTile, type Rect } from './iso.ts';
+import { KENNEY_SCALE, KENNEY_TEXTURES, kenneyAnchorY, kenneyTile, landAround, type ArtStyle } from './kenney.ts';
 import {
   drawGround,
   drawHighlight,
   drawObjects,
   drawOverlay,
+  drawTileDetails,
   drawWreck,
   EFFECT_COLORS,
   EFFECT_STYLE,
@@ -28,6 +30,8 @@ export type MapMode = 'projector' | 'student';
 export interface MapRendererOptions {
   mode: MapMode;
   reducedMotion: boolean;
+  /** Initial map art (V5 spike): placeholder vectors or Kenney tiles. Default placeholder. */
+  artStyle?: ArtStyle;
   onTap?: (x: number, y: number) => void;
   /** Called when the user pans or zooms (the "whole island" button appears). */
   onCameraMoved?: (moved: boolean) => void;
@@ -80,12 +84,40 @@ interface PointerInfo {
 const TAP_SLOP = 8;
 const TAP_MS = 650;
 
+/** One map tile in the Kenney style: its block texture and the vector bits drawn on top. */
+interface TileSlot {
+  sprite: Sprite;
+  detail: Graphics;
+}
+
+async function loadKenneyTextures(): Promise<Map<string, Texture>> {
+  const base = `${import.meta.env.BASE_URL}art/kenney/`;
+  const loaded = await Promise.all(KENNEY_TEXTURES.map(async (name) => [name, await Assets.load<Texture>(`${base}${name}.png`)] as const));
+  return new Map(loaded);
+}
+
+/** Missing art must not cost the class its map: null means the vector style is used. */
+async function loadKenneyTexturesOrNull(): Promise<Map<string, Texture> | null> {
+  try {
+    return await loadKenneyTextures();
+  } catch (error) {
+    console.warn('Kenney tiles failed to load, using the placeholder map', error);
+    return null;
+  }
+}
+
 export class MapRenderer {
   readonly #app: Application;
   readonly #host: HTMLElement;
   readonly #options: MapRendererOptions;
   readonly #world = new Container();
   readonly #ground = new Graphics();
+  /** Kenney style: per-tile sprite + detail pairs in painter's order. */
+  readonly #tiles = new Container();
+  #slots: TileSlot[] = [];
+  #textures: Map<string, Texture> | null = null;
+  #style: ArtStyle;
+  #styleRequest = 0;
   readonly #objects = new Graphics();
   readonly #overlay = new Graphics();
   readonly #highlight = new Graphics();
@@ -105,11 +137,13 @@ export class MapRenderer {
   #resize: ResizeObserver | null = null;
   #destroyed = false;
 
-  private constructor(app: Application, host: HTMLElement, options: MapRendererOptions) {
+  private constructor(app: Application, host: HTMLElement, options: MapRendererOptions, textures: Map<string, Texture> | null) {
     this.#app = app;
     this.#host = host;
     this.#options = options;
-    this.#world.addChild(this.#ground, this.#objects, this.#highlight, this.#overlay, this.#effects);
+    this.#textures = textures;
+    this.#style = options.artStyle ?? 'placeholder';
+    this.#world.addChild(this.#ground, this.#tiles, this.#objects, this.#highlight, this.#overlay, this.#effects);
     app.stage.addChild(this.#world);
   }
 
@@ -125,13 +159,15 @@ export class MapRenderer {
       autoStart: false,
       preference: 'webgl',
     });
+    // Loaded before the first frame so the class never sees the style change.
+    const textures = (options.artStyle ?? 'placeholder') === 'placeholder' ? null : await loadKenneyTexturesOrNull();
     const canvas = app.canvas;
     canvas.style.display = 'block';
     canvas.style.width = '100%';
     canvas.style.height = '100%';
     canvas.style.touchAction = 'none';
     host.appendChild(canvas);
-    const renderer = new MapRenderer(app, host, options);
+    const renderer = new MapRenderer(app, host, options, textures);
     renderer.#attach();
     return renderer;
   }
@@ -177,6 +213,19 @@ export class MapRenderer {
     this.#effects.addChild(text);
     this.#floating.push({ text, born: performance.now(), baseY: text.y });
     this.#requestRender();
+  }
+
+  /** Switches the map art; the Kenney tiles load the first time they are needed. */
+  async setArtStyle(style: ArtStyle): Promise<void> {
+    if (style === this.#style) return;
+    const request = ++this.#styleRequest;
+    if (style !== 'placeholder' && !this.#textures) {
+      const textures = await loadKenneyTexturesOrNull();
+      if (this.#destroyed || request !== this.#styleRequest) return;
+      this.#textures = textures;
+    }
+    this.#style = style;
+    this.#draw();
   }
 
   /** Whole island in view. */
@@ -260,15 +309,50 @@ export class MapRenderer {
     const overlay = pixiPen(this.#overlay.clear());
     const ordered = [...map.tiles].sort(drawOrder);
     const wreck = this.#wreckTile(map);
-    for (const tile of ordered) {
+    const style = this.#textures ? this.#style : 'placeholder';
+    this.#fitSlots(style === 'placeholder' ? 0 : ordered.length);
+    const at = (x: number, y: number) => this.#tile(map, x, y);
+    ordered.forEach((tile, i) => {
       const ctx = this.#context(map, tile);
-      drawGround(ground, tile, ctx);
-      drawObjects(objects, tile, ctx);
-      if (wreck && tile.x === wreck.x && tile.y === wreck.y) drawWreck(objects, ctx.cx, ctx.cy);
+      const isWreck = wreck !== null && tile.x === wreck.x && tile.y === wreck.y;
+      const look = kenneyTile(tile, ctx, landAround(at, tile.x, tile.y), style);
+      const slot = this.#slots[i];
+      const texture = look && this.#textures?.get(look.texture);
+      if (look && slot && texture) {
+        // Each tile's block, then what stands on it, so nearer tiles cover farther ones.
+        slot.sprite.texture = texture;
+        slot.sprite.anchor.set(0.5, kenneyAnchorY(texture.height));
+        slot.sprite.scale.set(KENNEY_SCALE * (look.flipX ? -1 : 1), KENNEY_SCALE);
+        slot.sprite.position.set(ctx.cx, ctx.cy);
+        slot.sprite.tint = look.tint;
+        const detail = pixiPen(slot.detail.clear());
+        const surface = { ...ctx, cy: ctx.cy + look.surfaceDy };
+        drawTileDetails(detail, tile, surface);
+        drawObjects(detail, tile, surface, { bakedTerrain: true });
+        if (isWreck) drawWreck(detail, surface.cx, surface.cy);
+      } else {
+        drawGround(ground, tile, ctx);
+        drawObjects(objects, tile, ctx);
+        if (isWreck) drawWreck(objects, ctx.cx, ctx.cy);
+      }
       drawOverlay(overlay, tile, ctx);
-    }
+    });
     this.#drawHighlight();
     this.#requestRender();
+  }
+
+  /** Grows or shrinks the Kenney slot pool to one per tile (none in the placeholder style). */
+  #fitSlots(count: number): void {
+    while (this.#slots.length > count) {
+      const slot = this.#slots.pop()!;
+      slot.sprite.destroy();
+      slot.detail.destroy();
+    }
+    while (this.#slots.length < count) {
+      const slot: TileSlot = { sprite: new Sprite(), detail: new Graphics() };
+      this.#tiles.addChild(slot.sprite, slot.detail);
+      this.#slots.push(slot);
+    }
   }
 
   /** The sea tile south of the landing where the wreck lies. */

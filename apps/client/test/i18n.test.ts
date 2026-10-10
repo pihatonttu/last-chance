@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { allMessageKeys, formatNumber, hasMessage, t, tp } from '../src/i18n/index.ts';
+import { ART_STYLES } from '../src/map/kenney.ts';
 import {
   ACTION_GROUPS,
   ACTION_KINDS,
@@ -69,6 +70,7 @@ function familyKeys(): string[] {
   for (const g of ACTION_GROUPS) keys.push(`debrief.group.${g}`);
   keys.push('debrief.group.unused');
   for (const grade of GRADES) keys.push(`grade.${grade}`);
+  for (const style of ART_STYLES) keys.push(`dev.art.${style}`);
   for (const skill of SKILLS) keys.push(`skill.${skill}`);
   for (const mood of ['good', 'ok', 'bad']) keys.push(`mood.${mood}`);
   for (const gain of [...RESOURCES, 'work', 'recreation', 'education', 'tools']) keys.push(`gain.${gain}.one`, `gain.${gain}.other`);

@@ -2,6 +2,8 @@
   import { onMount } from 'svelte';
   import type { MockServer } from '../net/mock/server.ts';
   import { t } from '../i18n/index.ts';
+  import { art, setArtStyle } from '../map/art-style.svelte.ts';
+  import { ART_STYLES } from '../map/kenney.ts';
 
   /** Demo controls for ?mock=1, shown only in the tab that runs the game. */
   let { code }: { code: string } = $props();
@@ -32,6 +34,11 @@
     server?.setSpeed(next);
     speed = next;
   }
+
+  /** V5 art spike: compare the map styles on the same game. */
+  function cycleArt(): void {
+    setArtStyle(ART_STYLES[(ART_STYLES.indexOf(art.style) + 1) % ART_STYLES.length]!);
+  }
 </script>
 
 {#if info && info.phase !== 'ended'}
@@ -42,6 +49,7 @@
       <button type="button" class="btn btn-secondary btn-small" onclick={() => server?.skipPhase(code)}>{t('dev.skip')}</button>
       <button type="button" class="btn btn-secondary btn-small" onclick={cycleSpeed}>{t('dev.speed', { n: speed })}</button>
       <button type="button" class="btn btn-secondary btn-small" onclick={() => server?.addBots(code, 5)}>{t('dev.addBots')}</button>
+      <button type="button" class="btn btn-secondary btn-small" onclick={cycleArt}>{t('dev.art', { style: t(`dev.art.${art.style}`) })}</button>
     {/if}
   </aside>
 {/if}

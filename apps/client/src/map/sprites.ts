@@ -252,39 +252,80 @@ export function drawGround(pen: Pen, tile: PublicTile, ctx: TileContext): void {
         const ty = cy + ((((h >> (i * 5 + 3)) & 15) - 8) * HALF_H) / 20;
         pen.line([tx - 3, ty, tx - 1, ty - 5, tx + 1, ty, tx + 3, ty - 5], { color: 0x689f38, width: 1.5, alpha: 0.8 });
       }
-      if (tile.terrain === 'spring') {
-        pen.ellipse(cx, cy + 2, 24, 12, SPRING_LOOK.pool, 1, { color: SPRING_LOOK.rim, width: 2 });
-        pen.ellipse(cx - 7, cy - 1, 7, 3, SPRING_LOOK.shine, 0.7);
-      }
+      if (tile.terrain === 'spring') drawSpringPool(pen, cx, cy);
       return;
-    case 'field': {
-      const d = diamond(cx, cy, 0.86);
-      const [tx, ty, rx, ry, bx, by, lx, ly] = d as [number, number, number, number, number, number, number, number];
-      for (let i = 1; i <= 3; i++) {
-        const k = i / 4;
-        pen.line([lerp(tx, lx, k), lerp(ty, ly, k), lerp(rx, bx, k), lerp(ry, by, k)], {
-          color: FIELD_LOOK.furrow,
-          width: 2,
-          alpha: 0.35,
-        });
-      }
+    case 'field':
+      drawFurrows(pen, cx, cy, 0);
       return;
-    }
     case 'quarry':
-      pen.poly(diamond(cx, cy + 2, 0.55), QUARRY_LOOK.pit, 1);
-      pen.poly([cx - 20, cy - 4, cx - 10, cy - 9, cx - 4, cy - 6, cx - 14, cy - 1], QUARRY_LOOK.block, 1, {
-        color: OUTLINE,
-        width: 1,
-        alpha: 0.4,
-      });
-      pen.poly([cx + 8, cy + 8, cx + 18, cy + 3, cx + 24, cy + 6, cx + 14, cy + 11], QUARRY_LOOK.block, 1, {
-        color: OUTLINE,
-        width: 1,
-        alpha: 0.4,
-      });
+      drawQuarryPit(pen, cx, cy);
       return;
     case 'rock':
     case 'forest':
+      return;
+  }
+}
+
+function drawSpringPool(pen: Pen, cx: number, cy: number): void {
+  pen.ellipse(cx, cy + 2, 24, 12, SPRING_LOOK.pool, 1, { color: SPRING_LOOK.rim, width: 2 });
+  pen.ellipse(cx - 7, cy - 1, 7, 3, SPRING_LOOK.shine, 0.7);
+}
+
+/** Three furrows across the field, with `plants` (0..12) crop sprouts along them. */
+function drawFurrows(pen: Pen, cx: number, cy: number, plants: number): void {
+  const d = diamond(cx, cy, 0.86);
+  const [tx, ty, rx, ry, bx, by, lx, ly] = d as [number, number, number, number, number, number, number, number];
+  for (let i = 1; i <= 3; i++) {
+    const k = i / 4;
+    const x0 = lerp(tx, lx, k);
+    const y0 = lerp(ty, ly, k);
+    const x1 = lerp(rx, bx, k);
+    const y1 = lerp(ry, by, k);
+    pen.line([x0, y0, x1, y1], { color: FIELD_LOOK.furrow, width: 2, alpha: 0.35 });
+    for (let j = 1; j <= 4; j++) {
+      if ((i - 1) * 4 + j > plants) break;
+      const px = lerp(x0, x1, j / 5);
+      const py = lerp(y0, y1, j / 5);
+      pen.line([px - 3, py, px, py - 7, px + 3, py], { color: FIELD_LOOK.crop, width: 2 });
+    }
+  }
+}
+
+function drawQuarryPit(pen: Pen, cx: number, cy: number): void {
+  pen.poly(diamond(cx, cy + 2, 0.55), QUARRY_LOOK.pit, 1);
+  pen.poly([cx - 20, cy - 4, cx - 10, cy - 9, cx - 4, cy - 6, cx - 14, cy - 1], QUARRY_LOOK.block, 1, {
+    color: OUTLINE,
+    width: 1,
+    alpha: 0.4,
+  });
+  pen.poly([cx + 8, cy + 8, cx + 18, cy + 3, cx + 24, cy + 6, cx + 14, cy + 11], QUARRY_LOOK.block, 1, {
+    color: OUTLINE,
+    width: 1,
+    alpha: 0.4,
+  });
+}
+
+/**
+ * Kenney style: what the block textures cannot show, drawn on top of the block. Grass,
+ * water, trees and rocks are in the textures; the crop left, the spring and the pit are not.
+ */
+export function drawTileDetails(pen: Pen, tile: PublicTile, ctx: TileContext): void {
+  if (tile.fog || tile.terrain === null || tile.building) return;
+  const { cx, cy } = ctx;
+  switch (tile.terrain) {
+    case 'field': {
+      const max = ctx.stockMax ?? 1;
+      const share = max > 0 ? (tile.stock ?? 0) / max : 0;
+      drawFurrows(pen, cx, cy, Math.min(12, Math.ceil(12 * share)));
+      return;
+    }
+    case 'spring':
+      drawSpringPool(pen, cx, cy);
+      return;
+    case 'quarry':
+      drawQuarryPit(pen, cx, cy);
+      return;
+    default:
       return;
   }
 }
@@ -364,8 +405,13 @@ function scalePoints(points: readonly number[], cx: number, cy: number, s: numbe
   return points.map((v, i) => (i % 2 === 0 ? cx + v * s : cy + v * s));
 }
 
+export interface ObjectOptions {
+  /** Trees and boulders come with the tile texture (Kenney style); draw only the rest. */
+  bakedTerrain?: boolean;
+}
+
 /** Upright things in painter's order: trees, boulders, buildings, mist. */
-export function drawObjects(pen: Pen, tile: PublicTile, ctx: TileContext): void {
+export function drawObjects(pen: Pen, tile: PublicTile, ctx: TileContext, options: ObjectOptions = {}): void {
   const { cx, cy } = ctx;
   if (tile.fog || tile.terrain === null) {
     const h = tileHash(tile.x, tile.y);
@@ -379,6 +425,7 @@ export function drawObjects(pen: Pen, tile: PublicTile, ctx: TileContext): void 
     drawBuilding(pen, tile.building.kind, tile.building.level, cx, cy);
     return;
   }
+  if (options.bakedTerrain) return;
   if (tile.terrain === 'forest') {
     const count = treeCount(tile.stock ?? 0, ctx.stockMax ?? 1);
     const spots: readonly [number, number, number][] = [
