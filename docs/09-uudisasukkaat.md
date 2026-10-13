@@ -1,8 +1,8 @@
 # Uudisasukkaat: oma peli Saarellan pohjalta
 
-**Tila: suunnitelma, Samun luettavana (2026-10-13).** Toteutus alkaa, kun Samu on hyväksynyt
-tämän dokumentin. Hyväksytyt päätökset kirjataan päätöslokiin (P40–P46) ja viedään
-pelisuunnitteluun (`04-pelisuunnittelu.md`).
+**Tila: toteutettu 2026-10-13.** Samu hyväksyi suunnitelman 2026-10-13. Päätökset ovat
+päätöslokissa (P40–P47), ja ne on viety pelisuunnitteluun (`04-pelisuunnittelu.md`).
+Toteutussuunnitelma: `superpowers/plans/2026-10-13-uudisasukkaat.md`.
 
 ## Tausta
 

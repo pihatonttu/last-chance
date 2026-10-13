@@ -1,7 +1,7 @@
 # Pelisuunnittelu (työnimi `saari`)
 
-**Tila: v1.1 (2026-10-09).** Päätökset P25–P34 (`03-paatokset.md`) on viety tähän, ja niiden
-numerot ovat suluissa. V3:n tasapainotyön sääntömuutokset (sumu, suojat, pyöristys,
+**Tila: v1.2 (2026-10-13).** Päätökset P25–P34 ja P40–P47 (`03-paatokset.md`) on viety tähän,
+ja niiden numerot ovat suluissa. Uudisasukkaat, vuodenajat ja kehystys: `09-uudisasukkaat.md`. V3:n tasapainotyön sääntömuutokset (sumu, suojat, pyöristys,
 arvosanarajat) on merkitty **(V3)**; perustelut ovat dokumentissa `05-tasapaino.md`.
 
 - Luvut ovat **alkuarvoja**. Ne viritetään simulaattorilla vaiheessa V3, ja lopulliset arvot ovat
@@ -15,13 +15,12 @@ tapahtumaloki jälkipuintia varten (P8).
 
 ## 1. Tarina
 
-Luokka on laivalla, joka ajaa myrskyssä karille tuntemattoman saaren edustalla. Kaikki pääsevät
-rantaan. Hylystä pelastettiin vähän ruokaa ja lautoja, ja radiosta kuului viesti, että
-pelastuslaiva saapuu **15 kuukauden kuluttua** (Lyhyessä pelissä 10). Siihen asti saarella pitää
-pärjätä yhdessä.
+**(P40)** Luokka purjehtii veneellä autiolle saarelle perustamaan oman kylän. Kaikki tehdään
+talkoilla. **15 kuukauden päästä** (Lyhyessä pelissä 10) pidetään kylän avajaisjuhla, ja
+mantereelta saapuu vieraita. Tulos kertoo, millaisen kylän vieraat näkevät.
 
-- Jokainen kierros on yksi kuukausi.
-- Peli päättyy, kun pelastuslaiva saapuu. Tulos kertoo, millainen yhteisö saarelle ehti syntyä.
+- Jokainen kierros on yksi kuukausi. Peli alkaa huhtikuussa, ja talvi tulee (§9.1).
+- Peli päättyy avajaisjuhlaan, ja vieraslaiva saapuu loppuruudulla.
 - Loppuäänestystä ei ole (P31). Peli päättyy suoraan arvosanaan.
 
 ## 2. Mitoitusperiaate: kaikki lasketaan per kyläläinen (P25)
@@ -44,7 +43,7 @@ asukasta.
 **Miksi näin**
 - Luvut ovat ymmärrettäviä ja samoja jokaisessa luokassa.
 - Ne opettavat samalla: "Meitä on 24 ja jokainen syö 4, joten ruokaa tarvitaan 96. Varastossa on
-  60. Montako peltoa pitää korjata?" Tämä on sopiva päässälaskutehtävä 4.–9.-luokkalaiselle, ja
+  60. Montako peltoa pitää korjata?" Tämä on sopiva päässälaskutehtävä vanhemmille oppilaille (kohderyhmä 2.–6. luokka, P46), ja
   laskemalla oppilaat ehtivät keskustella.
 - Pelin kulku pysyy samanlaisena 15 ja 30 pelaajan luokassa. Simulaattori tarkistaa tämän.
 
@@ -94,7 +93,7 @@ skaalataan. Simulaattori virittää molemmat.
 | Metsä | ~50 % | puuta, kaadettuna niittyä |
 | Niitty | ~30 % | pelloksi tai rakennuspaikaksi |
 | Kallio | ~20 % | louhokseksi, ei kahden ruudun säteellä rantautumispaikasta |
-| Lähde | 1 kpl | saaren kaukaisimmassa kolmanneksessa |
+| Lampi (sisäisesti `spring`) | 1 kpl | saaren kaukaisimmassa kolmanneksessa (P44) |
 | Meri | rengas | rannikkomeressä voi kalastaa |
 
 **Rantautumispaikka** on etelärannalla oleva niitty, jolla hylky näkyy. Sen naapureissa on
@@ -142,11 +141,11 @@ työkalutasolla 1. Työkalukerroin on kuvattu kohdassa §8.
 | Metsä | **Kaada puita** | +10 puuta (× työkalut), enintään metsän puumäärä (täysi metsä 40). Metsä kasvaa kuukaudessa ×1,25 kohti täyttä. Tyhjästä metsästä tulee niitty. |
 | Kallio | **Perusta louhos** | +1 työ (× työkalut); 4 työtä → louhos |
 | Louhos | **Louhi kiveä** | kiveä `8 × jäljellä/60` (× työkalut), vähintään 2. Louhoksessa on 60 kiveä, joten uusi louhos tuottaa hyvin ja vanha huonosti. |
-| Lähde | **Ui** | +1 virkistyskerta (§9). Käyttökertoja on ⌈N/6⌉ kuukaudessa. |
-| Kokoontumispaikka | **Vietä aikaa yhdessä** | +1 virkistyskerta (§9). Käyttökertoja on tason mukaan ⌈N/5⌉ / ⌈N/4⌉ / ⌈N/3⌉. |
+| Lampi | **Ui** | +1 virkistyskerta (§9). Käyttökertoja on ⌈N/6⌉ kuukaudessa. |
+| Kylätalo | **Vietä aikaa yhdessä** | +1 virkistyskerta (§9). Käyttökertoja on tason mukaan ⌈N/5⌉ / ⌈N/4⌉ / ⌈N/3⌉. |
 | Koulu | **Opiskele** | oma koulutus (§8) |
 | Työpaja | **Tee työkaluja** | omat työkalut (§8) |
-| Suoja | ei toimintoa | tarjoaa suojapaikkoja (§9) |
+| Koti | ei toimintoa | tarjoaa kotipaikkoja (§9) |
 
 Tuotot pyöristetään kokonaisluvuiksi. Paneelissa näytetään aina tarkka tuotto ennen napautusta,
 esim. "Kaada puita +13".
@@ -202,6 +201,19 @@ Kuukauden lopussa tapahtuu järjestyksessä:
 
 Pisteitä ei jaeta per pelaaja. Kylä onnistuu tai epäonnistuu yhdessä (ydin a).
 
+### 9.1 Vuodenajat ja talvi (P43)
+
+- Peli alkaa **huhtikuussa**. Kuukausilla on nimet, ja vuodenajat menevät koulun tapaan: kevät
+  maalis–toukokuu, kesä kesä–elokuu, syksy syys–marraskuu, talvi joulu–helmikuu. Normaalin
+  pelin talvi on kuukaudet 9–11, Lyhyen 9–10.
+- **Talvella mikään ei kasva:** satoa ei voi korjata (pelto on lumen alla), eivätkä metsät
+  kasva talvikuukauden lopussa. Pellot täyttyvät kuukauden vaihteessa kuten ennenkin, joten
+  maaliskuussa ne ovat täynnä. Kalastus on talvella pilkkimistä samalla tuotolla.
+- Ruokavaraston katto (P27) pysyy, joten syksyllä varasto täytetään ja Normaalin pelin
+  kolmantena talvikuukautena pilkitään.
+- Loka- ja marraskuussa tapahtumanauha varoittaa: "Talvi tulee!". Syksyn yhteenveto kertoo,
+  montako kuukautta talveen on. Talvella kartta on luminen.
+
 ## 10. Rakennukset ja äänestys
 
 ### 10.1 Rakennukset
@@ -211,16 +223,16 @@ Suluissa on esimerkkinä 30 hengen luokan hinta.
 
 | Rakennus | Taso 1 | Taso 2 | Taso 3 | Ehto |
 |---|---|---|---|---|
-| **Suoja** (teltta → maja → talo) | 4 puuta (120) | 6 puuta (180) | 6 puuta + 3 kiveä (180 + 90) | Saatavilla heti. Suojia voi rakentaa useita. Tavoite on kaksi tason 3 suojaa. |
-| **Koulu** | 6 puuta (180) | 8 puuta + 2 kiveä (240 + 60) | 8 puuta + 6 kiveä (240 + 180) | Vain yksi, joka päivitetään. Avautuu ensimmäisen suojan jälkeen. |
-| **Työpaja** | 6 puuta (180) | 6 puuta + 4 kiveä (180 + 120) | 8 puuta + 8 kiveä (240 + 240) | Vain yksi. Avautuu ensimmäisen suojan jälkeen. |
-| **Kokoontumispaikka** (nuotio → teatteri → amfiteatteri) | 4 puuta (120) | 8 puuta + 2 kiveä (240 + 60) | 8 puuta + 8 kiveä (240 + 240) | Vain yksi. Avautuu ensimmäisen suojan jälkeen. |
+| **Koti** (teltta → mökki → talo) | 4 puuta (120) | 6 puuta (180) | 6 puuta + 3 kiveä (180 + 90) | Saatavilla heti. Suojia voi rakentaa useita. Tavoite on kaksi tason 3 suojaa. |
+| **Koulu** (ulkoluokka → koulu → iso koulu) | 6 puuta (180) | 8 puuta + 2 kiveä (240 + 60) | 8 puuta + 6 kiveä (240 + 180) | Vain yksi, joka päivitetään. Avautuu ensimmäisen suojan jälkeen. |
+| **Paja** (työpenkki → paja → iso paja) | 6 puuta (180) | 6 puuta + 4 kiveä (180 + 120) | 8 puuta + 8 kiveä (240 + 240) | Vain yksi. Avautuu ensimmäisen suojan jälkeen. |
+| **Kylätalo** (laavu → kylätalo → juhlatalo) | 4 puuta (120) | 8 puuta + 2 kiveä (240 + 60) | 8 puuta + 8 kiveä (240 + 240) | Vain yksi. Avautuu ensimmäisen suojan jälkeen. |
 
 **Esiehdot (P30): suoja ensin.** Alussa voi äänestää vain suojasta tai olla rakentamatta. Kun
 ensimmäinen suoja on valmis, koulu, työpaja ja kokoontumispaikka avautuvat kerralla. Aloitusvarat
 (`4N` puuta) riittävät juuri ensimmäiseen suojaan.
 
-Rakennusten nimet ja ulkoasu sovitetaan Kenneyn kuviin grafiikkakokeilussa (V5).
+Nimet ovat P44:n mukaiset. Sisäiset tunnisteet (`shelter`, `school`, `workshop`, `gathering`) pysyvät.
 
 ### 10.2 Äänestys
 
@@ -267,19 +279,23 @@ Rakennusten nimet ja ulkoasu sovitetaan Kenneyn kuviin grafiikkakokeilussa (V5).
 
   | Taso | Nimi |
   |---|---|
-  | 6 | Saaren paratiisi |
+  | 6 | Unelmien kylä |
   | 5 | Kukoistava kylä |
   | 4 | Toimiva kylä |
-  | 3 | Sinnittelevä leiri |
-  | 2 | Ahdinko |
-  | 1 | Selviytyjät rannalla |
+  | 3 | Kasvava kylä |
+  | 2 | Sinnittelevä leiri |
+  | 1 | Leiri rannalla |
+
+  Nimet ovat P45:n mukaiset (korvaavat P32:n nimet).
 
   Rajat asetetaan simulaattorilla. Tavoitteena on, että hyvin yhteistyötä tekevä botti saa tason
-  5–6, satunnainen botti 2–3, ja itsekäs botti, joka vain kehittää itseään, tason 1–2.
+  5–6, satunnainen botti 2–3, ja vain taitoja kehittävä botti (`skillsOnly`) tason 1–2.
 - Rajat asetetaan erikseen Normaalille ja Lyhyelle pelille (P26). **(V3)** Rajat ovat
   pituuskohtaiset eivätkä skaalattuja, koska suojien rakentaminen vie lyhyessäkin pelissä
   yhtä monta kuukautta. Arvot ovat dokumentissa `05-tasapaino.md`.
-- Loppuruudulla näkyvät arvosana, tasoa vastaava kuva sekä siirtymä jälkipuintiin.
+- Loppuruudulla näkyvät vieraslaiva, arvosana tähtinä ja nimenä sekä siirtymä jälkipuintiin.
+- **Omat merkit (P42):** oppilaan omalla laitteella näkyy 1–3 merkkiä sen mukaan, mitä hän teki
+  (`docs/09-uudisasukkaat.md` §2.3). Projektori ei näytä niitä, eikä niitä tallenneta.
 
 ## 13. Tapahtumaloki ja jälkipuinti
 
@@ -350,9 +366,9 @@ kokeilutilassa (P19).
 
 | Strategia | Käyttäytyminen | Käyttö |
 |---|---|---|
-| **Yhteistyö** | Tarpeet ensin (ruoka, suojat). Hankkii rakennusaineet äänestystavoitteen mukaan, tutkii, opiskelee aikaisin. Äänestää suunnitelman mukaan. Toiminnot valitaan vähän satunnaisesti. | tasapainon yläraja, kokeilutila |
+| **Yhteistyö** | Tarpeet ensin (ruoka, suojat), ja varasto täytetään ennen talvea. Hankkii rakennusaineet äänestystavoitteen mukaan, tutkii, opiskelee aikaisin. Äänestää suunnitelman mukaan. Toiminnot valitaan vähän satunnaisesti. | tasapainon yläraja, kokeilutila |
 | **Satunnainen** | Satunnainen sallittu toiminto ja satunnainen ääni. | tasapainon alaraja |
-| **Itsekäs** | Vain koulu ja työpaja, kun ne ovat olemassa. Muuten satunnainen. | ydin c:n tarkistus |
+| **Vain taidot** (`skillsOnly`) | Vain koulu ja työpaja, kun ne ovat olemassa. Muuten satunnainen. | ydin c:n tarkistus |
 | **Laiska** | Käyttää vain osan toiminnoistaan ja äänestää harvoin. | poissaolojen vaikutus |
 | **Sekoitus** | Luokka, jossa on esim. 60 % yhteistyö-, 25 % satunnais- ja 15 % laiskoja botteja. | arvosanarajojen asetus |
 

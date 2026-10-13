@@ -142,6 +142,7 @@ saari/
 | V6 (osin) | Asiakas: oppilas-, projektori- ja jälkipuintinäkymät, nimimerkkisuodatin | Playwright-testi: opettaja ja 3 oppilasta pelaavat pelin läpi. **Tehty 2026-10-09:** näkymät ja suodatin, väliaikaisgrafiikka; tarkistettu selaimessa ja `tools/smoke-public.mjs`:llä. **Puuttuu:** Playwright-testi. |
 | V7 | Opettajan ohjesivu, tietosuojaseloste, lopullinen nimi ja domain | tekstit hyväksytty |
 | V8 ✓ | Julkaisu novaservulle ja valvonta | `https://last-chance.novanet.fi` toimii 2026-10-09 (`docs/08-julkaisu.md`) |
+| V9 ✓ | Oma peli: uudisasukkaat, vuodenajat, kehystys, merkit (`docs/09-uudisasukkaat.md`, P40–P47) | testit läpi, simulaattori viritetty, talvi tarkistettu selaimessa |
 
 ## 11. MVP:n valmiin määritelmä
 
@@ -170,7 +171,6 @@ saari/
 
 ## 13. Lykätyt päätökset
 
-- Lopullinen nimi ja domain: ennen V7:ää (P5).
 - Takaraja: ei asetettu (P24).
 - Rekisterinpitäjän nimi ja yhteystiedot tietosuojaselosteeseen ja ohjesivulle: ennen V7:ää.
 - Pelisääntöjen yksityiskohdat: V1-grillaus.
