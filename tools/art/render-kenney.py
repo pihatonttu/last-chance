@@ -14,6 +14,8 @@ Camera and light are fixed to the look of the Kenney "Tower Defense" isometric t
   2 * 132 px wide (rendered at twice the 2D tiles' size for sharper zoom);
 - flat albedo on top faces, left faces at 89 % and right faces at 68 % brightness
   (measured from grass.png), no cast shadows, no specular highlights.
+
+A sprite with "snow": true gets snow on its upward faces (winter variants).
 """
 import json
 import math
@@ -200,6 +202,48 @@ def recolor(kit_images, swaps):
             image.update()
 
 
+SNOW = spec.get('snowColor', '#f1f6fa')
+
+
+def socket(sockets, identifier):
+    return next(s for s in sockets if s.identifier == identifier)
+
+
+def add_snow(objects):
+    """Snow on every face that points up: each material's colour is mixed toward white by
+    how much the surface normal points up (world space), so roofs, tree tops and the ground
+    turn white and walls keep their colour (docs/09-uudisasukkaat.md §3.3)."""
+    snow = [srgb_to_linear(c) for c in hex_rgb(SNOW)]
+    done = set()
+    for o in objects:
+        if o.type != 'MESH':
+            continue
+        for mat in o.data.materials:
+            if not mat or not mat.use_nodes or mat.name in done:
+                continue
+            done.add(mat.name)
+            nodes, links = mat.node_tree.nodes, mat.node_tree.links
+            for bsdf in [n for n in nodes if n.type == 'BSDF_PRINCIPLED']:
+                base = bsdf.inputs['Base Color']
+                geometry = nodes.new('ShaderNodeNewGeometry')
+                split = nodes.new('ShaderNodeSeparateXYZ')
+                links.new(geometry.outputs['Normal'], split.inputs['Vector'])
+                ramp = nodes.new('ShaderNodeMapRange')
+                ramp.inputs['From Min'].default_value = 0.3
+                ramp.inputs['From Max'].default_value = 0.5
+                links.new(split.outputs['Z'], ramp.inputs['Value'])
+                mix = nodes.new('ShaderNodeMix')
+                mix.data_type = 'RGBA'
+                links.new(ramp.outputs['Result'], socket(mix.inputs, 'Factor_Float'))
+                colour_a = socket(mix.inputs, 'A_Color')
+                if base.links:
+                    links.new(base.links[0].from_socket, colour_a)
+                else:
+                    colour_a.default_value = base.default_value
+                socket(mix.inputs, 'B_Color').default_value = (*snow, 1)
+                links.new(socket(mix.outputs, 'Result_Color'), base)
+
+
 os.makedirs(out_dir, exist_ok=True)
 for sprite in spec['sprites']:
     if only and sprite['name'] not in only:
@@ -209,6 +253,8 @@ for sprite in spec['sprites']:
     for part in sprite['parts']:
         place(part, kit_images)
     recolor(kit_images, [spec['swatches'][name] for name in sprite.get('recolor', [])])
+    if sprite.get('snow'):
+        add_snow(list(bpy.context.scene.objects))
     scene.render.filepath = os.path.join(out_dir, sprite['name'] + '.png')
     bpy.ops.render.render(write_still=True)
     print('rendered', sprite['name'], flush=True)
