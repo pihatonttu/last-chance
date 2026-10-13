@@ -16,6 +16,8 @@ export interface Cost {
  */
 export interface GameParams {
   months: Record<GameLength, number>;
+  /** Calendar month (1 = January) of the game's first month; the game starts in spring (docs/09 §3.1). */
+  startCalendarMonth: number;
   baseActions: number;
   /** Uusi pelaaja voi liittyä kuukausina 1..(joinClosesAtMonth - 1) (P33). */
   joinClosesAtMonth: number;
@@ -81,6 +83,7 @@ export interface GameParams {
 
 export const DEFAULT_PARAMS: GameParams = {
   months: { normal: 15, short: 10 },
+  startCalendarMonth: 4,
   baseActions: 3,
   joinClosesAtMonth: 4,
 

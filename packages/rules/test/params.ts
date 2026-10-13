@@ -7,6 +7,7 @@ import type { GameParams } from '../src/params.ts';
  */
 export const RULE_TEST_PARAMS: GameParams = {
   months: { normal: 15, short: 10 },
+  startCalendarMonth: 4,
   baseActions: 3,
   joinClosesAtMonth: 4,
 
