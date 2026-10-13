@@ -18,6 +18,12 @@ export interface QuestionFacts {
   actions: GroupCounts;
   unused: number;
   springFoundMonth: number | null;
+  /** Winter months among the months played (docs/09 §3.4). */
+  winterMonths: readonly number[];
+  /** Every winter month of the game was played. */
+  winterOver: boolean;
+  /** Played winter months with someone hungry. */
+  winterHungryMonths: number;
 }
 
 /**
@@ -28,6 +34,7 @@ export interface QuestionFacts {
  */
 export const QUESTION_IDS = [
   'hunger',
+  'winter-hunger',
   'unused-actions',
   'low-participation',
   'no-shelter-long',
@@ -38,6 +45,7 @@ export const QUESTION_IDS = [
   'spring-never',
   'spring-late',
   'good-result',
+  'winter-ready',
   'next-time',
   'roles',
   'decision-making',
@@ -100,7 +108,10 @@ function triggered(f: QuestionFacts): Partial<Record<QuestionId, Record<string, 
 
   const hunger = f.crises.filter((c) => c.kind === 'hunger');
   if (hunger.length > 0) {
-    out.hunger = { month: hunger[0]!.month, people: Math.max(...hunger.map((c) => c.people)) };
+    const params = { month: hunger[0]!.month, people: Math.max(...hunger.map((c) => c.people)) };
+    // The food first running out in winter is a question about getting ready for it.
+    if (f.winterMonths.includes(hunger[0]!.month)) out['winter-hunger'] = params;
+    else out.hunger = params;
   }
 
   if (f.unshelteredMonths >= T.noShelterMonths) out['no-shelter-long'] = { months: f.unshelteredMonths };
@@ -143,7 +154,10 @@ export function pickQuestions(f: QuestionFacts): DebriefQuestion[] {
     if (params && picked.length < THRESHOLDS.maxTriggered) picked.push({ id, params });
   }
   // A game ended before the first month gives nothing to talk about beyond decision-making.
-  for (const id of f.monthsPlayed > 0 ? GENERAL_QUESTIONS : []) {
+  // A winter got through without hunger is worth talking about before the general questions.
+  const general: readonly QuestionId[] =
+    f.winterOver && f.winterHungryMonths === 0 ? ['winter-ready', ...GENERAL_QUESTIONS] : GENERAL_QUESTIONS;
+  for (const id of f.monthsPlayed > 0 ? general : []) {
     if (picked.length + 1 >= THRESHOLDS.minQuestions) break;
     picked.push({ id, params: {} });
   }

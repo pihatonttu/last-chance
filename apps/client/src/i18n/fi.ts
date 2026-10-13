@@ -455,6 +455,8 @@ export const fi = {
   'debrief.questions.title': 'Keskustelukysymyksiä',
   'debrief.question.hunger':
     'Kuukautena {month} ruoka loppui ja {people} jäi nälkään. Kuka huomasi sen ensin? Mitä silloin tehtiin?',
+  'debrief.question.winter-hunger': 'Talvella ruoka loppui ja {people} jäi nälkään. Milloin olisi pitänyt alkaa varautua?',
+  'debrief.question.winter-ready': 'Ruoka riitti talven yli. Miten varauduitte? Kuka muistutti muita?',
   'debrief.question.no-shelter-long':
     'Joku oli ilman suojaa {months} kuukautta. Miksi suojien rakentaminen viivästyi?',
   'debrief.question.ties':

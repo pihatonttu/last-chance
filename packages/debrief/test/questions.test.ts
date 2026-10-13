@@ -17,6 +17,9 @@ function quiet(overrides: Partial<QuestionFacts> = {}): QuestionFacts {
     actions: { food: 40, fields: 10, materials: 30, explore: 10, skills: 10, recreation: 0 },
     unused: 0,
     springFoundMonth: 3,
+    winterMonths: [],
+    winterOver: false,
+    winterHungryMonths: 0,
     ...overrides,
   };
 }
@@ -177,6 +180,7 @@ describe('QUESTION_IDS', () => {
   it("lists every question id once in priority order, 'decision-making' last", () => {
     expect(QUESTION_IDS).toEqual([
       'hunger',
+      'winter-hunger',
       'unused-actions',
       'low-participation',
       'no-shelter-long',
@@ -187,9 +191,46 @@ describe('QUESTION_IDS', () => {
       'spring-never',
       'spring-late',
       'good-result',
+      'winter-ready',
       'next-time',
       'roles',
       'decision-making',
     ]);
+  });
+});
+
+describe('winter questions (docs/09-uudisasukkaat.md §3.4)', () => {
+  it('asks about winter hunger instead of hunger when the food first ran out in winter', () => {
+    const facts = quiet({
+      crises: [{ kind: 'hunger', month: 10, people: 5, resolvedMonth: 12 }],
+      winterMonths: [9, 10, 11],
+      winterOver: true,
+      winterHungryMonths: 1,
+    });
+    expect(find(facts, 'winter-hunger')).toEqual({ id: 'winter-hunger', params: { month: 10, people: 5 } });
+    expect(find(facts, 'hunger')).toBeUndefined();
+  });
+
+  it('keeps the hunger question when the first hungry month was before winter', () => {
+    const facts = quiet({
+      crises: [
+        { kind: 'hunger', month: 4, people: 2, resolvedMonth: 5 },
+        { kind: 'hunger', month: 10, people: 6, resolvedMonth: 11 },
+      ],
+      winterMonths: [9, 10, 11],
+      winterOver: true,
+      winterHungryMonths: 1,
+    });
+    expect(find(facts, 'hunger')).toEqual({ id: 'hunger', params: { month: 4, people: 6 } });
+    expect(ids(facts)).not.toContain('winter-hunger');
+  });
+
+  it('asks how the class got ready when the food lasted through the whole winter', () => {
+    expect(ids(quiet({ winterMonths: [9, 10, 11], winterOver: true }))).toEqual(['winter-ready', 'next-time', 'decision-making']);
+  });
+
+  it('does not ask it before the winter is over or after a hungry winter', () => {
+    expect(ids(quiet({ winterMonths: [9], winterOver: false }))).not.toContain('winter-ready');
+    expect(ids(quiet({ winterMonths: [9, 10, 11], winterOver: true, winterHungryMonths: 1 }))).not.toContain('winter-ready');
   });
 });

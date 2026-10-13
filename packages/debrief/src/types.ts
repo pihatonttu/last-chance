@@ -33,6 +33,7 @@ export interface DebriefCrisis {
  * client renders each from a translation template with {param} placeholders, so the
  * debrief itself stays language-neutral (P17). Params per id:
  * - 'hunger': month (first hungry month), people (most hungry in one month)
+ * - 'winter-hunger': month (first hungry month, in winter), people (most hungry in one month); replaces 'hunger'
  * - 'no-shelter-long': months (months with someone unsheltered)
  * - 'ties': count
  * - 'empty-months': count (months that built nothing)
@@ -43,11 +44,13 @@ export interface DebriefCrisis {
  * - 'unused-actions': percent (share of actions left unused)
  * - 'low-participation': percent (share of possible votes cast)
  * - 'good-result': grade (grade 5 or 6)
+ * - 'winter-ready': (no params) the game got through its whole winter with nobody hungry in it; a general question
  * - 'next-time', 'roles': (no params) general questions that fill a quiet game up to three
  * - 'decision-making': (no params) always included last
  */
 export type QuestionId =
   | 'hunger'
+  | 'winter-hunger'
   | 'no-shelter-long'
   | 'ties'
   | 'empty-months'
@@ -58,6 +61,7 @@ export type QuestionId =
   | 'unused-actions'
   | 'low-participation'
   | 'good-result'
+  | 'winter-ready'
   | 'next-time'
   | 'roles'
   | 'decision-making';

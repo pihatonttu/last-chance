@@ -127,6 +127,7 @@ export const TICKER_KINDS = keys<TickerEvent['kind']>({
 
 export const QUESTION_IDS = keys<QuestionId>({
   hunger: true,
+  'winter-hunger': true,
   'no-shelter-long': true,
   ties: true,
   'empty-months': true,
@@ -137,6 +138,7 @@ export const QUESTION_IDS = keys<QuestionId>({
   'unused-actions': true,
   'low-participation': true,
   'good-result': true,
+  'winter-ready': true,
   'next-time': true,
   roles: true,
   'decision-making': true,

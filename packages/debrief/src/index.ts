@@ -1,4 +1,4 @@
-import type { Game, LogEntry } from '@saari/rules';
+import { isWinter, type Game, type LogEntry } from '@saari/rules';
 import { copyCounts, countByMonth, shareOf, sumCounts } from './actions.ts';
 import { findCrises } from './crises.ts';
 import { buildPlayers, pseudonym } from './players.ts';
@@ -9,6 +9,7 @@ import { collectVotes, participation, voteOutcomes } from './votes.ts';
 export * from './types.ts';
 export { ACTION_GROUPS, groupOf } from './actions.ts';
 export { QUESTION_IDS, THRESHOLDS } from './questions.ts';
+export { BADGE_IDS, BADGE_RULES, badgesFor, type BadgeId } from './badges.ts';
 
 /** First month a spring was found, within the months played. */
 function springFoundMonth(log: readonly LogEntry[], monthsPlayed: number): number | null {
@@ -51,6 +52,7 @@ export function buildDebrief(game: Game, labels: readonly DebriefLabel[], now: D
   const spring = springFoundMonth(log, monthsPlayed);
   const grade = game.grade();
   const views = game.playerIds().flatMap((id) => game.player(id) ?? []);
+  const winterAll = Array.from({ length: game.totalMonths }, (_, i) => i + 1).filter((m) => isWinter(m, game.params));
 
   return {
     version: 1,
@@ -83,6 +85,9 @@ export function buildDebrief(game: Game, labels: readonly DebriefLabel[], now: D
       actions,
       unused,
       springFoundMonth: spring,
+      winterMonths: winterAll.filter((m) => m <= monthsPlayed),
+      winterOver: winterAll.length > 0 && winterAll.every((m) => m <= monthsPlayed),
+      winterHungryMonths: reports.filter((r) => r.food.hungry > 0 && isWinter(r.month, game.params)).length,
     }),
   };
 }
