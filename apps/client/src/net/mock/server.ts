@@ -8,7 +8,7 @@
  * protocol leaves something open, the choice made here is noted in a comment.
  */
 import { createBot, type Bot, type Strategy } from '@saari/bots';
-import { buildDebrief, pseudonymize, type DebriefData, type DebriefLabel } from '@saari/debrief';
+import { badgesFor, buildDebrief, pseudonymize, type DebriefData, type DebriefLabel } from '@saari/debrief';
 import {
   PROTOCOL_VERSION,
   type ClientMessage,
@@ -26,7 +26,17 @@ import {
   type VoteView,
   type YouView,
 } from '@saari/protocol';
-import { createGame, createRng, type Game, type GameLength, type LogEntry, type Phase, type PublicTile, type Rng } from '@saari/rules';
+import {
+  createGame,
+  createRng,
+  monthsUntilWinter,
+  type Game,
+  type GameLength,
+  type LogEntry,
+  type Phase,
+  type PublicTile,
+  type Rng,
+} from '@saari/rules';
 import { checkNickname, playerColor, randomNickname } from '../../lib/names.ts';
 import { fallbackDebrief, fallbackPseudonymize } from './debrief-fallback.ts';
 
@@ -371,7 +381,13 @@ export class MockServer {
       playerToken: seat.token,
       serverTime: this.#now(),
     });
+    if (room.game.phase === 'ended' && room.started) this.#sendBadges(room, conn, seat.id);
     this.#broadcastPlayers(room);
+  }
+
+  /** A player's own badges at the end (docs/09 §2.3); never to the host. */
+  #sendBadges(room: Room, conn: Conn, playerId: string): void {
+    this.#send(conn, { t: 'badges', badges: badgesFor(room.game.log, playerId, room.game.reports.length) });
   }
 
   #inspect(room: Room, conn: Conn, x: number, y: number): void {
@@ -530,6 +546,8 @@ export class MockServer {
       const need = game.foodNeed();
       const food = game.resources.food;
       if (food < need) this.#broadcastTicker(room, { kind: 'food-short', missing: need - food });
+      const untilWinter = monthsUntilWinter(game.month, game.totalMonths, game.params);
+      if (untilWinter !== null && untilWinter <= 2) this.#broadcastTicker(room, { kind: 'winter-coming' });
     }
     this.#scheduleBots(room);
     this.#checkEarlyEnd(room);
@@ -552,6 +570,7 @@ export class MockServer {
     }
     for (const conn of room.conns) {
       if (conn.role === 'host') this.#send(conn, { t: 'debrief', debrief: room.debrief, storedToken: room.storedToken });
+      else if (conn.playerId) this.#sendBadges(room, conn, conn.playerId);
     }
   }
 

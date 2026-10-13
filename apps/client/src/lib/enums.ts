@@ -123,6 +123,7 @@ export const TICKER_KINDS = keys<TickerEvent['kind']>({
   tie: true,
   'player-joined': true,
   'food-short': true,
+  'winter-coming': true,
 });
 
 export const QUESTION_IDS = keys<QuestionId>({

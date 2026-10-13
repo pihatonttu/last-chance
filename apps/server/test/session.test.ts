@@ -1,5 +1,5 @@
 import { availableMoves } from '@saari/bots';
-import type { DebriefData } from '@saari/debrief';
+import type { BadgeId, DebriefData } from '@saari/debrief';
 import type { GameView, PlayerSummary, ServerMessage } from '@saari/protocol';
 import { DEFAULT_PARAMS, type PublicTile } from '@saari/rules';
 import { describe, expect, it } from 'vitest';
@@ -297,6 +297,50 @@ describe('phases and timers', () => {
     expect(saved[0]!.named).toBe(false);
     expect(JSON.stringify(saved[0])).not.toMatch(/Aino|Eero/);
     expect(clock.pending).toBe(0);
+  });
+
+  it('sends every player their own badges at the end; never the host or anyone else', () => {
+    const own = new Map<string, BadgeId[]>();
+    const { clock, command, host, join } = setup({
+      debriefing: { ...fakeDebriefing, badges: (_game, id) => own.get(id) ?? ['settler'] },
+    });
+    const aino = join('Aino');
+    const eero = join('Eero');
+    own.set(aino.id, ['explorer', 'voter']);
+    command({ type: 'start' });
+    clock.advance(MONTH * 10);
+    expect(aino.peer.all('badges')).toEqual([{ t: 'badges', badges: ['explorer', 'voter'] }]);
+    expect(eero.peer.all('badges')).toEqual([{ t: 'badges', badges: ['settler'] }]);
+    expect(host.all('badges')).toEqual([]);
+  });
+
+  it('a removed player gets no badges; a returning one gets them again', () => {
+    const { session, command, join } = setup();
+    const aino = join('Aino');
+    const eero = join('Eero');
+    command({ type: 'start' });
+    command({ type: 'kick', playerId: eero.id });
+    command({ type: 'end' });
+    expect(eero.peer.all('badges')).toEqual([]);
+    session.disconnect(aino.peer);
+    const again = new FakePeer();
+    expect(session.joinPlayer(again, { playerToken: aino.token })).toBeNull();
+    expect(again.last('badges')).toEqual({ t: 'badges', badges: ['settler'] });
+  });
+
+  it('warns the class in October and November that winter is coming', () => {
+    const { clock, command, host, join } = setup({ length: 'normal' });
+    join('Aino');
+    command({ type: 'start' });
+    const warnings = () => host.all('ticker').filter((m) => m.event.kind === 'winter-coming').length;
+    clock.advance(MONTH * 5); // month 6, September
+    expect(warnings()).toBe(0);
+    clock.advance(MONTH); // October
+    expect(warnings()).toBe(1);
+    clock.advance(MONTH); // November
+    expect(warnings()).toBe(2);
+    clock.advance(MONTH); // December
+    expect(warnings()).toBe(2);
   });
 
   it('warns the class when the food will not last the month', () => {

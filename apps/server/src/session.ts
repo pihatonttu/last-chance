@@ -1,5 +1,5 @@
 import { createBot, seatsFor, type Bot } from '@saari/bots';
-import { buildDebrief, pseudonymize, type DebriefData, type DebriefLabel } from '@saari/debrief';
+import { badgesFor, buildDebrief, pseudonymize, type BadgeId, type DebriefData, type DebriefLabel } from '@saari/debrief';
 import { checkNickname, colorFor, randomNickname, type NicknameCheck } from '@saari/names';
 import type {
   ClientMessage,
@@ -20,6 +20,7 @@ import type {
 import {
   createGame,
   createRng,
+  monthsUntilWinter,
   type Game,
   type GameLength,
   type GameParams,
@@ -62,6 +63,8 @@ export interface Naming {
 export interface Debriefing {
   build(game: Game, labels: readonly DebriefLabel[], now: Date): DebriefData;
   pseudonymize(debrief: DebriefData): DebriefData;
+  /** The player's own badges for their end screen (docs/09 §2.3). */
+  badges(game: Game, playerId: string): BadgeId[];
 }
 
 export const defaultNaming: Naming = {
@@ -70,7 +73,14 @@ export const defaultNaming: Naming = {
   color: colorFor,
 };
 
-export const defaultDebriefing: Debriefing = { build: buildDebrief, pseudonymize };
+export const defaultDebriefing: Debriefing = {
+  build: buildDebrief,
+  pseudonymize,
+  badges: (game, playerId) => badgesFor(game.log, playerId, game.reports.length),
+};
+
+/** Months before winter in which the ticker warns the class (October and November). */
+const WINTER_WARNING_MONTHS = 2;
 
 /** Phase lengths in milliseconds of server time (design doc §4). */
 export interface Timing {
@@ -321,6 +331,7 @@ export class GameSession {
       ...(member.token ? { playerToken: member.token } : {}),
       serverTime: this.#now(),
     });
+    if (this.#game.phase === 'ended' && this.#game.month >= 1) this.#sendBadges(member, peer);
     this.#afterChange();
     return null;
   }
@@ -627,6 +638,8 @@ export class GameSession {
     if (g.phase === 'action') {
       const missing = g.foodNeed() - g.resources.food;
       if (missing > 0) this.#broadcast({ t: 'ticker', event: { kind: 'food-short', missing } });
+      const untilWinter = monthsUntilWinter(g.month, g.totalMonths, g.params);
+      if (untilWinter !== null && untilWinter <= WINTER_WARNING_MONTHS) this.#broadcast({ t: 'ticker', event: { kind: 'winter-coming' } });
     }
     this.#scheduleBots();
     this.#checkProgress();
@@ -709,6 +722,9 @@ export class GameSession {
     if (this.#debrief) {
       for (const host of this.#hosts) host.send({ t: 'debrief', debrief: this.#debrief, storedToken: this.#storedToken });
     }
+    if (this.#game.month >= 1) {
+      for (const m of this.#members.values()) if (m.peer && !m.kicked) this.#sendBadges(m, m.peer);
+    }
     this.#logLine(
       `game ${this.code} ended${early ? ' early' : ''} in month ${this.#game.month}, ${this.playerCount} players`,
     );
@@ -729,6 +745,11 @@ export class GameSession {
     } catch (error) {
       this.#logLine(`game ${this.code}: storing the debrief failed: ${errorText(error)}`);
     }
+  }
+
+  /** Badges go to their own player only (docs/09 §2.3). */
+  #sendBadges(member: Member, peer: Peer): void {
+    peer.send({ t: 'badges', badges: this.#debriefing.badges(this.#game, member.id) });
   }
 
   // ---------------------------------------------------------------- timer

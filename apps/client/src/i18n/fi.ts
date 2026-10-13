@@ -393,6 +393,7 @@ export const fi = {
   'ticker.built': 'Rakennettiin: {name}',
   'ticker.tie': 'Tasapeli! Ei rakennettu. Neuvotelkaa!',
   'ticker.player-joined': 'Uusi kyläläinen liittyi.',
+  'ticker.winter-coming': 'Talvi tulee! Kerätkää ruokaa varastoon.',
   'ticker.food-short': 'Ruoka ei riitä: puuttuu {missing}.',
 
   // ---------------------------------------------------------------- debrief

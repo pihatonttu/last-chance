@@ -155,6 +155,12 @@ describe('MockServer', () => {
     expect(debrief[0]!.debrief.monthsPlayed).toBe(10);
     expect(debrief[0]!.debrief.named).toBe(true);
     expect(debrief[0]!.debrief.players.map((p) => p.label)).toContain('Testi');
+    // The student's own badges, never the host's (docs/09 §2.3).
+    expect(student.of('badges')).toHaveLength(1);
+    expect(student.state.badges?.length).toBeGreaterThan(0);
+    expect(host.of('badges')).toHaveLength(0);
+    // Winter warnings in October and November (months 7 and 8).
+    expect(host.of('ticker').filter((m) => m.event.kind === 'winter-coming')).toHaveLength(2);
     // Students never get the debrief or other players' names (P34).
     expect(student.of('debrief')).toHaveLength(0);
     for (const m of student.messages) {

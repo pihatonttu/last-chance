@@ -188,6 +188,13 @@ describe('applyServerMessage', () => {
   });
 });
 
+describe('badges', () => {
+  it("keeps the player's own badges from the end of the game", () => {
+    const state = applyServerMessage(initialState(), { t: 'badges', badges: ['explorer', 'voter'] }, 0);
+    expect(state.badges).toEqual(['explorer', 'voter']);
+  });
+});
+
 describe('timer helpers', () => {
   it('counts down from phaseEndsAt with the clock offset', () => {
     const t = timer({ phaseEndsAt: NOW + 10_000, remainingMs: 10_000 });

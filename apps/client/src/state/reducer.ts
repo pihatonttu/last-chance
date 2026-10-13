@@ -2,7 +2,7 @@
  * Client state as a pure reducer over server messages. No DOM, no timers: `now` is
  * passed in so the reducer is unit-testable and the Svelte layer only stores results.
  */
-import type { DebriefData } from '@saari/debrief';
+import type { BadgeId, DebriefData } from '@saari/debrief';
 import type { ErrorCode, GameView, JoinRefusal, ServerMessage, TickerEvent, TimerView, YouView } from '@saari/protocol';
 import type { ActionPreview, Gain, PublicTile, Refusal, VoteRefusal } from '@saari/rules';
 
@@ -53,6 +53,8 @@ export interface ClientState {
   effects: FloatingEffect[];
   ticker: TickerItem[];
   debrief: DebriefData | null;
+  /** The player's own badges at the end (docs/09 §2.3). */
+  badges: BadgeId[] | null;
   storedToken: string | null;
   /** Last server error code; the UI translates it (serverError.*). */
   error: ErrorCode | null;
@@ -84,6 +86,7 @@ export function initialState(): ClientState {
     effects: [],
     ticker: [],
     debrief: null,
+    badges: null,
     storedToken: null,
     error: null,
     nextId: 1,
@@ -210,6 +213,8 @@ export function applyServerMessage(state: ClientState, msg: ServerMessage, now: 
     }
     case 'debrief':
       return { ...base, debrief: msg.debrief, storedToken: msg.storedToken };
+    case 'badges':
+      return { ...base, badges: msg.badges };
     case 'kicked':
       return { ...base, kicked: true };
     case 'error':

@@ -19,9 +19,10 @@ import type {
   VoteOption,
   VoteRefusal,
 } from '@saari/rules';
-import type { DebriefData } from '@saari/debrief';
+import type { BadgeId, DebriefData } from '@saari/debrief';
 
-export const PROTOCOL_VERSION = 1;
+/** 2: seasons and badges (docs/09-uudisasukkaat.md); tabs from before must reload. */
+export const PROTOCOL_VERSION = 2;
 
 // ------------------------------------------------------------------ HTTP
 
@@ -163,7 +164,9 @@ export type TickerEvent =
   | { kind: 'built'; option: string; x: number; y: number }
   | { kind: 'tie' }
   | { kind: 'player-joined' }
-  | { kind: 'food-short'; missing: number };
+  | { kind: 'food-short'; missing: number }
+  /** October and November: fields lie under snow from December (docs/09 §3.3). */
+  | { kind: 'winter-coming' };
 
 // ------------------------------------------------------------------ client → server
 
@@ -265,6 +268,11 @@ export type ServerMessage =
    * teacher's own device (P23), and the link to the stored pseudonymised copy.
    */
   | { t: 'debrief'; debrief: DebriefData; storedToken: string | null }
+  /**
+   * A player's own badges at the end of the game (docs/09 §2.3): only to that player,
+   * never to the host or other players, and never stored.
+   */
+  | { t: 'badges'; badges: BadgeId[] }
   | { t: 'kicked' }
   | { t: 'error'; code: ErrorCode }
   | { t: 'pong'; serverTime: number };

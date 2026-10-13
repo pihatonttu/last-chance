@@ -62,6 +62,7 @@ export const fakeNaming: Naming = {
 };
 
 export const fakeDebriefing: Debriefing = {
+  badges: () => ['settler'],
   build: (_game: Game, labels, now) => ({ ...fakeDebrief(labels, true), createdAt: now.toISOString() }),
   pseudonymize: (d) => ({
     ...d,
