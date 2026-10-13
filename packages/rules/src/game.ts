@@ -1,3 +1,4 @@
+import { isWinter } from './calendar.ts';
 import { chebyshev, inBounds, indexOf, neighbors8, type Coord } from './grid.ts';
 import {
   DEFAULT_PARAMS,
@@ -76,6 +77,7 @@ export type Refusal =
   | 'not-explorable'
   | 'deep-sea'
   | 'field-empty'
+  | 'winter'
   | 'quarry-empty'
   | 'no-uses-left'
   | 'max-level'
@@ -578,10 +580,12 @@ export class Game {
         });
       case 'field': {
         const amount = Math.min(tile.stock, Math.round(P.harvestYield * m));
+        // Winter (docs/09 §3.2): the field lies under snow until spring.
+        const refusal = isWinter(this.#month, P) ? ('winter' as const) : tile.stock <= 0 ? ('field-empty' as const) : undefined;
         return {
           kind: 'harvest',
           yield: { type: 'resource', resource: 'food', amount },
-          ...(tile.stock <= 0 ? { refusal: 'field-empty' as const } : {}),
+          ...(refusal ? { refusal } : {}),
           perform: () => {
             tile.stock -= amount;
             return this.#add('food', amount);
@@ -888,8 +892,10 @@ export class Game {
     const total = moodFood + moodShelter + moodRecreation;
     this.#happiness += total;
 
+    // Nothing grows in winter (docs/09 §3.2); fields refill as before, so they are full in March.
+    const winter = isWinter(this.#month, P);
     for (const t of this.#tiles) {
-      if (t.terrain === 'forest') t.stock = Math.min(P.forestCapacity, Math.ceil(t.stock * P.forestRegrowth));
+      if (t.terrain === 'forest' && !winter) t.stock = Math.min(P.forestCapacity, Math.ceil(t.stock * P.forestRegrowth));
       if (t.terrain === 'field') t.stock = P.fieldCapacity;
       t.uses = 0;
     }

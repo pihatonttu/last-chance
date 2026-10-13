@@ -253,6 +253,7 @@ export const fi = {
   'refusal.not-explorable': 'Tutki ensin ruutu tämän vierestä.',
   'refusal.deep-sea': 'Liian syvää. Kalastaa voi vain tutkitun rannan vieressä.',
   'refusal.field-empty': 'Pelto on korjattu tyhjäksi. Se kasvaa taas ensi kuussa.',
+  'refusal.winter': 'Pelto on lumen alla. Se kasvaa taas keväällä.',
   'refusal.quarry-empty': 'Louhos on tyhjä.',
   'refusal.no-uses-left': 'Tämän kuun käyttökerrat on jo käytetty.',
   'refusal.max-level': 'Olet jo enimmäistasolla.',

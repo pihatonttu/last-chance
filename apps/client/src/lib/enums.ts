@@ -64,6 +64,7 @@ export const REFUSALS = keys<Refusal>({
   'not-explorable': true,
   'deep-sea': true,
   'field-empty': true,
+  winter: true,
   'quarry-empty': true,
   'no-uses-left': true,
   'max-level': true,
