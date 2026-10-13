@@ -1,6 +1,6 @@
 <script lang="ts" module>
   /** HUD icons rendered from the same Kenney models as the map (tools/art/kenney-icons.json). */
-  export type ArtIconName = 'wood' | 'stone' | 'food' | 'shelter' | 'ship';
+  export type ArtIconName = 'wood' | 'stone' | 'food' | 'home' | 'ship';
 </script>
 
 <script lang="ts">

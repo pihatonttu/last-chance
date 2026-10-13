@@ -1,9 +1,10 @@
 <script lang="ts">
-  import type { MonthReport } from '@saari/rules';
+  import { monthsUntilWinter, seasonOf, type MonthReport } from '@saari/rules';
   import { formatNumber, t, tp } from '../i18n/index.ts';
   import { optionName } from '../lib/format.ts';
-  import { parseOptionId } from '../lib/rules-info.ts';
+  import { PARAMS, parseOptionId } from '../lib/rules-info.ts';
   import ArtIcon from './ArtIcon.svelte';
+  import Icon from './Icon.svelte';
   import MoodFace from './MoodFace.svelte';
   import PropPicture from './PropPicture.svelte';
 
@@ -12,7 +13,12 @@
    * everyone had shelter, and how the mood changed. The numbers behind them wait under
    * "More info" (P38).
    */
-  let { report }: { report: MonthReport } = $props();
+  let { report, totalMonths }: { report: MonthReport; totalMonths: number } = $props();
+
+  /** In autumn: how many months until the fields lie under snow (docs/09-uudisasukkaat.md §3.3). */
+  const untilWinter = $derived(
+    seasonOf(report.month, PARAMS) === 'autumn' ? monthsUntilWinter(report.month, totalMonths, PARAMS) : null,
+  );
 
   const built = $derived(report.vote.outcome === 'built' ? parseOptionId(report.vote.option ?? '') : null);
   const voteLine = $derived.by(() => {
@@ -50,7 +56,7 @@
     </div>
     <div class="tile" class:good={sheltered} class:bad={!sheltered}>
       <span class="visually-hidden">{t('summary.shelter')}</span>
-      <span class="icon"><ArtIcon name="shelter" size={64} /><span class="mark" aria-hidden="true">{sheltered ? '✓' : '✗'}</span></span>
+      <span class="icon"><ArtIcon name="home" size={64} /><span class="mark" aria-hidden="true">{sheltered ? '✓' : '✗'}</span></span>
       <strong>{sheltered ? t('summary.shelter.all') : tp('summary.shelter.without', report.shelter.unsheltered)}</strong>
     </div>
     <div class="tile" class:good={report.mood.total > 0} class:bad={report.mood.total < 0}>
@@ -59,6 +65,10 @@
       <span class="visually-hidden">{t('summary.mood.total')}</span>
     </div>
   </div>
+
+  {#if untilWinter !== null}
+    <p class="winter-note"><Icon name="winter" size={28} /> {tp('summary.winterComing', untilWinter)}</p>
+  {/if}
 
   <details class="more">
     <summary>{t('tile.more')}</summary>
@@ -181,5 +191,14 @@
     text-align: center;
     color: var(--muted);
     font-weight: 700;
+  }
+  .winter-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4em;
+    margin: 0.4em 0 0;
+    font-weight: 800;
+    color: #1f6f9f;
   }
 </style>

@@ -7,7 +7,9 @@ import { ART_STYLES } from '../src/map/kenney.ts';
 import {
   ACTION_GROUPS,
   ACTION_KINDS,
+  BADGE_IDS,
   BUILDING_KINDS,
+  CALENDAR_MONTHS,
   GRADES,
   ERROR_CODES,
   JOIN_REFUSALS,
@@ -17,6 +19,7 @@ import {
   QUESTION_IDS,
   REFUSALS,
   RESOURCES,
+  SEASONS,
   SKILLS,
   TERRAINS,
   TICKER_KINDS,
@@ -76,6 +79,9 @@ function familyKeys(): string[] {
   for (const kind of ['explore', 'plow', 'build-quarry']) keys.push(`yield.workDone.${kind}`);
   for (const terrain of ['forest', 'field', 'quarry']) keys.push(`tile.stock.${terrain}`);
   for (const work of ['plow', 'quarry']) keys.push(`tile.work.${work}`);
+  for (const season of SEASONS) keys.push(`season.${season}`);
+  for (const month of CALENDAR_MONTHS) keys.push(`month.${month}`);
+  for (const badge of BADGE_IDS) keys.push(`badge.${badge}.name`, `badge.${badge}.text`);
   return keys;
 }
 
@@ -110,6 +116,16 @@ describe('translations', () => {
     expect(unused).toEqual([]);
   });
 
+  it('tells the settlers story and uses the new names (docs/09-uudisasukkaat.md)', () => {
+    expect(t('app.name')).toBe('Last Chance');
+    expect(t('building.gathering.2')).toBe('Kylätalo');
+    expect(t('terrain.spring.name')).toBe('Lampi');
+    expect(t('grade.1')).toBe('Leiri rannalla');
+    expect(t('vote.title')).toMatch(/^Kyläkokous/);
+    const all = allMessageKeys().map((k) => t(k as never)).join(' | ');
+    expect(all).not.toMatch(/itsek|Oma kehitys|haaksirik|pelastuslaiva|Selviytyjät/i);
+  });
+
   it('question templates fill their params, including the grade name', () => {
     expect(questionText({ id: 'hunger', params: { month: 6, people: 9 } })).toContain('Kuukautena 6');
     expect(questionText({ id: 'hunger', params: { month: 6, people: 9 } })).toContain('9 jäi nälkään');
@@ -142,14 +158,14 @@ describe('t() and tp()', () => {
     expect(tp('vote.votes', 1)).toBe('1 ääni');
   });
 
-  it('grade names follow P32', () => {
+  it('grade names follow P45 (they replace the names of P32)', () => {
     expect(GRADES.map(gradeName)).toEqual([
-      'Selviytyjät rannalla',
-      'Ahdinko',
+      'Leiri rannalla',
       'Sinnittelevä leiri',
+      'Kasvava kylä',
       'Toimiva kylä',
       'Kukoistava kylä',
-      'Saaren paratiisi',
+      'Unelmien kylä',
     ]);
   });
 });

@@ -1,6 +1,9 @@
 <script lang="ts">
   import type { GameView } from '@saari/protocol';
-  import { formatNumber, t } from '../i18n/index.ts';
+  import { seasonOf } from '@saari/rules';
+  import { formatNumber, t, tp } from '../i18n/index.ts';
+  import { monthName } from '../lib/format.ts';
+  import { PARAMS } from '../lib/rules-info.ts';
   import ArtIcon from './ArtIcon.svelte';
   import Icon from './Icon.svelte';
   import MoodFace from './MoodFace.svelte';
@@ -24,6 +27,9 @@
   const sheltered = $derived(village.shelterCapacity >= village.villagers);
   const mood = $derived(game.lastReport?.mood.total ?? 0);
   const icon = $derived(size === 'projector' ? 44 : 32);
+  /** The month by its name and season (docs/09-uudisasukkaat.md §3.3); the projector counts down to the party. */
+  const season = $derived(seasonOf(game.month, PARAMS));
+  const monthsLeft = $derived(game.totalMonths - game.month);
 </script>
 
 <header class="hud {size}">
@@ -44,7 +50,7 @@
       <span class="value" aria-hidden="true">{formatNumber(village.resources.food)}<span class="of">/{formatNumber(village.foodNeed)}</span></span>
     </div>
     <div class="cell" class:short={!sheltered} title={t('bar.shelter')}>
-      <ArtIcon name="shelter" size={icon} />
+      <ArtIcon name="home" size={icon} />
       <span class="visually-hidden">{t('bar.shelter')}</span>
       <span class="value">{t('bar.shelterValue', { capacity: village.shelterCapacity, villagers: village.villagers })}</span>
     </div>
@@ -53,11 +59,16 @@
     <PhaseClock phase={game.phase} timer={game.timer} {clockOffset} totalMs={phaseTotalMs} size={size === 'projector' ? 72 : 50} />
   </div>
   <div class="right">
-    <div class="pill" title={t('bar.month')}>
-      <Icon name="calendar" size={size === 'projector' ? 30 : 22} />
-      <span class="visually-hidden">{t('bar.month')}</span>
-      <span class="value">{t('bar.monthValue', { month: game.month, total: game.totalMonths })}</span>
+    <div class="pill" class:winter={season === 'winter'} title="{t(`season.${season}`)} · {t('bar.monthValue', { month: game.month, total: game.totalMonths })}">
+      <Icon name={season} size={size === 'projector' ? 30 : 22} />
+      <span class="visually-hidden">{t(`season.${season}`)}, {t('bar.month')} {t('bar.monthValue', { month: game.month, total: game.totalMonths })}</span>
+      <span class="value" aria-hidden="true">{monthName(game.month)}</span>
     </div>
+    {#if size === 'projector'}
+      <div class="pill party">
+        <span class="value">{monthsLeft > 0 ? tp('bar.untilParty', monthsLeft) : t('bar.partyThisMonth')}</span>
+      </div>
+    {/if}
     <div class="pill" title={t('bar.happiness')}>
       <MoodFace {mood} size={icon - 4} />
       <span class="visually-hidden">{t('bar.happiness')}</span>
@@ -169,5 +180,12 @@
   .projector .cell {
     padding-right: 0.8rem;
     min-height: 56px;
+  }
+  .pill.winter {
+    background: #eaf4fb;
+    border-color: #9cc3dc;
+  }
+  .party .value {
+    font-size: 0.95em;
   }
 </style>

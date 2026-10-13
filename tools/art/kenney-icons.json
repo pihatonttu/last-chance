@@ -13,21 +13,6 @@
     "nature"
   ],
   "swatches": {
-    "survival-canvas-red": {
-      "kit": "survival",
-      "from": [
-        192,
-        256
-      ],
-      "into": [
-        64,
-        256
-      ],
-      "size": [
-        64,
-        128
-      ]
-    },
     "town-roof-red": {
       "kit": "town",
       "from": [
@@ -72,18 +57,6 @@
         {
           "model": "survival/fish-large",
           "scale": 3
-        }
-      ]
-    },
-    {
-      "name": "shelter",
-      "recolor": [
-        "survival-canvas-red"
-      ],
-      "parts": [
-        {
-          "model": "survival/tent-canvas",
-          "scale": 1.6
         }
       ]
     },

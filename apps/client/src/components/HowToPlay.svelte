@@ -3,17 +3,17 @@
   import { t } from '../i18n/index.ts';
   import { PARAMS } from '../lib/rules-info.ts';
   import ArtIcon from './ArtIcon.svelte';
-  import MoodFace from './MoodFace.svelte';
+  import Icon from './Icon.svelte';
   import PropPicture from './PropPicture.svelte';
 
-  /** The rules in five pictures and short sentences: on the projector's lobby and on pupils' devices while they wait. */
+  /** The rules in six pictures and short sentences: on the projector's lobby and on pupils' devices while they wait. */
   let { length }: { length: GameLength } = $props();
 
   const months = $derived(PARAMS.months[length]);
 </script>
 
 <ol class="steps">
-  <li><span class="art"><ArtIcon name="ship" size={64} /></span>{t('lobby.howTo.1', { months })}</li>
+  <li><span class="art"><PropPicture texture="props/boat" size={64} /></span>{t('lobby.howTo.1', { months })}</li>
   <li>
     <span class="art bolts" aria-hidden="true">
       {#each Array.from({ length: PARAMS.baseActions }, (_, i) => i) as i (i)}
@@ -27,7 +27,8 @@
     {t('lobby.howTo.3', { food: PARAMS.foodPerVillager })}
   </li>
   <li><span class="art"><PropPicture texture="props/shelter-1" size={64} /></span>{t('lobby.howTo.4')}</li>
-  <li><span class="art"><MoodFace mood={5} size={52} /></span>{t('lobby.howTo.5')}</li>
+  <li><span class="art"><Icon name="winter" size={52} /></span>{t('lobby.howTo.5')}</li>
+  <li><span class="art"><ArtIcon name="ship" size={64} /></span>{t('lobby.howTo.6')}</li>
 </ol>
 
 <style>

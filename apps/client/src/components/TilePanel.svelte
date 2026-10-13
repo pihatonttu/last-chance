@@ -1,10 +1,11 @@
 <script lang="ts">
-  import type { ActionPreview, Coord, Phase, PublicTile } from '@saari/rules';
+  import { isWinter, type ActionPreview, type Coord, type Phase, type PublicTile } from '@saari/rules';
   import { formatNumber, t } from '../i18n/index.ts';
-  import { actionName, buildingTitle, gainText, terrainDescription, terrainName } from '../lib/format.ts';
-  import { exploreNeeded, shelterPeople, stockMax, tileUseCapacity, workNeeded } from '../lib/rules-info.ts';
+  import { actionName, buildingName, gainText, terrainDescription, terrainName } from '../lib/format.ts';
+  import { exploreNeeded, PARAMS, shelterPeople, stockMax, tileUseCapacity, workNeeded } from '../lib/rules-info.ts';
   import type { ActOutcome } from '../state/reducer.ts';
   import GainChip from './GainChip.svelte';
+  import Icon from './Icon.svelte';
 
   /**
    * What a tapped tile offers, as a small popup: its name and one big action button.
@@ -16,16 +17,18 @@
     landing: Coord;
     villagers: number;
     phase: Phase;
+    /** Game month: fishing is ice fishing in winter (docs/09 §3.2). */
+    month: number;
     preview: ActionPreview | null;
     pending: boolean;
     lastAct: ActOutcome | null;
     onact: () => void;
     onclose: () => void;
   }
-  let { tile, landing, villagers, phase, preview, pending, lastAct, onact, onclose }: Props = $props();
+  let { tile, landing, villagers, phase, month, preview, pending, lastAct, onact, onclose }: Props = $props();
 
   const isLanding = $derived(tile.x === landing.x && tile.y === landing.y);
-  const title = $derived(tile.building ? buildingTitle(tile.building.kind, tile.building.level) : terrainName(tile));
+  const title = $derived(tile.building ? buildingName(tile.building.kind, tile.building.level) : terrainName(tile));
   const description = $derived.by(() => {
     const b = tile.building;
     if (!b) return terrainDescription(tile);
@@ -113,7 +116,8 @@
         {#if pending}
           {t('action.pending')}
         {:else}
-          <span>{actionName(preview.kind)}</span>
+          {#if preview.kind === 'fish' && isWinter(month, PARAMS)}<Icon name="ice-hole" size={28} />{/if}
+          <span>{actionName(preview.kind, month)}</span>
           <GainChip gain={preview.yield} />
         {/if}
       </button>

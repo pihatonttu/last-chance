@@ -1,16 +1,23 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
+  import type { BadgeId } from '@saari/debrief';
   import type { GameResult } from '@saari/protocol';
   import { formatNumber, t } from '../i18n/index.ts';
   import { GRADES } from '../lib/enums.ts';
   import { gradeName } from '../lib/format.ts';
   import ArtIcon from './ArtIcon.svelte';
+  import BadgePicture from './BadgePicture.svelte';
 
   /**
-   * The result as a picture: the rescue ship, the village's level as stars and its name.
+   * The result as a picture: the guests' ship arriving for the opening party, the village's
+   * level as stars and its name, and on a pupil's own device their badges (docs/09 §2.3).
    * The whole ladder of levels waits behind "More info".
    */
-  let { result, children }: { result: GameResult; children?: Snippet } = $props();
+  let {
+    result,
+    badges = null,
+    children,
+  }: { result: GameResult; badges?: readonly BadgeId[] | null; children?: Snippet } = $props();
 
   const ladder = [...GRADES].reverse();
   const top = GRADES.length;
@@ -26,6 +33,20 @@
   </p>
   <h1 id="end-title">{gradeName(result.grade)}</h1>
   <p class="meta">{t('end.happiness', { n: formatNumber(result.happiness) })}</p>
+  {#if badges && badges.length > 0}
+    <section class="badges" aria-labelledby="badges-title">
+      <h2 id="badges-title">{t('end.badges')}</h2>
+      <ul>
+        {#each badges as badge (badge)}
+          <li>
+            <BadgePicture {badge} size={56} />
+            <strong>{t(`badge.${badge}.name`)}</strong>
+            <span>{t(`badge.${badge}.text`)}</span>
+          </li>
+        {/each}
+      </ul>
+    </section>
+  {/if}
   <details class="more">
     <summary>{t('end.levels')}</summary>
     <ol class="ladder">
@@ -145,5 +166,26 @@
     gap: 0.75em;
     flex-wrap: wrap;
     justify-content: center;
+  }
+  .badges h2 {
+    margin: 0.3em 0;
+    font-size: 1.1em;
+  }
+  .badges ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.8em;
+  }
+  .badges li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2em;
+    max-width: 9em;
+    text-align: center;
   }
 </style>

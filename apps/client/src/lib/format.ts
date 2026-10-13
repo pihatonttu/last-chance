@@ -1,9 +1,20 @@
 /** Text for game values. Everything goes through the translation file. */
 import type { DebriefQuestion } from '@saari/debrief';
 import type { TickerEvent } from '@saari/protocol';
-import type { ActionKind, BuildingKind, Gain, Level, PublicTile, Terrain, VoteOption, Yield } from '@saari/rules';
+import {
+  calendarMonth,
+  isWinter,
+  type ActionKind,
+  type BuildingKind,
+  type Gain,
+  type Level,
+  type PublicTile,
+  type Terrain,
+  type VoteOption,
+  type Yield,
+} from '@saari/rules';
 import { formatNumber, t, tp, type MessageKey } from '../i18n/index.ts';
-import { parseOptionId } from './rules-info.ts';
+import { PARAMS, parseOptionId } from './rules-info.ts';
 
 export function gradeName(grade: number): string {
   const clamped = Math.min(6, Math.max(1, Math.round(grade))) as 1 | 2 | 3 | 4 | 5 | 6;
@@ -26,19 +37,19 @@ export function buildingName(kind: BuildingKind, level: Level): string {
   return t(`building.${kind}.${level}`);
 }
 
-/** "Koulu (taso 2)"; level names that already differ (Teltta/Maja/Talo) stay plain. */
-export function buildingTitle(kind: BuildingKind, level: Level): string {
-  const name = buildingName(kind, level);
-  return kind === 'school' || kind === 'workshop' ? t('building.withLevel', { name, level }) : name;
-}
-
 export function optionName(option: Pick<VoteOption, 'id'>): string {
   const parsed = parseOptionId(option.id);
-  return parsed ? buildingTitle(parsed.kind, parsed.level) : t('building.none');
+  return parsed ? buildingName(parsed.kind, parsed.level) : t('building.none');
 }
 
-export function actionName(kind: ActionKind): string {
-  return t(`action.${kind}`);
+/** Fishing through a hole in the ice in winter (docs/09 §3.2). `month` 0 = no month (lobby). */
+export function actionName(kind: ActionKind, month = 0): string {
+  return kind === 'fish' && month > 0 && isWinter(month, PARAMS) ? t('action.ice-fish') : t(`action.${kind}`);
+}
+
+/** "Huhtikuu" for game month 1: the settlers arrive in spring (docs/09 §3.1). */
+export function monthName(month: number): string {
+  return t(`month.${calendarMonth(month, PARAMS)}` as MessageKey);
 }
 
 type GainKey = keyof Gain;

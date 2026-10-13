@@ -229,7 +229,7 @@
     <main class="page center">
       <div class="card message">
         {#if game.result}
-          <EndScreen result={game.result}>
+          <EndScreen result={game.result} badges={client.badges}>
             <a class="btn btn-secondary" href={href('/')} onclick={router.link}>{t('common.home')}</a>
           </EndScreen>
         {:else}
@@ -277,6 +277,7 @@
               landing={game.map.landing}
               villagers={game.village.villagers}
               phase={game.phase}
+              month={game.month}
               {preview}
               pending={pendingAct !== null}
               lastAct={client.lastAct}
@@ -313,7 +314,7 @@
 
         {#if game.phase === 'summary' && game.lastReport}
           <div class="overlay">
-            <div class="card overlay-card"><MonthSummary report={game.lastReport} /></div>
+            <div class="card overlay-card"><MonthSummary report={game.lastReport} totalMonths={game.totalMonths} /></div>
           </div>
         {/if}
       </div>

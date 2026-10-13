@@ -3,8 +3,10 @@
   import { formatNumber, LOCALE, t, tp } from '../../i18n/index.ts';
   import { ACTION_GROUPS } from '../../lib/enums.ts';
   import { gradeName, optionName, questionText } from '../../lib/format.ts';
-  import { parseOptionId } from '../../lib/rules-info.ts';
+  import { isWinter } from '@saari/rules';
+  import { PARAMS, parseOptionId } from '../../lib/rules-info.ts';
   import ArtIcon from '../ArtIcon.svelte';
+  import Icon from '../Icon.svelte';
   import MoodFace from '../MoodFace.svelte';
   import PropPicture from '../PropPicture.svelte';
   import MiniChart from './MiniChart.svelte';
@@ -101,7 +103,7 @@
         <tbody>
           <tr>
             <th scope="row">{t('debrief.chart.month')}</th>
-            {#each debrief.months as m (m.month)}<td class="month">{m.month}</td>{/each}
+            {#each debrief.months as m (m.month)}<td class="month">{m.month}{#if isWinter(m.month, PARAMS)}<Icon name="winter" size={14} />{/if}</td>{/each}
           </tr>
           <tr>
             <th scope="row">{t('debrief.table.built')}</th>
@@ -127,7 +129,7 @@
             {/each}
           </tr>
           <tr>
-            <th scope="row"><ArtIcon name="shelter" size={28} /><span class="visually-hidden">{t('debrief.story.shelter')}</span></th>
+            <th scope="row"><ArtIcon name="home" size={28} /><span class="visually-hidden">{t('debrief.story.shelter')}</span></th>
             {#each debrief.months as m (m.month)}
               <td>
                 {#if m.shelter.unsheltered > 0}<span class="bad" title={tp('debrief.story.unsheltered', m.shelter.unsheltered)}>✗ {m.shelter.unsheltered}</span>

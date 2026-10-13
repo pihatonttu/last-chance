@@ -1,5 +1,22 @@
 <script lang="ts" module>
-  export type IconName = 'wood' | 'stone' | 'food' | 'shelter' | 'calendar' | 'clock' | 'people' | 'sound' | 'mute' | 'heart';
+  export type IconName =
+    | 'wood'
+    | 'stone'
+    | 'food'
+    | 'shelter'
+    | 'calendar'
+    | 'clock'
+    | 'people'
+    | 'sound'
+    | 'mute'
+    | 'heart'
+    | 'spring'
+    | 'summer'
+    | 'autumn'
+    | 'winter'
+    | 'compass'
+    | 'vote'
+    | 'ice-hole';
 </script>
 
 <script lang="ts">
@@ -40,6 +57,31 @@
     <path d="M16 9 L21 15 M21 9 L16 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
   {:else if name === 'heart'}
     <path d="M12 20 C 4 14, 2 10, 4 7 C 6 4, 10 4, 12 7 C 14 4, 18 4, 20 7 C 22 10, 20 14, 12 20 Z" fill="#e5484d" />
+  {:else if name === 'spring'}
+    <path d="M12 21 V11" stroke="#5a8f3c" stroke-width="2" stroke-linecap="round" />
+    <path d="M12 13 C 6 13, 4 9, 5 5 C 9 5, 12 8, 12 13 Z" fill="#79b851" />
+    <path d="M12 11 C 17 11, 20 8, 19 4 C 15 4, 12 7, 12 11 Z" fill="#9bd06a" />
+  {:else if name === 'summer'}
+    <circle cx="12" cy="12" r="5" fill="#ffc83d" />
+    <path d="M12 2 V4.5 M12 19.5 V22 M2 12 H4.5 M19.5 12 H22 M4.9 4.9 L6.7 6.7 M17.3 17.3 L19.1 19.1 M4.9 19.1 L6.7 17.3 M17.3 6.7 L19.1 4.9" stroke="#f5a623" stroke-width="2" stroke-linecap="round" />
+  {:else if name === 'autumn'}
+    <path d="M12 2 C 18 6, 20 12, 12 21 C 4 12, 6 6, 12 2 Z" fill="#e0782f" />
+    <path d="M12 5 V21" stroke="#9c4a17" stroke-width="1.5" stroke-linecap="round" />
+  {:else if name === 'winter'}
+    <path d="M12 2 V22 M3.3 7 L20.7 17 M3.3 17 L20.7 7 M9 4 L12 6.5 L15 4 M9 20 L12 17.5 L15 20" stroke="#4aa3df" stroke-width="2" stroke-linecap="round" fill="none" />
+  {:else if name === 'compass'}
+    <circle cx="12" cy="12" r="9" fill="#fff" stroke="#8a6d3b" stroke-width="2" />
+    <path d="M12 5 L14.5 12 L12 19 L9.5 12 Z" fill="#d9534f" />
+    <path d="M14.5 12 L12 19 L9.5 12 Z" fill="#9aa5ad" />
+  {:else if name === 'vote'}
+    <rect x="4" y="11" width="16" height="10" rx="2" fill="#7a5cc4" />
+    <rect x="7" y="13" width="10" height="2" rx="1" fill="#4b3a80" />
+    <path d="M8 3 H16 V11 H8 Z" fill="#fff" stroke="#4b3a80" stroke-width="1.5" />
+    <path d="M10 7 L11.5 8.5 L14 5.5" stroke="#3f8f3f" stroke-width="1.6" fill="none" stroke-linecap="round" />
+  {:else if name === 'ice-hole'}
+    <ellipse cx="12" cy="15" rx="10" ry="6" fill="#e8f2f8" stroke="#9cc3dc" stroke-width="1.5" />
+    <ellipse cx="12" cy="15" rx="5" ry="2.6" fill="#2f6f9f" />
+    <path d="M12 3 V14" stroke="#7a5230" stroke-width="1.5" />
   {/if}
 </svg>
 

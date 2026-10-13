@@ -174,7 +174,7 @@
           {#if game.phase === 'summary' && game.lastReport}
             <div class="overlay">
               <div class="card overlay-card">
-                <MonthSummary report={game.lastReport} />
+                <MonthSummary report={game.lastReport} totalMonths={game.totalMonths} />
               </div>
             </div>
           {/if}
