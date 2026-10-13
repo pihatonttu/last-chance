@@ -31,11 +31,11 @@ def part(model, at=(0, 0), scale=1.0, turn=0, z=None, **extra):
     return p
 
 
-def house(scale, roof='roof-gable', storeys=1, chimney=False, at=(0, 0)):
+def house(scale, roof='roof-gable', storeys=1, chimney=False, at=(0, 0), door='wall-wood-door'):
     """Fantasy Town walls (1 unit tall, on the cell edges) with the door at the front left."""
     parts = []
     for floor in range(storeys):
-        front_left = T + ('wall-wood-door' if floor == 0 else 'wall-wood-window-shutters')
+        front_left = T + (door if floor == 0 else 'wall-wood-window-shutters')
         walls = [(T + 'wall-wood-window-shutters', 0), (T + 'wall-wood', 90), (T + 'wall-wood', 180), (front_left, 270)]
         parts += [part(m, at, scale, t, z=floor * scale) for m, t in walls]
     top = storeys * scale
@@ -156,18 +156,18 @@ def workshop(level):
 
 
 def gathering(level):
-    if level == 1:  # Nuotio: a campfire with logs to sit on
-        return [*campfire((0, 0), 1.2), part(N + 'log_large', (-0.27, 0.0), 0.28, 90), part(N + 'log_large', (0.0, 0.27), 0.28, 0)]
-    if level == 2:  # Teatteri: a puppet-theatre booth with benches in front
-        return [part(T + 'stall-red', (-0.17, 0.17), 0.46, 45), part(T + 'stall-bench', (0.1, -0.1), 0.45, -45),
-                part(T + 'stall-bench', (0.27, -0.27), 0.45, -45), part(T + 'lantern', (-0.36, -0.2), 0.3)]
-    # Amfiteatteri: a paved ring with benches round it and a stage at the back
-    ring = []
-    for deg in (-60, -20, 20, 60, 100):
-        r = 0.34
-        ring.append(part(T + 'stall-bench', (0.06 + r * math.cos(math.radians(deg - 45)), -0.06 + r * math.sin(math.radians(deg - 45))), 0.38, deg - 45))
-    return [part(N + 'path_stoneCircle', (0.06, -0.06), 0.62), *ring, part(T + 'stall-red', (-0.3, 0.3), 0.36, 45),
-            part(T + 'lantern', (-0.4, -0.1), 0.3), part(T + 'lantern', (0.1, 0.4), 0.3)]
+    if level == 1:  # Laavu: a lean-to with a fire in front of it, logs to sit on
+        return [part(S + 'tent-canvas-half', (-0.14, 0.16), 0.85, 45), *campfire((0.16, -0.14), 0.8),
+                part(N + 'log_large', (0.32, 0.04), 0.22, 0), part(N + 'log_large', (-0.04, -0.34), 0.22, 90)]
+    if level == 2:  # Kylätalo: a wooden village hall with a wide door and benches outside
+        return [*house(0.42, 'roof-gable', door='wall-wood-doorway-square-wide', at=(-0.08, 0.08)),
+                part(T + 'stall-bench', (0.3, -0.04), 0.4, -45), part(T + 'stall-bench', (0.06, -0.3), 0.4, -45),
+                part(T + 'lantern', (0.33, -0.3), 0.3)]
+    # Juhlatalo: a bigger hall dressed for a party: banners by the door, a stall and lanterns
+    return [*house(0.5, 'roof-gable', door='wall-wood-doorway-square-wide', at=(-0.06, 0.06)),
+            part(T + 'banner-green', (0.26, -0.1), 0.42, -45), part(T + 'banner-green', (-0.1, -0.3), 0.42, -45),
+            part(T + 'stall-red', (0.36, 0.12), 0.3, -45), part(T + 'lantern', (-0.38, -0.36), 0.3),
+            part(T + 'lantern', (0.4, 0.3), 0.3)]
 
 
 sprites = []
@@ -187,9 +187,10 @@ sprites += [
         part(N + 'cliff_blockHalf_stone', (-0.17, 0.17), 0.5, materials={'grass': '#5b8e50'}),
         part(N + 'stone_smallA', (0.24, -0.1), 0.7), part(N + 'stone_smallB', (0.0, -0.28), 0.6, 60),
         part(S + 'tool-pickaxe', (-0.3, -0.24), 1.6, 20), part(P + 'crate', (0.25, 0.22), 0.12, 20)]},
-    {'name': 'spring', 'parts': [
+    {'name': 'spring', 'parts': [  # Lampi: a pond with a small jetty for swimming
         part(N + 'ground_riverTile', scale=0.9, z=0.09, materials={'grass': '#5b8e50', 'water': '#62c0ea'}),
-        part(N + 'lily_large', (0.05, -0.05), 0.8, z=0.0), part(N + 'stone_smallA', (0.3, 0.28), 0.6),
+        part(P + 'structure-platform-dock-small', (0.3, -0.3), 0.08, 45, z=0.09),
+        part(N + 'lily_large', (-0.06, 0.1), 0.8, z=0.0), part(N + 'stone_smallA', (0.3, 0.28), 0.6),
         tree('palm-bend', (-0.32, 0.3), 0.8)]},
     # The boat the class came ashore in, pulled up at the landing.
     {'name': 'boat', 'parts': [part(P + 'boat-row-large', (0, 0), 0.3, 35, tilt=[4, -6]),

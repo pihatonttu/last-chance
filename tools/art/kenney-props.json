@@ -737,41 +737,50 @@
    "name": "gathering-1",
    "parts": [
     {
+     "model": "survival/tent-canvas-half",
+     "at": [
+      -0.14,
+      0.16
+     ],
+     "scale": 0.85,
+     "turn": 45
+    },
+    {
      "model": "nature/campfire_stones",
      "at": [
-      0,
-      0
+      0.16,
+      -0.14
      ],
-     "scale": 1.08,
-     "z": 0.054
+     "scale": 0.7200000000000001,
+     "z": 0.036
     },
     {
      "model": "nature/campfire_logs",
      "at": [
-      0,
-      0
+      0.16,
+      -0.14
      ],
-     "scale": 1.08,
-     "z": 0.054
+     "scale": 0.7200000000000001,
+     "z": 0.036
     },
     {
      "model": "nature/log_large",
      "at": [
-      -0.27,
-      0.0
+      0.32,
+      0.04
      ],
-     "scale": 0.28,
+     "scale": 0.22,
+     "z": 0.011
+    },
+    {
+     "model": "nature/log_large",
+     "at": [
+      -0.04,
+      -0.34
+     ],
+     "scale": 0.22,
      "turn": 90,
-     "z": 0.014
-    },
-    {
-     "model": "nature/log_large",
-     "at": [
-      0.0,
-      0.27
-     ],
-     "scale": 0.28,
-     "z": 0.014
+     "z": 0.011
     }
    ],
    "recolor": [
@@ -782,37 +791,72 @@
    "name": "gathering-2",
    "parts": [
     {
-     "model": "town/stall-red",
+     "model": "town/wall-wood-window-shutters",
      "at": [
-      -0.17,
-      0.17
+      -0.08,
+      0.08
      ],
-     "scale": 0.46,
-     "turn": 45
+     "scale": 0.42
+    },
+    {
+     "model": "town/wall-wood",
+     "at": [
+      -0.08,
+      0.08
+     ],
+     "scale": 0.42,
+     "turn": 90
+    },
+    {
+     "model": "town/wall-wood",
+     "at": [
+      -0.08,
+      0.08
+     ],
+     "scale": 0.42,
+     "turn": 180
+    },
+    {
+     "model": "town/wall-wood-doorway-square-wide",
+     "at": [
+      -0.08,
+      0.08
+     ],
+     "scale": 0.42,
+     "turn": 270
+    },
+    {
+     "model": "town/roof-gable",
+     "at": [
+      -0.08,
+      0.08
+     ],
+     "scale": 0.42,
+     "z": 0.42
     },
     {
      "model": "town/stall-bench",
      "at": [
-      0.1,
-      -0.1
+      0.3,
+      -0.04
      ],
-     "scale": 0.45,
+     "scale": 0.4,
      "turn": -45
     },
     {
      "model": "town/stall-bench",
      "at": [
-      0.27,
-      -0.27
+      0.06,
+      -0.3
      ],
-     "scale": 0.45,
+     "scale": 0.4,
      "turn": -45
     },
     {
      "model": "town/lantern",
      "at": [
-      -0.36,
-      -0.2
+      0.33,
+      -0.3
      ],
      "scale": 0.3
     }
@@ -825,81 +869,89 @@
    "name": "gathering-3",
    "parts": [
     {
-     "model": "nature/path_stoneCircle",
+     "model": "town/wall-wood-window-shutters",
      "at": [
-      0.06,
-      -0.06
+      -0.06,
+      0.06
      ],
-     "scale": 0.62,
-     "z": 0.031
+     "scale": 0.5
     },
     {
-     "model": "town/stall-bench",
+     "model": "town/wall-wood",
      "at": [
-      -0.028,
-      -0.388
+      -0.06,
+      0.06
      ],
-     "scale": 0.38,
-     "turn": -105
+     "scale": 0.5,
+     "turn": 90
     },
     {
-     "model": "town/stall-bench",
+     "model": "town/wall-wood",
      "at": [
-      0.204,
-      -0.368
+      -0.06,
+      0.06
      ],
-     "scale": 0.38,
-     "turn": -65
+     "scale": 0.5,
+     "turn": 180
     },
     {
-     "model": "town/stall-bench",
+     "model": "town/wall-wood-doorway-square-wide",
      "at": [
-      0.368,
-      -0.204
+      -0.06,
+      0.06
      ],
-     "scale": 0.38,
-     "turn": -25
+     "scale": 0.5,
+     "turn": 270
     },
     {
-     "model": "town/stall-bench",
+     "model": "town/roof-gable",
      "at": [
-      0.388,
-      0.028
+      -0.06,
+      0.06
      ],
-     "scale": 0.38,
-     "turn": 15
+     "scale": 0.5,
+     "z": 0.5
     },
     {
-     "model": "town/stall-bench",
+     "model": "town/banner-green",
      "at": [
-      0.255,
-      0.219
+      0.26,
+      -0.1
      ],
-     "scale": 0.38,
-     "turn": 55
+     "scale": 0.42,
+     "turn": -45
+    },
+    {
+     "model": "town/banner-green",
+     "at": [
+      -0.1,
+      -0.3
+     ],
+     "scale": 0.42,
+     "turn": -45
     },
     {
      "model": "town/stall-red",
      "at": [
-      -0.3,
-      0.3
+      0.36,
+      0.12
      ],
-     "scale": 0.36,
-     "turn": 45
+     "scale": 0.3,
+     "turn": -45
     },
     {
      "model": "town/lantern",
      "at": [
-      -0.4,
-      -0.1
+      -0.38,
+      -0.36
      ],
      "scale": 0.3
     },
     {
      "model": "town/lantern",
      "at": [
-      0.1,
-      0.4
+      0.4,
+      0.3
      ],
      "scale": 0.3
     }
@@ -2202,10 +2254,20 @@
      }
     },
     {
+     "model": "pirate/structure-platform-dock-small",
+     "at": [
+      0.3,
+      -0.3
+     ],
+     "scale": 0.08,
+     "turn": 45,
+     "z": 0.09
+    },
+    {
      "model": "nature/lily_large",
      "at": [
-      0.05,
-      -0.05
+      -0.06,
+      0.1
      ],
      "scale": 0.8
     },

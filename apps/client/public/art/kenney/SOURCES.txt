@@ -7,3 +7,7 @@ icons/: rendered from the same kits by tools/art/render-kenney.py with tools/art
 props/: rendered from Survival Kit 2.0, Fantasy Town Kit 2.0, Nature Kit and Pirate Kit (3D)
         by tools/art/render-kenney.py with tools/art/kenney-props.json (from kenney-props-spec.py),
         post-processed by tools/art/kenney-props-post.py
+
+2026-10-13 (docs/09-uudisasukkaat.md §4): props gathering-1..3 are now the lean-to (laavu),
+the village hall (kylätalo) and the party hall (juhlatalo); props/spring is a pond with a jetty
+(lampi); icons/home.png (a small house) replaces the shelter icon.

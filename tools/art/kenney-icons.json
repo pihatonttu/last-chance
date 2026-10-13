@@ -27,6 +27,21 @@
         64,
         128
       ]
+    },
+    "town-roof-red": {
+      "kit": "town",
+      "from": [
+        0,
+        384
+      ],
+      "into": [
+        64,
+        384
+      ],
+      "size": [
+        64,
+        128
+      ]
     }
   },
   "sprites": [
@@ -69,6 +84,68 @@
         {
           "model": "survival/tent-canvas",
           "scale": 1.6
+        }
+      ]
+    },
+    {
+      "name": "home",
+      "recolor": [
+        "town-roof-red"
+      ],
+      "parts": [
+        {
+          "model": "town/wall-wood-window-shutters",
+          "scale": 0.5,
+          "at": [
+            0,
+            0
+          ]
+        },
+        {
+          "model": "town/wall-wood",
+          "scale": 0.5,
+          "turn": 90,
+          "at": [
+            0,
+            0
+          ]
+        },
+        {
+          "model": "town/wall-wood",
+          "scale": 0.5,
+          "turn": 180,
+          "at": [
+            0,
+            0
+          ]
+        },
+        {
+          "model": "town/wall-wood-door",
+          "scale": 0.5,
+          "turn": 270,
+          "at": [
+            0,
+            0
+          ]
+        },
+        {
+          "model": "town/roof-gable",
+          "scale": 0.5,
+          "z": 0.5,
+          "at": [
+            0,
+            0
+          ]
+        },
+        {
+          "model": "town/chimney",
+          "scale": 0.5,
+          "turn": 180,
+          "z": 0.5,
+          "at": [
+            0,
+            0
+          ]
         }
       ]
     },
