@@ -10,6 +10,7 @@ export function fakeMetrics(over: Partial<GameMetrics> = {}): GameMetrics {
     villagers: 4,
     moodByMonth: [0, 0, 0],
     hungryMonths: 0,
+    winterHungryMonths: 0,
     hungerTotal: 0,
     unshelteredMonths: 0,
     firstShelteredMonth: 1,

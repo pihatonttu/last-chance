@@ -150,8 +150,8 @@ export const DEFAULT_PARAMS: GameParams = {
   costRounding: 5,
 
   gradeThresholds: {
-    normal: [-100, -30, 20, 64, 70],
-    short: [-70, -25, 10, 28, 31],
+    normal: [-100, -30, 20, 58, 70],
+    short: [-70, -25, 10, 23, 31],
   },
 
   map: {

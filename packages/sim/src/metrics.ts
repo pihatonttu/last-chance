@@ -1,4 +1,4 @@
-import type { ActionKind, Game, Resources } from '@saari/rules';
+import { isWinter, type ActionKind, type Game, type Resources } from '@saari/rules';
 
 export type ActionGroup = 'food' | 'fields' | 'materials' | 'explore' | 'skills' | 'recreation';
 
@@ -22,7 +22,7 @@ export const ACTION_GROUP_OF: Readonly<Record<ActionKind, ActionGroup>> = {
 /** The parts of a finished game the metrics read; a real `Game` fits, tests can pass a hand-made one. */
 export type MeasurableGame = Pick<
   Game,
-  'seed' | 'villagers' | 'happiness' | 'resources' | 'grade' | 'playerIds' | 'player' | 'reports' | 'log'
+  'seed' | 'params' | 'villagers' | 'happiness' | 'resources' | 'grade' | 'playerIds' | 'player' | 'reports' | 'log'
 >;
 
 export interface GameMetrics {
@@ -36,6 +36,8 @@ export interface GameMetrics {
   moodByMonth: number[];
 
   hungryMonths: number;
+  /** Hungry months that fell in winter (December-February, docs/09 §3.5). */
+  winterHungryMonths: number;
   /** Sum of hungry villagers over all months. */
   hungerTotal: number;
   unshelteredMonths: number;
@@ -102,6 +104,7 @@ export function measureGame(game: MeasurableGame): GameMetrics {
     moodByMonth: reports.map((r) => r.mood.total),
 
     hungryMonths: reports.filter((r) => r.food.hungry > 0).length,
+    winterHungryMonths: reports.filter((r) => r.food.hungry > 0 && isWinter(r.month, game.params)).length,
     hungerTotal: sumOf(reports, (r) => r.food.hungry),
     unshelteredMonths: reports.filter((r) => r.shelter.unsheltered > 0).length,
     firstShelteredMonth: firstSheltered ? firstSheltered.month : null,

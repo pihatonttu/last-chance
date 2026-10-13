@@ -22,6 +22,8 @@ export interface Summary {
   moodByMonth: number[];
 
   hungryMonths: number;
+  /** Share of games with at least one hungry winter month. */
+  winterHungerRate: number;
   hungerTotal: number;
   unshelteredMonths: number;
   /** Mean over the games that got everyone sheltered; null when none did. */
@@ -101,6 +103,7 @@ export function summarize(metrics: readonly GameMetrics[]): Summary {
     moodByMonth,
 
     hungryMonths: avg((m) => m.hungryMonths),
+    winterHungerRate: rate(metrics.filter((m) => m.winterHungryMonths > 0).length),
     hungerTotal: avg((m) => m.hungerTotal),
     unshelteredMonths: avg((m) => m.unshelteredMonths),
     firstShelteredMonth: meanOrNull(sheltered),

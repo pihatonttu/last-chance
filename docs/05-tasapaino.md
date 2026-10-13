@@ -1,10 +1,10 @@
 # Tasapaino (V3)
 
-**Tila: viritetty 2026-10-09.** Viritetyt arvot ovat tiedostossa
+**Tila: viritetty 2026-10-09, vuodenajat 2026-10-13.** Viritetyt arvot ovat tiedostossa
 `packages/rules/src/params.ts` (`DEFAULT_PARAMS`). Pelisuunnitteludokumentin §16 sisältää
 alkuarvot, jotka on jäädytetty sääntötesteihin (`packages/rules/test/params.ts`).
 
-Täysi simulaatioraportti: [`sim/2026-10-09-defaults.md`](sim/2026-10-09-defaults.md).
+Täysi simulaatioraportti: [`sim/2026-10-13-seasons.md`](sim/2026-10-13-seasons.md) (vuodenajat). Edellinen: [`sim/2026-10-09-defaults.md`](sim/2026-10-09-defaults.md).
 
 ## Menetelmä
 
@@ -14,7 +14,7 @@ Täysi simulaatioraportti: [`sim/2026-10-09-defaults.md`](sim/2026-10-09-default
   - **yhteistyö:** tarpeet ensin ja kiinteä rakennusjärjestys, 10 % kohinaa;
   - **sekoitus:** 60 % yhteistyö, 25 % satunnainen, 15 % laiska;
   - **satunnainen;**
-  - **itsekäs:** vain koulu ja työpaja;
+  - **vain taidot (`skillsOnly`, ent. "itsekäs"):** vain koulu ja työpaja;
   - **laiska:** yksi toiminto kuukaudessa.
 - Ajo: `node packages/sim/src/cli.ts --seeds 40 --villagers 2,15,30,40 --short`. Kokeiluarvot
   ilman koodimuutosta: `--params tiedosto.json` (osittainen, yhdistetään oletuksiin).
@@ -26,7 +26,7 @@ Täysi simulaatioraportti: [`sim/2026-10-09-defaults.md`](sim/2026-10-09-default
 | Yhteistyö saa arvosanan 5–6 vähintään 80 %:ssa peleistä | 5–6 kaikissa; 6: 73–95 % |
 | Sekoitus asettuu yhteistyön ja satunnaisen väliin | enimmäkseen 5, vaihteluväli 4–6 |
 | Satunnainen 2–3 | 2, joskus 3 |
-| Itsekäs 1–2 | 1 |
+| Vain taidot 1–2 | 1 |
 | 15 ja 30 pelaajan mediaanit eroavat alle 15 % | yhteistyö 75 / 72, sekoitus 67 / 66 |
 | Yhteistyön toiminnot: ruoka 25–40 %, aineet 20–30 %, taidot 10–25 %, tutkiminen 5–15 %, virkistys 5–15 % | 25 / 28–30 / 24 / 14–15 / 8 % |
 | Koulutus ei maksimoidu kaikilla | keskimäärin 2,6–2,7 / 3 |
@@ -75,9 +75,33 @@ sekoitus, joten näitä korjattiin:
 - liukulukuvirhe: 6 × 1/6 < 1 aiheutti ylimääräisen suojan;
 - rakennusjärjestys "kaikki suojaan ensin" voitti koulun tai nuotion ensin.
 
+## Vuodenajat (2026-10-13, `docs/09-uudisasukkaat.md`)
+
+Peli alkaa huhtikuussa, ja joulu–helmikuussa satoa ei voi korjata eivätkä metsät kasva
+(kuukaudet 9–11 Normaalissa ja 9–10 Lyhyessä pelissä). Ruokavaraston katto pysyy kahdessa
+kuukaudessa, joten Normaalin pelin kolmen kuukauden talvi vaatii syksyllä täyden varaston ja
+talvella pilkkimistä.
+
+- **Yhteistyöbotti varautuu talveen:** loka- ja marraskuussa se kerää varastoon tämän kuun
+  aterian ja kaiken, mikä säilyy kuun vaihteen yli; talvella se haluaa jäljellä olevien
+  talvikuukausien tarpeen (`foodTarget` tiedostossa `packages/bots/src/cooperative.ts`).
+- **Talvi maksaa sekoitusluokalle noin 5–7 onnellisuuspistettä** (Normaali N = 15: mediaani
+  67 → 60), koska varastointiin menee toimintoja virkistyksestä ja taidoista. Nälkää talvi
+  tuottaa vain heikoille luokille: satunnainen 0–3 % peleistä, vain taidot 80–88 %, laiska 100 %.
+  Yhteistyö ja sekoitus eivät näe talvella nälkää.
+- **Arvosanarajat viritettiin uudelleen** niin, että sekoitus on taas enimmäkseen tasolla 5:
+
+  | Peli | Ennen (2–6) | Nyt (2–6) |
+  |---|---|---|
+  | Normaali | −100 / −30 / 20 / 64 / 70 | −100 / −30 / 20 / **58** / 70 |
+  | Lyhyt | −70 / −25 / 10 / 28 / 31 | −70 / −25 / 10 / **23** / 31 |
+
+- Tulokset (N = 15–40): yhteistyö 5–6 kaikissa peleissä, sekoitus enimmäkseen 5 (4–6),
+  satunnainen 2–3, vain taidot 1–2. Talvinälkä: yhteistyö 0 %, sekoitus 0 %.
+
 ## Tunnetut rajoitukset ja jatkoseuranta
 
-- **Ruoka on painetta vain heikoille luokille.** Yhteistyö ja sekoitus eivät näe nälkää.
+- **Ruoka on painetta vain heikoille luokille, myös talvella.** Yhteistyö ja sekoitus eivät näe nälkää, koska botit varautuvat talveen täydellisesti; talvi näkyy niille vain menetettyinä toimintoina.
   Satunnainen luokka näkee nälkää harvoin (0,1–0,5 kk), laiska ja itsekäs usein. Oikeat
   luokat ovat todennäköisesti huonommin koordinoituja kuin botit. Seurataan pelitesteissä.
 - **Työkaluja ei juuri tehdä** (yhteistyöbotti taso 1,0): botti opiskelee koulutuksen ensin

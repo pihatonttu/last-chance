@@ -28,6 +28,7 @@ describe('markdownReport', () => {
   it('starts with a header and a separator', () => {
     expect(lines[0]).toMatch(/^\| scenario \| games \| happiness p10\/p50\/p90 \| grades \|/);
     expect(lines[0]).toContain('food/fields/materials/explore/skills/recreation %');
+    expect(lines[0]).toContain('| winter hunger |');
     expect(lines[1]).toMatch(/^\|( ?-+:? ?\|)+$/);
   });
 

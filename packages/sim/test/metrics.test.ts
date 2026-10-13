@@ -1,5 +1,5 @@
 import { playGame } from '@saari/bots';
-import type { Game, LogEntry, MonthReport } from '@saari/rules';
+import { DEFAULT_PARAMS, type Game, type LogEntry, type MonthReport } from '@saari/rules';
 import { describe, expect, it } from 'vitest';
 import { ACTION_GROUPS, measureGame, type MeasurableGame } from '../src/metrics.ts';
 
@@ -94,6 +94,7 @@ describe('measureGame on a hand-made game', () => {
 
   const fake: MeasurableGame = {
     seed: 7,
+    params: DEFAULT_PARAMS,
     villagers: 2,
     happiness: -1,
     resources: { food: 1, wood: 2, stone: 3 },
@@ -147,6 +148,13 @@ describe('measureGame on a hand-made game', () => {
     expect(m.actionShare.explore).toBeCloseTo(1 / 11, 12);
     expect(m.actionShare.skills).toBeCloseTo(2 / 11, 12);
     expect(m.actionShare.recreation).toBeCloseTo(2 / 11, 12);
+  });
+
+  it('counts the hungry months that fell in winter', () => {
+    const hungry = { before: 0, need: 8, eaten: 0, hungry: 2, spoiled: 0, after: 0 };
+    const wintry = measureGame({ ...fake, reports: [9, 10, 11, 12].map((month) => report(month, { food: hungry })) });
+    expect(wintry.winterHungryMonths).toBe(3);
+    expect(wintry.hungryMonths).toBe(4);
   });
 
   it('reads votes, hunger, shelter and the first spring', () => {

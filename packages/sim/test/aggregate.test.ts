@@ -106,4 +106,9 @@ describe('summarize', () => {
     expect(empty.happiness).toEqual({ mean: 0, p10: 0, p50: 0, p90: 0 });
     expect(empty.moodByMonth).toEqual([]);
   });
+
+  it('reports the share of games with hunger in winter', () => {
+    const s = summarize([fakeMetrics({ winterHungryMonths: 2 }), fakeMetrics(), fakeMetrics(), fakeMetrics({ winterHungryMonths: 1 })]);
+    expect(s.winterHungerRate).toBe(0.5);
+  });
 });
