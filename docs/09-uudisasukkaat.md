@@ -229,9 +229,12 @@ moderointi ja tietosuoja.
 - **Asiakas:** kalenteriapurit, i18n-testi (ei kuolleita eikä puuttuvia tekstejä), ja selaimessa
   talvikartta ja loppuruudun merkit.
 
-## 8. Avoimet kysymykset
+## 8. Nimi
 
-- **Pelin nimi ja domain (P5, P36).** "Last Chance" viittaa haaksirikkoon. Aiempi ehdokas
-  **Saarikunta** sopii uuteen tarinaan suoraan. Nimi ei estä toteutusta, koska se on yksi
-  käännösteksti.
+Pelin nimi on **Last Chance** (Samu 2026-10-13, vahvistaa P36:n ja sulkee P5:n). Käyttöliittymän
+työnimi "Saari" (`app.name`) vaihdetaan, ja nimen lykkäys poistetaan suunnitelman
+lykätyistä päätöksistä. Koodin pakettinimet (`@saari/*`) pysyvät.
+
+## 9. Myöhemmin
+
 - Syksyn värit (ruska) kartalle ovat mahdollinen myöhempi lisä.
