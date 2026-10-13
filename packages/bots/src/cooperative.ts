@@ -1,8 +1,10 @@
-import { chebyshev, type Coord, type Game, type Rng, type VoteOption } from '@saari/rules';
+import { chebyshev, isWinter, monthsUntilWinter, type Coord, type Game, type Rng, type VoteOption } from '@saari/rules';
 import { availableMoves, hasActionsLeft, movesOfKind, openOptions, toCoord, type Move } from './bot.ts';
 
 /** Skills are worth studying only with at least this many months left after this one. */
 const SKILL_HORIZON = 4;
+/** Months before winter in which the class fills the store (October and November). */
+const WINTER_PREP_MONTHS = 2;
 /** Shelter shares are sums of 1/6, 1/3, 1/2 and suffer float error (6 x 1/6 < 1). */
 const EPSILON = 1e-9;
 
@@ -29,6 +31,26 @@ export const DEFAULT_BUILD_ORDER: readonly string[] = [
   'school-3',
   'workshop-3',
 ];
+
+/**
+ * Food the class wants in store now. Fields lie under snow from December to February
+ * (docs/09 §3.2), so in the two months before winter it wants this month's meal plus all
+ * that keeps over the month end, and in winter the need of every winter month still ahead.
+ * Never more than this month's meal plus the store limit; otherwise this month's need.
+ */
+export function foodTarget(game: Game): number {
+  const need = game.foodNeed();
+  const P = game.params;
+  const cap = need + game.foodStorage();
+  if (isWinter(game.month, P)) {
+    let months = 0;
+    for (let m = game.month; m <= game.totalMonths && isWinter(m, P); m++) months += 1;
+    return Math.min(need * months, cap);
+  }
+  const until = monthsUntilWinter(game.month, game.totalMonths, P);
+  if (until !== null && until <= WINTER_PREP_MONTHS) return cap;
+  return need;
+}
 
 export interface CoopOptions {
   noise: number;
@@ -134,8 +156,8 @@ function choose(game: Game, moves: Move[], order: readonly string[]): Move | und
   const next = wanted[1];
   const reserved = target && !target.upgrade ? reservedMeadow(game) : undefined;
 
-  // 1. Nobody goes hungry this month.
-  if (food < need) {
+  // 1. Nobody goes hungry this month, and the store carries the village through winter.
+  if (food < foodTarget(game)) {
     const m = richest(movesOfKind(moves, 'harvest')) ?? richest(movesOfKind(moves, 'fish'));
     if (m) return m;
   }

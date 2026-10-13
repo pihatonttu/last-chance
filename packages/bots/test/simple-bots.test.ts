@@ -55,3 +55,9 @@ describe('lazy bot', () => {
     expect(bot.chooseAction(game, 'a', rng)).toBeNull();
   });
 });
+
+describe('skills-only bot', () => {
+  it('is the skillsOnly strategy: a class that only learns, the balance check of core c (P7)', () => {
+    expect(createBot('skillsOnly').strategy).toBe('skillsOnly');
+  });
+});

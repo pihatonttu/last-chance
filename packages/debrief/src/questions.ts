@@ -53,7 +53,7 @@ void _allListed;
 /**
  * Trigger thresholds. Checked against bot games (2026-10-09, @saari/bots, 5 and 20
  * villagers, normal and short): cooperative classes trigger almost nothing, random,
- * lazy and selfish classes each trigger the questions about their weak spot.
+ * lazy and skills-only classes each trigger the questions about their weak spot.
  */
 export const THRESHOLDS = {
   /** Most triggered questions; 'decision-making' comes on top (design doc: 3-5 questions). */

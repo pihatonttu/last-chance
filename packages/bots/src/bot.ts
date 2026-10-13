@@ -1,6 +1,6 @@
 import type { ActionKind, ActionPreview, Coord, Game, Rng, VoteOption } from '@saari/rules';
 
-export type Strategy = 'cooperative' | 'random' | 'selfish' | 'lazy';
+export type Strategy = 'cooperative' | 'random' | 'skillsOnly' | 'lazy';
 
 export interface BotOptions {
   /** Chance of a random action or vote instead of the planned one (cooperative, lazy). */

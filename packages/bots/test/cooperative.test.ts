@@ -1,6 +1,6 @@
 import { createRng, DEFAULT_PARAMS, Game, type GameParams, type TerrainMap } from '@saari/rules';
 import { describe, expect, it } from 'vitest';
-import { createBot, plannedBuilding } from '../src/index.ts';
+import { createBot, foodTarget, plannedBuilding } from '../src/index.ts';
 
 /** Landing (3,5). Rock and spring are far away in the north. */
 const TERRAIN: TerrainMap = (() => {
@@ -207,5 +207,33 @@ describe('cooperative bot votes', () => {
     const vote = schoolFirst.chooseVote(game, 'a', rng);
     expect(vote).toBe('gathering-1');
     expect(game.voteOptions().find((o) => o.id === vote)?.blocked).toEqual([]);
+  });
+});
+
+describe('cooperative bot and winter (docs/09-uudisasukkaat.md §3.5)', () => {
+  it("wants this month's need outside the run-up to winter", () => {
+    const game = newGame();
+    while (game.month < 4) voteAll(game, 'none'); // July
+    expect(foodTarget(game)).toBe(game.foodNeed());
+    while (game.month < 6) voteAll(game, 'none'); // September: winter is still 3 months away
+    expect(foodTarget(game)).toBe(game.foodNeed());
+  });
+
+  it('fills the store in October and November: this month plus what keeps over the month end', () => {
+    const game = newGame();
+    while (game.month < 7) voteAll(game, 'none');
+    expect(foodTarget(game)).toBe(game.foodNeed() + game.foodStorage());
+    voteAll(game, 'none');
+    expect(foodTarget(game)).toBe(game.foodNeed() + game.foodStorage());
+  });
+
+  it('in winter wants the food of the winter months still ahead', () => {
+    const game = newGame();
+    while (game.month < 9) voteAll(game, 'none');
+    expect(foodTarget(game)).toBe(3 * game.foodNeed());
+    voteAll(game, 'none');
+    expect(foodTarget(game)).toBe(2 * game.foodNeed());
+    voteAll(game, 'none');
+    expect(foodTarget(game)).toBe(game.foodNeed());
   });
 });

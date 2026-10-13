@@ -42,7 +42,7 @@ describe('parseArgs', () => {
 
 describe('scenariosFor', () => {
   it('names the five standard class mixes', () => {
-    expect(STANDARD_SCENARIOS.map((s) => s.name)).toEqual(['cooperative', 'mixed', 'random', 'selfish', 'lazy']);
+    expect(STANDARD_SCENARIOS.map((s) => s.name)).toEqual(['cooperative', 'mixed', 'random', 'skillsOnly', 'lazy']);
     expect(STANDARD_SCENARIOS.find((s) => s.name === 'mixed')!.mix).toEqual({ cooperative: 0.6, random: 0.25, lazy: 0.15 });
   });
 
@@ -55,8 +55,8 @@ describe('scenariosFor', () => {
       'mixed N=15',
       'random N=2',
       'random N=15',
-      'selfish N=2',
-      'selfish N=15',
+      'skillsOnly N=2',
+      'skillsOnly N=15',
       'lazy N=2',
       'lazy N=15',
     ]);

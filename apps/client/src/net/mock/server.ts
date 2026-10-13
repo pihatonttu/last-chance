@@ -99,7 +99,7 @@ const BOT_MIX: readonly Strategy[] = [
   'cooperative',
   'lazy',
   'cooperative',
-  'selfish',
+  'skillsOnly',
   'cooperative',
 ];
 

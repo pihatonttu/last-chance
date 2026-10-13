@@ -24,7 +24,7 @@ const CASES: Case[] = [
   { seed: 7, villagers: 20, length: 'normal', mix: { lazy: 1 } },
   { seed: 8, villagers: 20, length: 'normal', mix: MIXED },
   { seed: 9, villagers: 5, length: 'short', mix: MIXED },
-  { seed: 10, villagers: 20, length: 'normal', mix: { selfish: 1 } },
+  { seed: 10, villagers: 20, length: 'normal', mix: { skillsOnly: 1 } },
 ];
 
 const NOW = new Date('2026-10-09T12:00:00.000Z');
