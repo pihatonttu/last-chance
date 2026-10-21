@@ -3,7 +3,7 @@
 # its pnpm symlink layout; workspace packages must stay outside node_modules.
 
 # ---- build ----
-FROM node:24.13.0-bookworm-slim AS build
+FROM node:24.22.1-bookworm-slim AS build
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
@@ -15,7 +15,7 @@ RUN pnpm --filter @saari/client build
 RUN CI=true pnpm install --frozen-lockfile --prod
 
 # ---- runtime ----
-FROM node:24.13.0-bookworm-slim
+FROM node:24.22.1-bookworm-slim
 ENV NODE_ENV=production \
     PORT=8080 \
     DATA_DIR=/data \
