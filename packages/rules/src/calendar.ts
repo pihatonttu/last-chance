@@ -1,13 +1,21 @@
-import type { GameParams } from './params.ts';
+/**
+ * The settlers' calendar (docs/09-uudisasukkaat.md §3.1). The arctic rules no longer use it
+ * (docs/10-arktinen.md §1) and GameParams no longer has a start month; it stays only until
+ * the bots, the simulator and the client stop using it.
+ */
 
 /** Seasons as Finnish schools count them (docs/09-uudisasukkaat.md §3.1). */
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 
-type CalendarParams = Pick<GameParams, 'startCalendarMonth'>;
+/** The game started in April. Any object passes (callers hand in GameParams), so the month is optional. */
+type CalendarParams = object & { readonly startCalendarMonth?: number };
+
+const START_CALENDAR_MONTH = 4;
 
 /** Calendar month 1..12 (1 = January) of game month 1, 2, ...; the lobby (0) counts as month 1. */
 export function calendarMonth(month: number, params: CalendarParams): number {
-  return ((params.startCalendarMonth - 1 + Math.max(1, month) - 1) % 12) + 1;
+  const start = params.startCalendarMonth ?? START_CALENDAR_MONTH;
+  return ((start - 1 + Math.max(1, month) - 1) % 12) + 1;
 }
 
 /** Spring March-May, summer June-August, autumn September-November, winter December-February. */

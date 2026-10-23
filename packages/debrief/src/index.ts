@@ -1,4 +1,4 @@
-import { isWinter, type Game, type LogEntry } from '@saari/rules';
+import type { Game, LogEntry } from '@saari/rules';
 import { copyCounts, countByMonth, shareOf, sumCounts } from './actions.ts';
 import { findCrises } from './crises.ts';
 import { buildPlayers, pseudonym } from './players.ts';
@@ -17,13 +17,23 @@ function springFoundMonth(log: readonly LogEntry[], monthsPlayed: number): numbe
   return found ? found.month : null;
 }
 
-/** true when the teacher ended the game, or when it has not ended at all yet. */
-function endedEarly(log: readonly LogEntry[]): boolean {
+function gameEnded(log: readonly LogEntry[]): Extract<LogEntry, { type: 'game-ended' }> | undefined {
   for (let i = log.length - 1; i >= 0; i--) {
     const e = log[i]!;
-    if (e.type === 'game-ended') return e.early;
+    if (e.type === 'game-ended') return e;
   }
-  return true;
+  return undefined;
+}
+
+/** true when the teacher ended the game, or when it has not ended at all yet. */
+function endedEarly(log: readonly LogEntry[]): boolean {
+  return gameEnded(log)?.early ?? true;
+}
+
+/** The month the village gave up (docs/10-arktinen.md §4b), from the log; null when it did not. */
+function lostMonth(log: readonly LogEntry[]): number | null {
+  const end = gameEnded(log);
+  return end?.lost ? end.month : null;
 }
 
 /**
@@ -52,7 +62,7 @@ export function buildDebrief(game: Game, labels: readonly DebriefLabel[], now: D
   const spring = springFoundMonth(log, monthsPlayed);
   const grade = game.grade();
   const views = game.playerIds().flatMap((id) => game.player(id) ?? []);
-  const winterAll = Array.from({ length: game.totalMonths }, (_, i) => i + 1).filter((m) => isWinter(m, game.params));
+  const lost = lostMonth(log);
 
   return {
     version: 1,
@@ -62,6 +72,7 @@ export function buildDebrief(game: Game, labels: readonly DebriefLabel[], now: D
     totalMonths: game.totalMonths,
     monthsPlayed,
     endedEarly: endedEarly(log),
+    lost: lost !== null,
     happiness: game.happiness,
     grade,
     villagers: reports.at(-1)?.villagers ?? game.villagers,
@@ -85,9 +96,7 @@ export function buildDebrief(game: Game, labels: readonly DebriefLabel[], now: D
       actions,
       unused,
       springFoundMonth: spring,
-      winterMonths: winterAll.filter((m) => m <= monthsPlayed),
-      winterOver: winterAll.length > 0 && winterAll.every((m) => m <= monthsPlayed),
-      winterHungryMonths: reports.filter((r) => r.food.hungry > 0 && isWinter(r.month, game.params)).length,
+      lostMonth: lost,
     }),
   };
 }
@@ -108,6 +117,7 @@ export function pseudonymize(d: DebriefData): DebriefData {
     totalMonths: d.totalMonths,
     monthsPlayed: d.monthsPlayed,
     endedEarly: d.endedEarly,
+    ...(d.lost === undefined ? {} : { lost: d.lost }),
     happiness: d.happiness,
     grade: d.grade,
     villagers: d.villagers,

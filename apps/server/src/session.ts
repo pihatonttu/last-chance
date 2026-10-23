@@ -20,7 +20,6 @@ import type {
 import {
   createGame,
   createRng,
-  monthsUntilWinter,
   type Game,
   type GameLength,
   type GameParams,
@@ -78,9 +77,6 @@ export const defaultDebriefing: Debriefing = {
   pseudonymize,
   badges: (game, playerId) => badgesFor(game.log, playerId, game.reports.length),
 };
-
-/** Months before winter in which the ticker warns the class (October and November). */
-const WINTER_WARNING_MONTHS = 2;
 
 /** Phase lengths in milliseconds of server time (design doc §4). */
 export interface Timing {
@@ -638,8 +634,6 @@ export class GameSession {
     if (g.phase === 'action') {
       const missing = g.foodNeed() - g.resources.food;
       if (missing > 0) this.#broadcast({ t: 'ticker', event: { kind: 'food-short', missing } });
-      const untilWinter = monthsUntilWinter(g.month, g.totalMonths, g.params);
-      if (untilWinter !== null && untilWinter <= WINTER_WARNING_MONTHS) this.#broadcast({ t: 'ticker', event: { kind: 'winter-coming' } });
     }
     this.#scheduleBots();
     this.#checkProgress();
@@ -882,7 +876,7 @@ export class GameSession {
       // Students never get the other players' nicknames (P34).
       players: role === 'host' ? this.#playerSummaries() : [],
       playerCount: this.playerCount,
-      result: g.phase === 'ended' ? { happiness: g.happiness, grade: g.grade(), early: this.#early } : null,
+      result: g.phase === 'ended' ? { happiness: g.happiness, grade: g.grade(), early: this.#early, lost: g.lost } : null,
     };
   }
 
@@ -897,6 +891,10 @@ export class GameSession {
       shelterCapacity: g.shelterCapacity(),
       happiness: g.happiness,
       recreationThisMonth: g.recreationThisMonth,
+      temperature: g.temperature(),
+      forecast: g.forecast(),
+      heatNeed: g.heatNeed(),
+      lossThreshold: g.params.lossThreshold[g.length],
     };
   }
 

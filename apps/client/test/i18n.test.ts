@@ -73,7 +73,7 @@ function familyKeys(): string[] {
   for (const skill of SKILLS) keys.push(`skill.${skill}`);
   for (const mood of ['good', 'ok', 'bad']) keys.push(`mood.${mood}`);
   for (const gain of [...RESOURCES, 'work', 'recreation', 'education', 'tools']) keys.push(`gain.${gain}.one`, `gain.${gain}.other`);
-  for (const crisis of ['hunger', 'no-shelter']) keys.push(`debrief.crisis.${crisis}.one`, `debrief.crisis.${crisis}.other`);
+  for (const crisis of ['hunger', 'no-shelter', 'cold']) keys.push(`debrief.crisis.${crisis}.one`, `debrief.crisis.${crisis}.other`);
   for (const kind of ['explore', 'plow', 'build-quarry']) keys.push(`yield.workDone.${kind}`);
   for (const terrain of ['forest', 'field', 'quarry']) keys.push(`tile.stock.${terrain}`);
   for (const work of ['plow', 'quarry']) keys.push(`tile.work.${work}`);
@@ -131,7 +131,7 @@ describe('translations', () => {
     expect(good).toContain('tasolle 5');
     expect(good).toContain('Kukoistava kylä');
     for (const q of QUESTION_IDS) {
-      const text = questionText({ id: q, params: { month: 3, people: 2, months: 4, count: 2, percent: 40, grade: 6 } });
+      const text = questionText({ id: q, params: { month: 3, people: 2, months: 4, count: 2, percent: 40, grade: 6, temperature: -25 } });
       expect(text).not.toMatch(/\{\w+\}/);
     }
   });

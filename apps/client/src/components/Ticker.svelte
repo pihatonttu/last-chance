@@ -37,7 +37,7 @@
     {#each shown as item (item.id)}
       {@const art = picture(item.event)}
       <li class={item.event.kind}>
-        {#if art}<PropPicture texture={art} size={34} />{:else if item.event.kind === 'food-short'}<ArtIcon name="food" size={30} />{:else if item.event.kind === 'winter-coming'}<Icon name="winter" size={28} />{/if}
+        {#if art}<PropPicture texture={art} size={34} />{:else if item.event.kind === 'food-short'}<ArtIcon name="food" size={30} />{:else if item.event.kind === 'hard-frost-coming'}<Icon name="winter" size={28} />{/if}
         <span>{tickerText(item.event)}</span>
       </li>
     {:else}

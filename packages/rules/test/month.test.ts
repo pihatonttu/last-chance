@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { RULE_TEST_PARAMS as DEFAULT_PARAMS } from './params.ts';
-import { act, buildByVote, finishMonth, freeBuildingParams, setup, tileAt } from './helpers.ts';
+import { act, buildByVote, finishMonth, freeBuildingParams, setup, tileAt, withoutLoss } from './helpers.ts';
 
 /** Rock and spring next to the landing (3,3); see actions.test.ts. */
 const ROCK_MAP = ['~~~~~~', '~T.o.~', '~.^T.~', '~T.L.~', '~~~~~~'];
@@ -59,15 +59,15 @@ describe('shelter', () => {
   });
 
   it('shelters cover shares of the village; full cover +2, 25 % spare room +1 more', () => {
-    const game = setup({ players: 6, params: freeBuildingParams() });
-    buildByVote(game, 'shelter-1'); // landing, 1/6
-    buildByVote(game, 'shelter-2'); // landing, 1/3
-    const r3 = buildByVote(game, 'shelter-3'); // landing, 1/2
+    const game = setup({ players: 6, params: withoutLoss(freeBuildingParams()) });
+    buildByVote(game, 'shelter-1'); // (2,4), 1/6
+    buildByVote(game, 'shelter-2'); // (2,4), 1/3
+    const r3 = buildByVote(game, 'shelter-3'); // (2,4), 1/2
     expect(r3.shelter).toMatchObject({ capacity: 3, unsheltered: 3 });
     expect(r3.mood.shelter).toBe(-5);
-    buildByVote(game, 'shelter-1'); // (2,4), 1/2 + 1/6
-    buildByVote(game, 'shelter-2'); // (2,4), 1/2 + 1/3
-    const r6 = buildByVote(game, 'shelter-3'); // (2,4), 1/2 + 1/2 = 1
+    buildByVote(game, 'shelter-1'); // (4,4), 1/2 + 1/6
+    buildByVote(game, 'shelter-2'); // (4,4), 1/2 + 1/3
+    const r6 = buildByVote(game, 'shelter-3'); // (4,4), 1/2 + 1/2 = 1
     expect(r6.shelter).toMatchObject({ capacity: 6, unsheltered: 0 });
     expect(r6.mood.shelter).toBe(2);
     const r7 = buildByVote(game, 'shelter-1'); // 7/6 < 1.25
@@ -103,8 +103,9 @@ describe('recreation and happiness', () => {
     const game = setup({ players: 3 });
     const r1 = finishMonth(game);
     const r2 = finishMonth(game);
-    expect(r1.mood.total).toBe(2 - 10);
-    expect(r2.mood.total).toBe(-10 - 10);
+    // The 10 starting wood keeps the fire going in months 1 and 2 (+2 each).
+    expect(r1.mood.total).toBe(2 + 2 - 10);
+    expect(r2.mood.total).toBe(-10 + 2 - 10);
     expect(game.happiness).toBe(r1.mood.total + r2.mood.total);
     expect(r2.happiness).toBe(game.happiness);
   });
@@ -200,7 +201,7 @@ describe('joining and leaving', () => {
 
 describe('game end and grade', () => {
   it('ends after the last month', () => {
-    const game = setup({ players: 1, length: 'short' });
+    const game = setup({ players: 1, length: 'short', params: withoutLoss() });
     for (let m = 1; m <= 9; m++) finishMonth(game);
     expect(game.month).toBe(10);
     finishMonth(game);
@@ -219,7 +220,7 @@ describe('game end and grade', () => {
     const params = { ...DEFAULT_PARAMS, gradeThresholds: { normal: [-15, -5, 0, 5, 10], short: [0, 0, 0, 0, 0] } as const };
     const game = setup({ players: 3, params });
     expect(game.grade()).toBe(4); // happiness 0 reaches -15, -5 and 0
-    finishMonth(game); // -8
+    finishMonth(game); // -6
     expect(game.grade()).toBe(2);
   });
 
@@ -229,7 +230,7 @@ describe('game end and grade', () => {
       gradeThresholds: { normal: [-15, -9, 0, 15, 30], short: [-50, -40, -30, -20, -10] },
     } as const;
     const game = setup({ players: 3, params, length: 'short' });
-    finishMonth(game); // -8: reaches every short threshold
+    finishMonth(game); // -6: reaches every short threshold
     expect(game.grade()).toBe(6); // with the normal ones it would be 3
   });
 });

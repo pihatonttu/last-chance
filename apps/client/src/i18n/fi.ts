@@ -257,7 +257,6 @@ export const fi = {
   'refusal.not-explorable': 'Tutki ensin ruutu tämän vierestä.',
   'refusal.deep-sea': 'Liian syvää. Kalastaa voi vain tutkitun rannan vieressä.',
   'refusal.field-empty': 'Pelto on korjattu tyhjäksi. Se kasvaa taas ensi kuussa.',
-  'refusal.winter': 'Pelto on lumen alla. Se kasvaa taas keväällä.',
   'refusal.quarry-empty': 'Louhos on tyhjä.',
   'refusal.no-uses-left': 'Tämän kuun käyttökerrat on jo käytetty.',
   'refusal.max-level': 'Olet jo enimmäistasolla.',
@@ -440,8 +439,10 @@ export const fi = {
   'ticker.built': 'Rakennettiin: {name}',
   'ticker.tie': 'Tasapeli! Ei rakennettu. Neuvotelkaa!',
   'ticker.player-joined': 'Uusi kyläläinen liittyi.',
-  'ticker.winter-coming': 'Talvi tulee! Kerätkää ruokaa varastoon.',
   'ticker.food-short': 'Ruoka ei riitä: puuttuu {missing}.',
+  'ticker.hard-frost-coming': 'Ensi kuussa kova pakkanen: {temperature}°!',
+  'ticker.wood-short': 'Puu ei riitä nuotiolle: puuttuu {missing}.',
+  'ticker.giving-up': 'Kylä on luovuttamassa! Pitäkää nuotio ja ruoka kunnossa.',
 
   // ---------------------------------------------------------------- debrief
   'debrief.title': 'Jälkipuinti',
@@ -477,6 +478,8 @@ export const fi = {
   'debrief.crisis.hunger.other': 'Kuukausi {month}: ruoka loppui, {people} kyläläistä jäi nälkään.',
   'debrief.crisis.no-shelter.one': 'Kuukausi {month}: {people} kyläläinen jäi ilman kotia.',
   'debrief.crisis.no-shelter.other': 'Kuukausi {month}: {people} kyläläistä jäi ilman kotia.',
+  'debrief.crisis.cold.one': 'Kuukausi {month}: nuotion puut loppuivat, {people} kyläläinen paleli.',
+  'debrief.crisis.cold.other': 'Kuukausi {month}: nuotion puut loppuivat, {people} kyläläistä paleli.',
   'debrief.crisis.resolved': 'Korjaantui kuukaudessa {month}.',
   'debrief.crisis.unresolved': 'Ei korjaantunut pelin loppuun mennessä.',
   'debrief.actions.title': 'Mihin toiminnot käytettiin',
@@ -501,10 +504,10 @@ export const fi = {
   'debrief.spring.found': 'Lampi löytyi kuukautena {month}.',
   'debrief.spring.never': 'Lampea ei löytynyt.',
   'debrief.questions.title': 'Keskustelukysymyksiä',
+  'debrief.question.lost': 'Kylä luovutti kuukautena {month}. Mikä meni pieleen, ja milloin sen olisi voinut huomata?',
   'debrief.question.hunger':
     'Kuukautena {month} ruoka loppui ja {people} jäi nälkään. Kuka huomasi sen ensin? Mitä silloin tehtiin?',
-  'debrief.question.winter-hunger': 'Talvella ruoka loppui ja {people} jäi nälkään. Milloin olisi pitänyt alkaa varautua?',
-  'debrief.question.winter-ready': 'Ruoka riitti talven yli. Miten varauduitte? Kuka muistutti muita?',
+  'debrief.question.cold': 'Kuukautena {month} oli {temperature}° ja nuotion puut loppuivat: {people} paleli. Kuka muisti nuotion?',
   'debrief.question.no-shelter-long': 'Joku oli ilman kotia {months} kuukautta. Miksi kotien rakentaminen viivästyi?',
   'debrief.question.ties':
     'Äänestys päättyi tasapeliin {count} kertaa. Miten päätitte, mitä rakennetaan? Kuuntelitteko kaikkia?',
@@ -517,6 +520,7 @@ export const fi = {
   'debrief.question.low-participation': 'Vain {percent} % mahdollisista äänistä annettiin. Miksi kaikki eivät äänestäneet?',
   'debrief.question.good-result':
     'Kylänne pääsi tasolle {grade}: {gradeName}. Mikä yhteistyössänne toimi? Mitä tekisitte eri tavalla?',
+  'debrief.question.warm-all': 'Nuotio paloi koko pelin. Miten jaoitte puun keräämisen?',
   'debrief.question.next-time': 'Mitä tekisitte ensi kerralla toisin, jotta kylä voisi vielä paremmin?',
   'debrief.question.roles': 'Jakautuivatko tehtävät luokassa? Kuka huolehti ruoasta, kuka rakennusaineista, kuka tutki saarta?',
   'debrief.question.decision-making': 'Mitä opitte siitä, miten ryhmä tekee päätöksiä?',

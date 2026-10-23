@@ -80,6 +80,14 @@ export interface VillageView {
   shelterCapacity: number;
   happiness: number;
   recreationThisMonth: number;
+  /** This month's frost in °C (docs/10-arktinen.md §4); the lobby shows month 1. */
+  temperature: number;
+  /** Next month's frost; null in the last month. */
+  forecast: number | null;
+  /** Wood the village fire burns at the end of this month. */
+  heatNeed: number;
+  /** The village gives up when the happiness falls below this (docs/10-arktinen.md §4b). */
+  lossThreshold: number;
 }
 
 export interface MapView {
@@ -119,6 +127,8 @@ export interface GameResult {
   /** 1..6 (P32); the client maps it to the grade name. */
   grade: number;
   early: boolean;
+  /** The village gave up: no party, no grade shown (docs/10-arktinen.md §4b). */
+  lost: boolean;
 }
 
 export interface GameView {
@@ -165,8 +175,12 @@ export type TickerEvent =
   | { kind: 'tie' }
   | { kind: 'player-joined' }
   | { kind: 'food-short'; missing: number }
-  /** October and November: fields lie under snow from December (docs/09 §3.3). */
-  | { kind: 'winter-coming' };
+  /** Next month is a hard frost (docs/10-arktinen.md §4). */
+  | { kind: 'hard-frost-coming'; temperature: number }
+  /** The wood does not cover this month's fire. */
+  | { kind: 'wood-short'; missing: number }
+  /** The happiness is close to the loss limit (docs/10-arktinen.md §4b). */
+  | { kind: 'giving-up' };
 
 // ------------------------------------------------------------------ client → server
 

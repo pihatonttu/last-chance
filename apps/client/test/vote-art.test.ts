@@ -3,7 +3,16 @@ import type { VoteOption } from '@saari/rules';
 import { missingFor, optionArt } from '../src/lib/vote.ts';
 
 function option(over: Partial<VoteOption>): VoteOption {
-  return { id: 'none', kind: 'none', level: 0, upgrade: false, cost: { wood: 0, stone: 0 }, blocked: [], ...over };
+  return {
+    id: 'none',
+    kind: 'none',
+    level: 0,
+    upgrade: false,
+    cost: { wood: 0, stone: 0 },
+    blocked: [],
+    leavesFireCold: false,
+    ...over,
+  };
 }
 
 describe('optionArt', () => {

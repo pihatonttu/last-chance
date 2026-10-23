@@ -1,4 +1,3 @@
-import { playGame } from '@saari/bots';
 import { describe, expect, it } from 'vitest';
 import { buildDebrief, pseudonymize, type DebriefData, type DebriefLabel } from '../src/index.ts';
 import { FALLBACK_COLOR } from '../src/players.ts';
@@ -249,15 +248,5 @@ describe('pseudonymize', () => {
     const once = pseudonymize(named);
     expect(pseudonymize(once)).toEqual(once);
     expect(JSON.parse(JSON.stringify(once))).toEqual(once);
-  });
-});
-
-describe('buildDebrief and winter (docs/09-uudisasukkaat.md §3.4)', () => {
-  it('reads the winter from the game calendar: a cooperative class that ate all winter talks about getting ready', () => {
-    const game = playGame({ seed: 2, villagers: 20, length: 'normal', mix: { cooperative: 1 } });
-    expect(game.reports.filter((r) => r.month >= 9 && r.month <= 11 && r.food.hungry > 0)).toEqual([]);
-    const asked = buildDebrief(game, []).questions.map((q) => q.id);
-    expect(asked).toContain('winter-ready');
-    expect(asked).not.toContain('winter-hunger');
   });
 });

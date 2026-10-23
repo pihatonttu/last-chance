@@ -285,7 +285,12 @@ describe('phases and timers', () => {
     for (const peer of [host, aino.peer, eero.peer]) {
       const view = lastGame(peer);
       expect(view.phase).toBe('ended');
-      expect(view.result).toEqual({ happiness: session.game.happiness, grade: session.game.grade(), early: false });
+      expect(view.result).toEqual({
+        happiness: session.game.happiness,
+        grade: session.game.grade(),
+        early: false,
+        lost: session.game.lost,
+      });
       expect(view.timer).toEqual({ phaseEndsAt: null, remainingMs: 0, phaseMs: 0, paused: false });
     }
     const debrief = host.last('debrief')!;
@@ -326,21 +331,6 @@ describe('phases and timers', () => {
     const again = new FakePeer();
     expect(session.joinPlayer(again, { playerToken: aino.token })).toBeNull();
     expect(again.last('badges')).toEqual({ t: 'badges', badges: ['settler'] });
-  });
-
-  it('warns the class in October and November that winter is coming', () => {
-    const { clock, command, host, join } = setup({ length: 'normal' });
-    join('Aino');
-    command({ type: 'start' });
-    const warnings = () => host.all('ticker').filter((m) => m.event.kind === 'winter-coming').length;
-    clock.advance(MONTH * 5); // month 6, September
-    expect(warnings()).toBe(0);
-    clock.advance(MONTH); // October
-    expect(warnings()).toBe(1);
-    clock.advance(MONTH); // November
-    expect(warnings()).toBe(2);
-    clock.advance(MONTH); // December
-    expect(warnings()).toBe(2);
   });
 
   it('warns the class when the food will not last the month', () => {

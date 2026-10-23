@@ -26,6 +26,10 @@ export function village(over: Partial<VillageView> = {}): VillageView {
     shelterCapacity: 0,
     happiness: 0,
     recreationThisMonth: 0,
+    temperature: -10,
+    forecast: -15,
+    heatNeed: 10,
+    lossThreshold: -60,
     ...over,
   };
 }

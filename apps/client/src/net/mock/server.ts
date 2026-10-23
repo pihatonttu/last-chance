@@ -29,7 +29,6 @@ import {
 import {
   createGame,
   createRng,
-  monthsUntilWinter,
   type Game,
   type GameLength,
   type LogEntry,
@@ -546,8 +545,6 @@ export class MockServer {
       const need = game.foodNeed();
       const food = game.resources.food;
       if (food < need) this.#broadcastTicker(room, { kind: 'food-short', missing: need - food });
-      const untilWinter = monthsUntilWinter(game.month, game.totalMonths, game.params);
-      if (untilWinter !== null && untilWinter <= 2) this.#broadcastTicker(room, { kind: 'winter-coming' });
     }
     this.#scheduleBots(room);
     this.#checkEarlyEnd(room);
@@ -756,7 +753,9 @@ export class MockServer {
     const game = room.game;
     const started = game.phase !== 'lobby' && room.started;
     const result =
-      game.phase === 'ended' && room.started ? { happiness: game.happiness, grade: game.grade(), early: room.endedEarly } : null;
+      game.phase === 'ended' && room.started
+        ? { happiness: game.happiness, grade: game.grade(), early: room.endedEarly, lost: game.lost }
+        : null;
     return {
       code: room.code,
       length: room.length,
@@ -803,6 +802,10 @@ export class MockServer {
       shelterCapacity: game.shelterCapacity(),
       happiness: game.happiness,
       recreationThisMonth: game.recreationThisMonth,
+      temperature: game.temperature(),
+      forecast: game.forecast(),
+      heatNeed: game.heatNeed(),
+      lossThreshold: game.params.lossThreshold[game.length],
     };
   }
 

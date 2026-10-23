@@ -88,6 +88,14 @@ export function freeBuildingParams(): GameParams {
 }
 
 /**
+ * The same params with the loss limit out of reach, for tests of other rules that play
+ * many hungry, cold months in a row (docs/10-arktinen.md §4b).
+ */
+export function withoutLoss(params: GameParams = RULE_TEST_PARAMS): GameParams {
+  return { ...params, lossThreshold: { normal: -Infinity, short: -Infinity } };
+}
+
+/**
  * Finish the current month: end the action phase, let every listed player vote,
  * resolve the vote and month end, and move on to the next month.
  */

@@ -11,13 +11,29 @@ export interface Cost {
 }
 
 /**
+ * Frost (docs/10-arktinen.md §4): every month has a temperature from `mildest` down to
+ * `coldest` in `step` degrees, drawn from the game seed.
+ */
+export interface WeatherParams {
+  mildest: number;
+  coldest: number;
+  step: number;
+  /** Month 1 is no colder than this, so the village has time to start. */
+  firstMonthColdest: number;
+  /** At or below this the fire needs the "cold" amount of wood. */
+  coldAt: number;
+  /** At or below this it is a hard frost. */
+  hardAt: number;
+  /** Hard-frost months every game has (when it lasts 3 months or more). */
+  minHardMonths: number;
+}
+
+/**
  * Every tunable number of the rules. The defaults are the simulator-tuned values
  * (docs/05-tasapaino.md); the design doc's starting values live on in the rule tests.
  */
 export interface GameParams {
   months: Record<GameLength, number>;
-  /** Calendar month (1 = January) of the game's first month; the game starts in spring (docs/09 §3.1). */
-  startCalendarMonth: number;
   baseActions: number;
   /** Uusi pelaaja voi liittyä kuukausina 1..(joinClosesAtMonth - 1) (P33). */
   joinClosesAtMonth: number;
@@ -26,8 +42,10 @@ export interface GameParams {
   /** Food storage holds this many months of need; the rest spoils (P27). */
   foodStorageMonths: number;
   startFoodPerVillager: number;
+  /** Wood for the fire at the start; rounded up like prices. */
   startWoodPerVillager: number;
-  startStone: number;
+  /** Ice at the start, enough for the first igloo; rounded up like prices. */
+  startStonePerVillager: number;
 
   harvestYield: number;
   fishYield: number;
@@ -69,6 +87,15 @@ export interface GameParams {
   moodShelterPenalty: number;
   moodRecreation: number;
 
+  weather: WeatherParams;
+  /**
+   * Wood the village fire burns per villager at month end: mild (t > coldAt), cold
+   * (hardAt < t <= coldAt) and hard frost (t <= hardAt).
+   */
+  heatWoodPerVillager: readonly [number, number, number];
+  moodWarm: number;
+  moodColdPenalty: number;
+
   costs: Record<BuildingKind, readonly [Cost, Cost, Cost]>;
   costRounding: number;
 
@@ -78,20 +105,24 @@ export interface GameParams {
    */
   gradeThresholds: Record<GameLength, readonly [number, number, number, number, number]>;
 
+  /** The village gives up when the happiness falls below this after a month end (docs/10 §4b). */
+  lossThreshold: Record<GameLength, number>;
+  /** The class is warned when the happiness is less than this above the loss limit. */
+  lossWarningMargin: number;
+
   map: MapGenParams;
 }
 
 export const DEFAULT_PARAMS: GameParams = {
   months: { normal: 15, short: 10 },
-  startCalendarMonth: 4,
   baseActions: 3,
   joinClosesAtMonth: 4,
 
   foodPerVillager: 6,
   foodStorageMonths: 2,
   startFoodPerVillager: 6,
-  startWoodPerVillager: 4,
-  startStone: 0,
+  startWoodPerVillager: 2,
+  startStonePerVillager: 4,
 
   harvestYield: 10,
   fishYield: 4,
@@ -125,11 +156,16 @@ export const DEFAULT_PARAMS: GameParams = {
   moodShelterPenalty: 10,
   moodRecreation: 10,
 
+  weather: { mildest: -10, coldest: -35, step: 5, firstMonthColdest: -15, coldAt: -20, hardAt: -30, minHardMonths: 2 },
+  heatWoodPerVillager: [1, 2, 3],
+  moodWarm: 2,
+  moodColdPenalty: 10,
+
   costs: {
     shelter: [
-      { wood: 4, stone: 0 },
-      { wood: 6, stone: 0 },
-      { wood: 6, stone: 3 },
+      { wood: 0, stone: 4 },
+      { wood: 0, stone: 6 },
+      { wood: 3, stone: 6 },
     ],
     school: [
       { wood: 6, stone: 0 },
@@ -153,6 +189,8 @@ export const DEFAULT_PARAMS: GameParams = {
     normal: [-100, -30, 20, 58, 70],
     short: [-70, -25, 10, 23, 31],
   },
+  lossThreshold: { normal: -60, short: -60 },
+  lossWarningMargin: 20,
 
   map: {
     landBase: 12,

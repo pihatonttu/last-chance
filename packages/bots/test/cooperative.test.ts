@@ -16,8 +16,18 @@ const FREE = [
   { wood: 0, stone: 0 },
 ] as const;
 
+/** Shelter prices from before igloos cost ice, for the tests about gathering wood. */
+const WOODEN_SHELTERS = [
+  { wood: 4, stone: 0 },
+  { wood: 6, stone: 0 },
+  { wood: 6, stone: 3 },
+] as const;
+
+/** These tests are about the bot's choices, so their villages never give up (docs/10-arktinen.md §4b). */
+const NEVER_LOST = { normal: -Infinity, short: -Infinity };
+
 function newGame(params: GameParams = DEFAULT_PARAMS, players = ['a', 'b', 'c']) {
-  const game = new Game({ seed: 1, length: 'normal', terrain: TERRAIN, params });
+  const game = new Game({ seed: 1, length: 'normal', terrain: TERRAIN, params: { ...params, lossThreshold: NEVER_LOST } });
   for (const p of players) game.addPlayer(p);
   game.start();
   return game;
@@ -53,7 +63,12 @@ describe('cooperative bot actions', () => {
   });
 
   it('gathers wood for the planned building', () => {
-    const params = { ...DEFAULT_PARAMS, foodPerVillager: 0, startWoodPerVillager: 0 };
+    const params = {
+      ...DEFAULT_PARAMS,
+      foodPerVillager: 0,
+      startWoodPerVillager: 0,
+      costs: { ...DEFAULT_PARAMS.costs, shelter: WOODEN_SHELTERS },
+    };
     const game = newGame(params);
     expect(plannedBuilding(game)?.id).toBe('shelter-1');
     expect(nextKind(game)).toBe('chop');
@@ -101,8 +116,9 @@ describe('cooperative bot actions', () => {
   it('treats six level-1 shelters as shelter for everyone (no floating-point extra shelter)', () => {
     const params = { ...DEFAULT_PARAMS, costs: { shelter: FREE, school: FREE, workshop: FREE, gathering: FREE } };
     const game = newGame(params);
-    for (let i = 0; i < 5; i++) voteAll(game, 'shelter-1'); // every revealed meadow
-    voteAll(game, 'shelter-2'); // 4 x 1/6 + 1/3
+    for (let i = 0; i < 4; i++) voteAll(game, 'shelter-1'); // every revealed meadow but the landing (the fire)
+    voteAll(game, 'shelter-2');
+    voteAll(game, 'shelter-2'); // 2 x 1/3 + 2 x 1/6
     expect(game.shelterShare()).toBeLessThan(1); // 0.9999999999999999
     expect(game.shelterCapacity()).toBe(3);
     expect(plannedBuilding(game)?.id).toBe('school-1');
@@ -141,7 +157,8 @@ describe('cooperative bot actions', () => {
     const params = {
       ...DEFAULT_PARAMS,
       foodPerVillager: 0,
-      costs: { ...DEFAULT_PARAMS.costs, school: FREE },
+      startWoodPerVillager: 4,
+      costs: { ...DEFAULT_PARAMS.costs, shelter: WOODEN_SHELTERS, school: FREE },
     };
     const game = new Game({ seed: 1, length: 'normal', params, terrain: { width: 7, height: 7, terrain, landing: { x: 3, y: 5 } } });
     for (const p of ['a', 'b', 'c']) game.addPlayer(p);

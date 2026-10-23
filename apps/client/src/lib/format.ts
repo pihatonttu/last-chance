@@ -94,6 +94,10 @@ export function tickerText(event: TickerEvent): string {
       return t('ticker.built', { name: optionName({ id: event.option }) });
     case 'food-short':
       return t('ticker.food-short', { missing: event.missing });
+    case 'hard-frost-coming':
+      return t('ticker.hard-frost-coming', { temperature: event.temperature });
+    case 'wood-short':
+      return t('ticker.wood-short', { missing: event.missing });
     default:
       return t(`ticker.${event.kind}`);
   }

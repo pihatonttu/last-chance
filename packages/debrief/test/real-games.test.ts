@@ -42,9 +42,12 @@ describe.each(CASES)('a real bot game: $seed', (c) => {
   const d = buildDebrief(game, labels, NOW);
   const actionEntries = game.log.filter((e) => e.type === 'action');
 
-  it(`plays every month and ends normally (${name(c)})`, () => {
+  it(`plays every month, or until the village gives up, and ends normally (${name(c)})`, () => {
+    const limit = game.params.lossThreshold[c.length];
+    const lostIn = game.reports.findIndex((r) => r.happiness < limit);
+    expect(d.lost).toBe(lostIn >= 0);
     expect(d.monthsPlayed).toBe(game.reports.length);
-    expect(d.monthsPlayed).toBe(d.totalMonths);
+    expect(d.monthsPlayed).toBe(lostIn >= 0 ? lostIn + 1 : d.totalMonths);
     expect(d.totalMonths).toBe(game.totalMonths);
     expect(d.length).toBe(c.length);
     expect(d.endedEarly).toBe(false);

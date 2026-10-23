@@ -18,23 +18,22 @@ export interface QuestionFacts {
   actions: GroupCounts;
   unused: number;
   springFoundMonth: number | null;
-  /** Winter months among the months played (docs/09 §3.4). */
-  winterMonths: readonly number[];
-  /** Every winter month of the game was played. */
-  winterOver: boolean;
-  /** Played winter months with someone hungry. */
-  winterHungryMonths: number;
+  /** Month the village gave up (docs/10-arktinen.md §4b); null when it did not. */
+  lostMonth: number | null;
 }
 
 /**
- * Every question id in priority order. Engagement (unused actions, votes) comes right after
- * hunger: it is the clearest sign of how the class worked together, and in lazy classes
- * it used to be pushed out by four earlier triggers. The general questions fill a quiet
- * game up to three; 'decision-making' is always asked, last.
+ * Every question id in priority order. A lost game asks about it first (docs/10-arktinen.md
+ * §4b). Engagement (unused actions, votes) comes right after hunger and cold: it is the
+ * clearest sign of how the class worked together, and in lazy classes it used to be pushed
+ * out by four earlier triggers. The general questions fill a quiet game up to three;
+ * 'decision-making' is always asked, last. The 'lost', 'cold' and 'warm-all' triggers come
+ * with the debrief's cold crises; until then they never fire.
  */
 export const QUESTION_IDS = [
+  'lost',
   'hunger',
-  'winter-hunger',
+  'cold',
   'unused-actions',
   'low-participation',
   'no-shelter-long',
@@ -45,7 +44,7 @@ export const QUESTION_IDS = [
   'spring-never',
   'spring-late',
   'good-result',
-  'winter-ready',
+  'warm-all',
   'next-time',
   'roles',
   'decision-making',
@@ -107,12 +106,7 @@ function triggered(f: QuestionFacts): Partial<Record<QuestionId, Record<string, 
   const used = totalOf(f.actions);
 
   const hunger = f.crises.filter((c) => c.kind === 'hunger');
-  if (hunger.length > 0) {
-    const params = { month: hunger[0]!.month, people: Math.max(...hunger.map((c) => c.people)) };
-    // The food first running out in winter is a question about getting ready for it.
-    if (f.winterMonths.includes(hunger[0]!.month)) out['winter-hunger'] = params;
-    else out.hunger = params;
-  }
+  if (hunger.length > 0) out.hunger = { month: hunger[0]!.month, people: Math.max(...hunger.map((c) => c.people)) };
 
   if (f.unshelteredMonths >= T.noShelterMonths) out['no-shelter-long'] = { months: f.unshelteredMonths };
 
@@ -154,10 +148,7 @@ export function pickQuestions(f: QuestionFacts): DebriefQuestion[] {
     if (params && picked.length < THRESHOLDS.maxTriggered) picked.push({ id, params });
   }
   // A game ended before the first month gives nothing to talk about beyond decision-making.
-  // A winter got through without hunger is worth talking about before the general questions.
-  const general: readonly QuestionId[] =
-    f.winterOver && f.winterHungryMonths === 0 ? ['winter-ready', ...GENERAL_QUESTIONS] : GENERAL_QUESTIONS;
-  for (const id of f.monthsPlayed > 0 ? general : []) {
+  for (const id of f.monthsPlayed > 0 ? GENERAL_QUESTIONS : []) {
     if (picked.length + 1 >= THRESHOLDS.minQuestions) break;
     picked.push({ id, params: {} });
   }
