@@ -12,9 +12,12 @@ props/: rendered from Survival Kit 2.0, Fantasy Town Kit 2.0, Nature Kit and Pir
         post-processed by tools/art/kenney-props-post.py
 hero.png: the home page's island, composed from grass.png and props/ by tools/art/kenney-hero.py
 
-2026-10-13 (docs/09-uudisasukkaat.md §4): props gathering-1..3 are now the lean-to (laavu),
-the village hall (kylätalo) and the party hall (juhlatalo); props/spring is a pond with a jetty
-(lampi); icons/home.png (a small house) replaces the shelter icon.
+2026-10-13 (docs/09-uudisasukkaat.md §4), partly SUPERSEDED by the 2026-10-23 note below: props
+gathering-1..3 were the lean-to (laavu), the village hall (kylätalo) and the party hall
+(juhlatalo); props/spring was a pond with a jetty (lampi); icons/home.png was a small house.
+Still true: gathering-1 is the lean-to (without its fire) and gathering-2 the village hall.
+No longer true: gathering-3 is now the snow castle, props/spring the hot spring and
+icons/home.png an igloo.
 
 2026-10-23 (docs/10-arktinen.md §9): the arctic island. Everything on land stands in snow and
 there are no separate winter (-snow) pictures. Homes are igloos (shelter-1..3), fields are

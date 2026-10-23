@@ -1,8 +1,12 @@
 # Last Chance: Arctic – napateema
 
-**Tila: suunnitelma, Samun luettavana (2026-10-23).** Rakentuu suunnitelman
-`09-uudisasukkaat.md` päälle (haara `uudisasukkaat`). Toteutus alkaa, kun Samu on hyväksynyt
-tämän dokumentin. Hyväksytyt päätökset kirjataan päätöslokiin (P48–).
+**Tila: toteutettu 2026-10-23.** Samu hyväksyi suunnitelman 2026-10-23. Päätökset ovat
+päätöslokissa (P48–P59), ja ne on viety pelisuunnitteluun (`04-pelisuunnittelu.md`).
+Toteutussuunnitelma: `superpowers/plans/2026-10-23-arktinen.md`. Rakentui suunnitelman
+`09-uudisasukkaat.md` päälle (haara `uudisasukkaat`). Kohdissa §4, §4b ja §5 alkuarvot on
+korvattu simulaattorilla viritetyillä arvoilla: ne ovat tiedostossa
+`packages/rules/src/params.ts`, ja perustelut ovat dokumentissa `05-tasapaino.md`. Muu teksti
+kuvaa suunnitelmaa sellaisena kuin Samu sen hyväksyi.
 
 ## Miksi
 
@@ -162,7 +166,8 @@ nuotion paikka: siihen ei rakenneta, eikä siitä tehdä kasvihuonetta.
 | −20° … −25° | 2 |
 | −30° … −35° | 3 |
 
-Tarve = taulukon luku × *N*. Luvut ovat alkuarvoja ja viritetään simulaattorilla.
+Tarve = taulukon luku × *N*. Luvut ovat alkuarvoja ja viritetään simulaattorilla (viritetyt
+arvot ovat kohdan lopussa).
 
 **Kuukauden vaihteen järjestys:**
 1. Äänestyksen voittaja maksetaan kuten ennenkin.
@@ -181,6 +186,19 @@ Tarve = taulukon luku × *N*. Luvut ovat alkuarvoja ja viritetään simulaattori
 **Äänestyskortti:** jos vaihtoehdon puuhinta on suurempi kuin `puu − tämän kuun nuotion
 tarve`, kortissa lukee punaisella "Nuotiolle ei jää puuta". Äänestää saa silti, ja palvelin
 hyväksyy äänen.
+
+**Viritetyt arvot (2026-10-23).** Taulukon ja mielialakaavan alkuarvot on korvattu näillä
+(`DEFAULT_PARAMS` tiedostossa `packages/rules/src/params.ts`, perustelut `05-tasapaino.md`):
+
+| Asia | Alkuarvo | Viritetty |
+|---|---|---|
+| Nuotion puu per kyläläinen: leuto (−10° … −15°) / kylmä (−20° … −25°) / kova pakkanen (−30° … −35°) | 1 / 2 / 3 | **2 / 4 / 10** |
+| Palelun mielialavaikutus | −max(1, round(10 × palelevat / *N*)) | **−max(1, round(6 × palelevat / *N*))** |
+
+Lämmin kylä saa edelleen **+2** mielialaa. Rajat ovat ennallaan: kylmä alkaa −20°:sta ja kova
+pakkanen −30°:sta. Pakkasen arvonta toteutettiin satunnaiskävelynä viiden asteen askelin.
+Kuukausi 1 on −10° tai −15°. Puuttuvat kovat pakkaskuukaudet tulevat kylmäjaksona pelin
+jälkimmäiselle puoliskolle, aikaisintaan kuukaudeksi 3 (`weather.ts`, `05-tasapaino.md`).
 
 ## 4b. Häviö (Samu 2026-10-23)
 
@@ -218,6 +236,21 @@ Peli pitää pystyä häviämään, jotta pakkanen ja nuotio tuntuvat oikealta u
   - Lopetus tapahtuu sääntömoottorissa kuukauden vaihteen jälkeen, ja palvelin päättää pelin
     kuten opettajan lopetuksessa.
 
+**Viritetyt arvot (2026-10-23).** Häviöraja on **−52** (Normaali, 15 kuukautta) ja **−45**
+(Lyhyt, 10 kuukautta), joten Lyhyellä on oma raja. Alkuarvo oli esimerkkinä −60. Varoitusraja
+on häviöraja + 20 (`lossThreshold` ja `lossWarningMargin` tiedostossa `params.ts`). Arvosanarajat
+(tasot 2–6) viritettiin uudelleen, koska lämpö tuo +2 mielialaa joka kuukausi:
+
+| Peli | Tasojen 2–6 alarajat |
+|---|---|
+| Normaali | −51 / −30 / 20 / 55 / 90 |
+| Lyhyt | −44 / −25 / 0 / 18 / 40 |
+
+Tason 2 raja on yhden pisteen häviörajan yläpuolella. Siksi taso 1 (Leiri rannalla) tarkoittaa,
+että kylä selvisi vain juuri ja juuri: onnellisuus pysyi täsmälleen häviörajalla. Vaikeus
+täyttää taulukon ehdot (15–40 pelaajaa, 40 peliä per rivi): yhteistyö ja sekoitus eivät häviä,
+satunnainen häviää 33–50 %:ssa peleistä, laiska 100 %:ssa sekä vain taidot 98–100 %:ssa.
+
 ## 5. Rakennusaineet ja hinnat
 
 - **Jää** (sisäisesti `stone`) louhitaan jäälouhoksesta, kuten kivi ennen.
@@ -233,6 +266,21 @@ Peli pitää pystyä häviämään, jotta pakkanen ja nuotio tuntuvat oikealta u
   ensimmäisen kuun nuotioon ja vähän yli (alkuarvo 2*N*, viritetään).
 - Koulun, pajan ja kylätalon hinnat ovat kuten nyt. Kivi tarkoittaa jäätä.
 - Kaikki luvut ovat alkuarvoja, ja ne viritetään simulaattorilla (§8).
+
+**Viritetyt arvot (2026-10-23).** Iglujen hinnat, koulun, pajan ja kylätalon hinnat sekä
+`costRounding` (5) ovat ennallaan. Aloitusvarat ja jäälouhos viritettiin
+(`packages/rules/src/params.ts`, perustelut `05-tasapaino.md`):
+
+| Asia | Alkuarvo | Viritetty |
+|---|---|---|
+| Aloitusjää per kyläläinen | 4 | **9** (kaksi ensimmäistä pientä iglua ja vähän yli) |
+| Aloituspuu per kyläläinen | 2 | **3** (ensimmäisen kuun nuotio ja vähän yli) |
+| Jäälouhoksen jäämäärä | 60 | **120** |
+| Louhinnan tuotto täydestä louhoksesta | 8 | **12** |
+| Jäälouhoksen perustus (työtä) | 4 | **2** |
+
+Kartalla on nyt jäätä 54–64 *N*, ja yhteistyö louhii siitä 71–75 %. Jäälouhoksen jäämäärää ei
+sidottu kyläläisten määrään, koska kiinteä 120 riittää kaikille kyläkoille.
 
 ## 6. Näkymät
 
@@ -304,9 +352,14 @@ Muut merkit pysyvät ennallaan.
   - satunnainen palelee usein.
   - häviöt §4b:n taulukon mukaan.
 
+Tulokset ovat dokumentissa `05-tasapaino.md` (osio Napa). Vain taidot ja laiska häviävät lähes
+aina (§4b), joten arvosanaehto 1–2 jää niillä tyhjäksi: niille ei näytetä arvosanaa.
+
 ## 9. Kuvat
 
-Kaikki maalla oleva on lumessa. Lumiruutu (`grass-snow.png`) on ainoa maaruutu.
+Kaikki maalla oleva on lumessa. Maaruutu on `grass.png` itse: päällä on lumi ja sivut ovat
+jäänsiniset. `tools/art/kenney-arctic-block.py` tekee sen Kenneyn vihreästä alkuperäisestä.
+Erillistä lumiruutua ei ole, ja `grass-snow.png` poistettiin.
 
 | Kuva | Tapa |
 |---|---|
@@ -357,7 +410,9 @@ Kesäkuvat ja `icons/home.png`-talo poistetaan. Käyttämättömät kuvat eivät
   30 hengen kylässä tarve on noin 1 900, kun kartalla on noin 840. Viritys saa siksi muuttaa
   kaikkia lukuja tiedostossa `params.ts`, myös louhoksen jäämäärää (esim. per kyläläinen
   P25:n hengessä) ja hintoja. Kartan generoinnin osuudet pysyvät. Jos ehdot eivät täyty
-  pelkillä luvuilla, asia tuodaan Samulle eikä karttaa muuteta hiljaa.
+  pelkillä luvuilla, asia tuodaan Samulle eikä karttaa muuteta hiljaa. Toteutui: ehdot
+  täyttyivät pelkillä luvuilla (aloitusjää, louhoksen jäämäärä ja tuotto, §5), eikä karttaa
+  tarvinnut muuttaa.
 - **Julkaisu:** "valmis ja katselmoitu" tarkoittaa, että:
   - kaikki testit menevät läpi;
   - simulaattorin ehdot täyttyvät;

@@ -30,7 +30,8 @@ luovuttaa (häviö, §4b). Vuodenaikoja ei enää ole. Kaikki luvut viritettiin 
 
 **Luvut olettavat metsänhoidon.** Nuotion puuntarve on viritetty yhteistyöbotilla, joka hoitaa
 metsiään (kohta Bottien muutokset): se kaataa ensin täysimmän metsän eikä raivaa metsää loppuun
-rakennuksia varten. Luokka, joka ei hoida metsiään, palelee enemmän. Ilman metsänhoitoa
+rakennusten puun vuoksi (rakennustilan vuoksi se raivaa yhä ohuimman metsän, ks. Bottien
+muutokset). Luokka, joka ei hoida metsiään, palelee enemmän. Ilman metsänhoitoa
 yhteistyöbotti raivasi 30 hengen kylässä noin 31 metsää 35:stä ja paleli 65–68 %:ssa peleistä
 jo pienemmällä puuntarpeella (2 / 3 / 4).
 
