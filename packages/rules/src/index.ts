@@ -1,7 +1,6 @@
 import { Game, type GameOptions } from './game.ts';
 import { generateTerrain } from './mapgen.ts';
 
-export * from './calendar.ts';
 export * from './game.ts';
 export * from './grid.ts';
 export * from './params.ts';
