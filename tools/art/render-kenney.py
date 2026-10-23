@@ -15,9 +15,9 @@ Camera and light are fixed to the look of the Kenney "Tower Defense" isometric t
 - 2:1 dimetric orthographic view (30 degrees down, 45 degrees around), a 1 x 1 tile is
   2 * 132 px wide (rendered at twice the 2D tiles' size for sharper zoom);
 - flat albedo on top faces, left faces at 89 % and right faces at 68 % brightness
-  (measured from grass.png), no cast shadows, no specular highlights.
+  (measured from the Tower Defense grass block), no cast shadows, no specular highlights.
 
-A sprite with "snow": true gets snow on its upward faces (winter variants). A part with
+A sprite with "snow": true gets snow on its upward faces (the arctic island). A part with
 "snow": false keeps its colours: what is under glass, hot, or made of snow already.
 """
 import json

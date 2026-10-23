@@ -1,13 +1,24 @@
 Map art by Kenney (www.kenney.nl), CC0 1.0 - see LICENSE-kenney.txt.
 
-grass.png: Tower Defense (isometric), copied by tools/art/kenney-assets.py
+grass.png: Tower Defense (isometric) land block, copied by tools/art/kenney-assets.py, then made
+        arctic (snow on top, ice-blue sides) by tools/art/kenney-arctic-block.py from that
+        green original
 clouds/: Background Elements Remastered, copied by tools/art/kenney-assets.py
-icons/: rendered from the same kits by tools/art/render-kenney.py with tools/art/kenney-icons.json,
-        cropped by tools/art/kenney-icons-post.py
+icons/: rendered from the same kits and our own models by tools/art/render-kenney.py with
+        tools/art/kenney-icons.json, cropped by tools/art/kenney-icons-post.py
 props/: rendered from Survival Kit 2.0, Fantasy Town Kit 2.0, Nature Kit and Pirate Kit (3D)
+        and our own models (tools/art/own/*.glb, built by tools/art/own-models.py)
         by tools/art/render-kenney.py with tools/art/kenney-props.json (from kenney-props-spec.py),
         post-processed by tools/art/kenney-props-post.py
+hero.png: the home page's island, composed from grass.png and props/ by tools/art/kenney-hero.py
 
 2026-10-13 (docs/09-uudisasukkaat.md §4): props gathering-1..3 are now the lean-to (laavu),
 the village hall (kylätalo) and the party hall (juhlatalo); props/spring is a pond with a jetty
 (lampi); icons/home.png (a small house) replaces the shelter icon.
+
+2026-10-23 (docs/10-arktinen.md §9): the arctic island. Everything on land stands in snow and
+there are no separate winter (-snow) pictures. Homes are igloos (shelter-1..3), fields are
+greenhouses (field-0..3), forests are snowy spruces and pines, rocks are glacier ice and the
+quarry an ice quarry, the spring is a hot spring with steam, gathering-3 is a snow castle and
+props/fire is the village fire on the landing. Icons: stone is an ice block, home an igloo,
+ship an icebreaker.

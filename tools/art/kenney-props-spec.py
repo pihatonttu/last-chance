@@ -155,8 +155,9 @@ def workshop(level):
 
 
 def gathering(level):
-    if level == 1:  # Laavu: a lean-to with logs to sit on; the village fire burns elsewhere
-        return [part(S + 'tent-canvas-half', (-0.14, 0.16), 0.85, 45),
+    if level == 1:  # Laavu: a lean-to with logs to sit on; the village fire burns elsewhere.
+        # The sloping canvas sheds its snow: white, it would read as a bare frame on the snow.
+        return [part(S + 'tent-canvas-half', (-0.14, 0.16), 0.85, 45, snow=False),
                 part(N + 'log_large', (0.32, 0.04), 0.22, 0), part(N + 'log_large', (-0.04, -0.34), 0.22, 90)]
     if level == 2:  # Kylätalo: a wooden village hall with a wide door and benches outside
         return [*house(0.42, 'roof-gable', door='wall-wood-doorway-square-wide', at=(-0.08, 0.08)),
