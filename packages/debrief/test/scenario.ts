@@ -65,6 +65,9 @@ export const SCENARIO_PARAMS: GameParams = {
   plowWork: 3,
   maxSkillLevel: 4,
   skillProgressPerLevel: 3,
+  heatWoodPerVillager: [1, 2, 3],
+  moodColdPenalty: 10,
+  lossThreshold: { normal: -60, short: -60 },
   costs: { shelter: FREE, school: FREE, workshop: FREE, gathering: FREE },
 };
 
