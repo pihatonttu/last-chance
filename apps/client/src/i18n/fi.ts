@@ -562,7 +562,9 @@ export const fi = {
   'help.1': 'Luo peli ja näytä aula projektorilla. Oppilaat liittyvät koodilla tai QR-koodilla.',
   'help.2': 'Aloita peli, kun kaikki ovat mukana. Voit pitää taukoja ja lisätä aikaa.',
   'help.3': 'Kuukauden lopuksi luokka pitää kyläkokouksen ja äänestää rakennuksesta. Tasapelissä mitään ei rakenneta.',
-  'help.4': 'Pelin jälkeen saat jälkipuinnin, jonka voit tulostaa. Käykää keskustelukysymykset yhdessä läpi.',
+  'help.4':
+    'Kylän nuotio tarvitsee joka kuukausi puuta: mitä kovempi pakkanen, sitä enemmän. Jos puu ei riitä, kyläläiset palelevat ja mieliala laskee. Jos onnellisuus putoaa alle rajan, kylä luovuttaa ja peli päättyy, mutta jälkipuinnin saa silti.',
+  'help.5': 'Pelin jälkeen saat jälkipuinnin, jonka voit tulostaa. Käykää keskustelukysymykset yhdessä läpi.',
   'notFound.title': 'Sivua ei löytynyt',
   'notFound.text': 'Osoitetta ei ole olemassa.',
 

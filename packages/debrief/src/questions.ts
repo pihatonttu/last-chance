@@ -103,7 +103,7 @@ export const THRESHOLDS = {
   unusedPercent: 15,
   /** 'low-participation': asked below this percent of possible votes. */
   lowParticipationPercent: 70,
-  /** 'good-result': grade 5 (Kukoistava kylä) or 6 (Saaren paratiisi). */
+  /** 'good-result': grade 5 (Kukoistava kylä) or 6 (Unelmien kylä). */
   goodGrade: 5,
   /** 'spring-late': found after this share of the planned months, i.e. in the last third. */
   springLateAfter: 2 / 3,

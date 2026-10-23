@@ -5,7 +5,6 @@
   import { gaveUp, givingUpSoon, heatOf, temperatureText } from '../lib/heat.ts';
   import { parseOptionId } from '../lib/rules-info.ts';
   import ArtIcon from './ArtIcon.svelte';
-  import Icon from './Icon.svelte';
   import MoodFace from './MoodFace.svelte';
   import PropPicture from './PropPicture.svelte';
 
@@ -64,10 +63,9 @@
       <strong>{fed ? t('summary.food.allFed') : tp('summary.food.hungry', report.food.hungry)}</strong>
     </div>
     {#if heat}
-      <!-- The fire's own picture (props/fire) comes with the arctic art; until then the thermometer. -->
       <div class="tile" class:good={warm} class:bad={!warm}>
         <span class="visually-hidden">{t('summary.heat')}</span>
-        <span class="icon"><Icon name="thermometer" size={64} /><span class="mark" aria-hidden="true">{warm ? '✓' : '✗'}</span></span>
+        <span class="icon"><PropPicture texture="props/fire" size={64} /><span class="mark" aria-hidden="true">{warm ? '✓' : '✗'}</span></span>
         <strong>{warm ? t('summary.heat.warm') : tp('summary.heat.cold', heat.cold)}</strong>
       </div>
     {/if}

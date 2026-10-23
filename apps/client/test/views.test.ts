@@ -3,7 +3,7 @@
  * read on the end screen, the month summary, the vote cards, the top bar, the fire popup,
  * the ticker and the debrief (docs/10-arktinen.md §4, §4b, §6).
  */
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { render } from 'svelte/server';
 import type { DebriefData } from '@saari/debrief';
 import type { MonthReport, VoteOption } from '@saari/rules';
@@ -81,6 +81,12 @@ describe('month summary', () => {
     expect(shown).toContain('Lämpö: −4');
     expect(shown).not.toContain('luovuttamassa');
     expect(shown).toContain('Seuraava kuukausi alkaa pian.');
+  });
+
+  it("draws the warmth tile with the village fire's own picture, not the thermometer", () => {
+    const { body } = render(MonthSummary, { props: { report: monthReport(), lossThreshold: -60, lastMonth: false } });
+    expect(body).toContain('art/kenney/props/fire.png');
+    expect(body).not.toContain('stroke="#3d5566"');
   });
 
   it('says everyone was warm when nobody was cold', () => {
@@ -303,5 +309,33 @@ describe('debrief', () => {
     expect(shown).not.toContain('°');
     // "–" is drawn; a screen reader hears that nothing is known.
     expect(body).toMatch(/<span class="visually-hidden">Ei tietoa<\/span>/);
+  });
+});
+
+describe('help page', () => {
+  /** The page sits in the router's shell, which reads the browser's location when it loads. */
+  async function helpBody(): Promise<string> {
+    const { default: Help } = await import('../src/views/Help.svelte');
+    return render(Help, { props: {} }).body;
+  }
+
+  beforeAll(() => {
+    vi.stubGlobal('location', { pathname: '/ohje', search: '', origin: 'http://localhost' });
+    vi.stubGlobal('addEventListener', () => {});
+  });
+  afterAll(() => vi.unstubAllGlobals());
+
+  it('tells the teacher about the fire, the frost and that the village can give up', async () => {
+    const shown = text(await helpBody());
+    expect(shown).toContain('Kylän nuotio tarvitsee joka kuukausi puuta');
+    expect(shown).toContain('kylä luovuttaa ja peli päättyy, mutta jälkipuinnin saa silti');
+  });
+
+  it('keeps the steps in order: the vote, the fire, then the debrief', async () => {
+    const steps = [...(await helpBody()).matchAll(/<li>([\s\S]*?)<\/li>/g)].map((m) => text(m[1]!));
+    expect(steps).toHaveLength(5);
+    expect(steps[2]).toContain('äänestää');
+    expect(steps[3]).toContain('nuotio');
+    expect(steps[4]).toContain('jälkipuinnin');
   });
 });

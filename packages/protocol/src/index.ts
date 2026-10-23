@@ -21,7 +21,13 @@ import type {
 } from '@saari/rules';
 import type { BadgeId, DebriefData } from '@saari/debrief';
 
-/** 2: seasons and badges (docs/09-uudisasukkaat.md); tabs from before must reload. */
+/**
+ * 2: the settlers' badges (`badges` message) and the arctic fields: the frost
+ * (`temperature`, `forecast`), the village fire's wood (`heatNeed`), the loss limit
+ * (`lossThreshold`), `GameResult.lost` and the `hard-frost-coming`, `wood-short` and
+ * `giving-up` ticker events (docs/09-uudisasukkaat.md, docs/10-arktinen.md); tabs from
+ * before must reload.
+ */
 export const PROTOCOL_VERSION = 2;
 
 // ------------------------------------------------------------------ HTTP
