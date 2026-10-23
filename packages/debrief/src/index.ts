@@ -1,9 +1,9 @@
-import type { Game, LogEntry } from '@saari/rules';
+import type { Game, LogEntry, MonthReport } from '@saari/rules';
 import { copyCounts, countByMonth, shareOf, sumCounts } from './actions.ts';
 import { findCrises } from './crises.ts';
 import { buildPlayers, pseudonym } from './players.ts';
 import { pickQuestions } from './questions.ts';
-import type { DebriefData, DebriefLabel } from './types.ts';
+import type { DebriefCrisis, DebriefData, DebriefLabel } from './types.ts';
 import { collectVotes, participation, voteOutcomes } from './votes.ts';
 
 export * from './types.ts';
@@ -34,6 +34,12 @@ function endedEarly(log: readonly LogEntry[]): boolean {
 function lostMonth(log: readonly LogEntry[]): number | null {
   const end = gameEnded(log);
   return end?.lost ? end.month : null;
+}
+
+/** The frost of the first month the fire ran out (the first cold crisis); null when nobody was ever cold. */
+function coldTemperature(reports: readonly MonthReport[], crises: readonly DebriefCrisis[]): number | null {
+  const first = crises.find((c) => c.kind === 'cold');
+  return first ? (reports.find((r) => r.month === first.month)?.heat.temperature ?? null) : null;
 }
 
 /**
@@ -97,6 +103,7 @@ export function buildDebrief(game: Game, labels: readonly DebriefLabel[], now: D
       unused,
       springFoundMonth: spring,
       lostMonth: lost,
+      coldTemperature: coldTemperature(reports, crises),
     }),
   };
 }

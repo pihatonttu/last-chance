@@ -1,3 +1,4 @@
+import { playGame } from '@saari/bots';
 import { describe, expect, it } from 'vitest';
 import { buildDebrief, pseudonymize, type DebriefData, type DebriefLabel } from '../src/index.ts';
 import { FALLBACK_COLOR } from '../src/players.ts';
@@ -197,8 +198,65 @@ describe('buildDebrief on a game that has not ended', () => {
   });
 });
 
+describe('buildDebrief on a lost bot game', () => {
+  // A class that only studies leaves the village hungry and cold, so with seed 1 it gives up
+  // (recorded 2026-10-23: month 8 of 15 with 5 villagers, the fire out in the last month).
+  const game = playGame({ seed: 1, villagers: 5, length: 'normal', mix: { skillsOnly: 1 } });
+  const d = buildDebrief(game, [], NOW);
+
+  it('a lost bot game asks lost first and stores lost: true', () => {
+    expect(game.lost, 'the skillsOnly class must lose with seed 1').toBe(true);
+    expect(d.lost).toBe(true);
+    expect(d.endedEarly).toBe(false);
+    expect(d.monthsPlayed).toBeLessThan(d.totalMonths);
+    expect(d.questions[0]).toEqual({ id: 'lost', params: { month: d.monthsPlayed } });
+    expect(d.questions.filter((q) => q.id === 'lost')).toHaveLength(1);
+    expect(d.questions.at(-1)?.id).toBe('decision-making');
+
+    const stored = pseudonymize(d);
+    expect(stored.lost).toBe(true);
+    expect(stored.questions[0]).toEqual({ id: 'lost', params: { month: d.monthsPlayed } });
+    expect(JSON.parse(JSON.stringify(stored))).toEqual(stored);
+  });
+
+  it('shows the cold crisis and asks about it with the frost of that month', () => {
+    const crisis = d.crises.find((c) => c.kind === 'cold');
+    expect(crisis, 'the fire runs out before the village gives up').toBeDefined();
+    const month = d.months.find((m) => m.month === crisis!.month)!;
+    expect(month.heat.cold).toBeGreaterThan(0);
+    expect(d.questions.find((q) => q.id === 'cold')).toEqual({
+      id: 'cold',
+      params: { month: crisis!.month, people: crisis!.people, temperature: month.heat.temperature },
+    });
+    expect(d.questions.map((q) => q.id)).not.toContain('warm-all');
+  });
+});
+
+describe('buildDebrief on a game that was not lost', () => {
+  const d = buildDebrief(scriptedGame(), LABELS, NOW);
+
+  it('stores lost: false, asks no loss question and keeps the field when pseudonymised', () => {
+    expect(d.lost).toBe(false);
+    expect(d.questions.map((q) => q.id)).not.toContain('lost');
+    expect(pseudonymize(d).lost).toBe(false);
+  });
+
+  it('asks how the wood was shared when nobody was cold', () => {
+    expect(d.months.every((m) => m.heat.cold === 0)).toBe(true);
+    expect(d.crises.map((c) => c.kind)).not.toContain('cold');
+    expect(d.questions.map((q) => q.id)).toContain('warm-all');
+  });
+});
+
 describe('pseudonymize', () => {
   const named = buildDebrief(scriptedGame(), LABELS, NOW);
+
+  it('keeps the lost field and leaves it out of a debrief stored before the arctic rules', () => {
+    expect(pseudonymize({ ...named, lost: true }).lost).toBe(true);
+    const old: DebriefData = { ...named };
+    delete old.lost;
+    expect('lost' in pseudonymize(old)).toBe(false);
+  });
 
   it('replaces every label with "Pelaaja N" in list order and marks the debrief as not named', () => {
     const stored = pseudonymize(named);

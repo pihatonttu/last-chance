@@ -1,3 +1,4 @@
+import type { MonthReport } from '@saari/rules';
 import { describe, expect, it } from 'vitest';
 import { findCrises } from '../src/crises.ts';
 import { report, reports } from './fakes.ts';
@@ -40,6 +41,37 @@ describe('findCrises', () => {
       { kind: 'hunger', month: 6, people: 2, resolvedMonth: null },
       { kind: 'no-shelter', month: 6, people: 1, resolvedMonth: null },
     ]);
+  });
+
+  it('finds cold crises like hunger', () => {
+    const r = reports([{}, { cold: 2 }, { cold: 7 }, { cold: 3 }, {}, { cold: 1 }, { cold: 4 }]);
+    expect(findCrises(r)).toEqual([
+      { kind: 'cold', month: 2, people: 7, resolvedMonth: 5 },
+      { kind: 'cold', month: 6, people: 4, resolvedMonth: null },
+    ]);
+  });
+
+  it('puts cold between hunger and shelter when crises start in the same month', () => {
+    const r = reports([{ unsheltered: 3, cold: 2, hungry: 1 }, { unsheltered: 3 }, {}]);
+    expect(findCrises(r)).toEqual([
+      { kind: 'hunger', month: 1, people: 1, resolvedMonth: 2 },
+      { kind: 'cold', month: 1, people: 2, resolvedMonth: 2 },
+      { kind: 'no-shelter', month: 1, people: 3, resolvedMonth: 3 },
+    ]);
+  });
+
+  it('tracks cold independently of hunger and shelter', () => {
+    const r = reports([{ hungry: 4 }, { hungry: 4, cold: 5 }, { cold: 5 }, {}]);
+    expect(findCrises(r)).toEqual([
+      { kind: 'hunger', month: 1, people: 4, resolvedMonth: 3 },
+      { kind: 'cold', month: 2, people: 5, resolvedMonth: 4 },
+    ]);
+  });
+
+  it('counts a report without heat as nobody cold (debriefs stored before the arctic rules)', () => {
+    const r = reports([{ hungry: 2 }, {}, {}]);
+    for (const month of r) delete (month as Partial<MonthReport>).heat;
+    expect(findCrises(r)).toEqual([{ kind: 'hunger', month: 1, people: 2, resolvedMonth: 2 }]);
   });
 
   it('uses the month numbers of the reports', () => {

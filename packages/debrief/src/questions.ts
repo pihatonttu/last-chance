@@ -20,6 +20,8 @@ export interface QuestionFacts {
   springFoundMonth: number | null;
   /** Month the village gave up (docs/10-arktinen.md §4b); null when it did not. */
   lostMonth: number | null;
+  /** The frost of the first month the fire ran out of wood; null when nobody was ever cold. */
+  coldTemperature: number | null;
 }
 
 /**
@@ -27,8 +29,9 @@ export interface QuestionFacts {
  * §4b). Engagement (unused actions, votes) comes right after hunger and cold: it is the
  * clearest sign of how the class worked together, and in lazy classes it used to be pushed
  * out by four earlier triggers. The general questions fill a quiet game up to three;
- * 'decision-making' is always asked, last. The 'lost', 'cold' and 'warm-all' triggers come
- * with the debrief's cold crises; until then they never fire.
+ * 'decision-making' is always asked, last. 'warm-all' is the fire's general question: a game
+ * where nobody was ever cold asks it in place of the others, so a warm game seldom gets as far
+ * as 'roles'.
  */
 export const QUESTION_IDS = [
   'lost',
@@ -105,8 +108,16 @@ function triggered(f: QuestionFacts): Partial<Record<QuestionId, Record<string, 
   const out: Partial<Record<QuestionId, Record<string, number>>> = {};
   const used = totalOf(f.actions);
 
+  if (f.lostMonth !== null) out.lost = { month: f.lostMonth };
+
   const hunger = f.crises.filter((c) => c.kind === 'hunger');
   if (hunger.length > 0) out.hunger = { month: hunger[0]!.month, people: Math.max(...hunger.map((c) => c.people)) };
+
+  // The first fire crisis only: the month it began, the most cold in one month of it, that month's frost.
+  const cold = f.crises.find((c) => c.kind === 'cold');
+  if (cold && f.coldTemperature !== null) {
+    out.cold = { month: cold.month, people: cold.people, temperature: f.coldTemperature };
+  }
 
   if (f.unshelteredMonths >= T.noShelterMonths) out['no-shelter-long'] = { months: f.unshelteredMonths };
 
@@ -132,6 +143,9 @@ function triggered(f: QuestionFacts): Partial<Record<QuestionId, Record<string, 
   if (f.votesPossible > 0 && voted < T.lowParticipationPercent) out['low-participation'] = { percent: voted };
 
   if (f.grade >= T.goodGrade) out['good-result'] = { grade: f.grade };
+
+  // A cold crisis is a cold month, so no crisis means the fire burned in every month played.
+  if (f.monthsPlayed > 0 && !f.crises.some((c) => c.kind === 'cold')) out['warm-all'] = {};
   return out;
 }
 

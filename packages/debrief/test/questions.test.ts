@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { pickQuestions, QUESTION_IDS, THRESHOLDS, type QuestionFacts } from '../src/questions.ts';
 import type { QuestionId } from '../src/types.ts';
 
-/** A game where nothing stands out: only the always-on question is asked. */
+/** A warm game where nothing stands out: the always-on question, 'warm-all' and a general one. */
 function quiet(overrides: Partial<QuestionFacts> = {}): QuestionFacts {
   return {
     totalMonths: 15,
@@ -18,6 +18,7 @@ function quiet(overrides: Partial<QuestionFacts> = {}): QuestionFacts {
     unused: 0,
     springFoundMonth: 3,
     lostMonth: null,
+    coldTemperature: null,
     ...overrides,
   };
 }
@@ -26,17 +27,22 @@ const ids = (facts: QuestionFacts) => pickQuestions(facts).map((q) => q.id);
 const find = (facts: QuestionFacts, id: QuestionId) => pickQuestions(facts).find((q) => q.id === id);
 
 describe('pickQuestions', () => {
-  it('fills a quiet game up to three questions with the general ones', () => {
+  it('fills a quiet game up to three questions: how the wood was shared, then a general one', () => {
     expect(pickQuestions(quiet())).toEqual([
+      { id: 'warm-all', params: {} },
       { id: 'next-time', params: {} },
-      { id: 'roles', params: {} },
       { id: 'decision-making', params: {} },
     ]);
   });
 
+  it('fills a game with one cold crisis up to three with a general question', () => {
+    const facts = quiet({ crises: [{ kind: 'cold', month: 7, people: 3, resolvedMonth: 8 }], coldTemperature: -30 });
+    expect(ids(facts)).toEqual(['cold', 'next-time', 'decision-making']);
+  });
+
   it('adds only as many general questions as needed to reach three', () => {
-    expect(ids(quiet({ grade: 5 }))).toEqual(['good-result', 'next-time', 'decision-making']);
-    expect(ids(quiet({ grade: 5, ties: 2 }))).toEqual(['ties', 'good-result', 'decision-making']);
+    expect(ids(quiet({ grade: 5 }))).toEqual(['good-result', 'warm-all', 'decision-making']);
+    expect(ids(quiet({ grade: 5, ties: 2 }))).toEqual(['ties', 'good-result', 'warm-all', 'decision-making']);
   });
 
   it('asks about engagement (unused actions, votes) right after hunger', () => {
@@ -63,6 +69,64 @@ describe('pickQuestions', () => {
     expect(ids(quiet({ crises: [{ kind: 'no-shelter', month: 1, people: 3, resolvedMonth: 2 }] }))).not.toContain('hunger');
   });
 
+  it('asks about the loss first', () => {
+    const facts = quiet({
+      lostMonth: 8,
+      crises: [
+        { kind: 'hunger', month: 4, people: 6, resolvedMonth: null },
+        { kind: 'cold', month: 6, people: 3, resolvedMonth: null },
+      ],
+      coldTemperature: -20,
+      unused: 50,
+      votesCast: 10,
+      unshelteredMonths: 9,
+    });
+    // Four triggered questions at most: the loss takes the first place, the later ones give way.
+    expect(ids(facts)).toEqual(['lost', 'hunger', 'cold', 'unused-actions', 'decision-making']);
+    expect(find(facts, 'lost')).toEqual({ id: 'lost', params: { month: 8 } });
+    // Alone, it still comes before the general questions.
+    expect(ids(quiet({ lostMonth: 3 }))).toEqual(['lost', 'warm-all', 'decision-making']);
+    expect(ids(quiet())).not.toContain('lost');
+  });
+
+  it('asks about the first cold month with its temperature', () => {
+    const facts = quiet({
+      crises: [
+        { kind: 'no-shelter', month: 1, people: 10, resolvedMonth: 3 },
+        { kind: 'cold', month: 5, people: 4, resolvedMonth: 6 },
+        { kind: 'cold', month: 9, people: 9, resolvedMonth: null },
+      ],
+      coldTemperature: -25,
+    });
+    expect(find(facts, 'cold')).toEqual({ id: 'cold', params: { month: 5, people: 4, temperature: -25 } });
+    expect(ids(facts)).not.toContain('warm-all');
+
+    // Right after hunger, before the engagement questions.
+    const both = quiet({
+      crises: [
+        { kind: 'hunger', month: 4, people: 6, resolvedMonth: null },
+        { kind: 'cold', month: 5, people: 4, resolvedMonth: null },
+      ],
+      coldTemperature: -35,
+      unused: 50,
+    });
+    expect(ids(both)).toEqual(['hunger', 'cold', 'unused-actions', 'decision-making']);
+
+    // Hunger or shelter crises alone do not ask about the fire.
+    expect(ids(quiet({ crises: [{ kind: 'hunger', month: 2, people: 3, resolvedMonth: 3 }] }))).not.toContain('cold');
+  });
+
+  it('asks how wood was shared when nobody was ever cold', () => {
+    expect(find(quiet(), 'warm-all')).toEqual({ id: 'warm-all', params: {} });
+    // Other crises do not matter, only the fire does.
+    const hungry = quiet({ crises: [{ kind: 'hunger', month: 2, people: 3, resolvedMonth: 3 }] });
+    expect(ids(hungry)).toEqual(['hunger', 'warm-all', 'decision-making']);
+    // Not once the fire ran out, and not in a game ended before its first month.
+    const cold = quiet({ crises: [{ kind: 'cold', month: 12, people: 1, resolvedMonth: null }], coldTemperature: -30 });
+    expect(ids(cold)).not.toContain('warm-all');
+    expect(ids(quiet({ monthsPlayed: 0 }))).not.toContain('warm-all');
+  });
+
   it(`asks about shelter after ${THRESHOLDS.noShelterMonths} months with someone unsheltered`, () => {
     expect(find(quiet({ unshelteredMonths: 6 }), 'no-shelter-long')).toEqual({ id: 'no-shelter-long', params: { months: 6 } });
     expect(ids(quiet({ unshelteredMonths: 5 }))).not.toContain('no-shelter-long');
@@ -77,9 +141,9 @@ describe('pickQuestions', () => {
     expect(find(quiet({ emptyMonths: 3 }), 'empty-months')).toEqual({ id: 'empty-months', params: { count: 3 } });
     expect(ids(quiet({ emptyMonths: 2 }))).not.toContain('empty-months');
     // Two of four empty months were ties and the ties question is asked: only two left.
-    expect(ids(quiet({ emptyMonths: 4, ties: 2 }))).toEqual(['ties', 'next-time', 'decision-making']);
+    expect(ids(quiet({ emptyMonths: 4, ties: 2 }))).toEqual(['ties', 'warm-all', 'decision-making']);
     // Three empty months besides the ties: both questions.
-    expect(ids(quiet({ emptyMonths: 5, ties: 2 }))).toEqual(['ties', 'empty-months', 'decision-making']);
+    expect(ids(quiet({ emptyMonths: 5, ties: 2 }))).toEqual(['ties', 'empty-months', 'warm-all', 'decision-making']);
     // One tie is not asked about, so it does not explain anything away.
     expect(find(quiet({ emptyMonths: 3, ties: 1 }), 'empty-months')).toEqual({ id: 'empty-months', params: { count: 3 } });
   });

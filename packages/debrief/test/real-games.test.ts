@@ -25,6 +25,7 @@ const CASES: Case[] = [
   { seed: 8, villagers: 20, length: 'normal', mix: MIXED },
   { seed: 9, villagers: 5, length: 'short', mix: MIXED },
   { seed: 10, villagers: 20, length: 'normal', mix: { skillsOnly: 1 } },
+  { seed: 11, villagers: 5, length: 'normal', mix: { skillsOnly: 1 } },
 ];
 
 const NOW = new Date('2026-10-09T12:00:00.000Z');
@@ -104,7 +105,8 @@ describe.each(CASES)('a real bot game: $seed', (c) => {
     for (const crisis of d.crises) {
       const affected = (month: number) => {
         const r = d.months.find((m) => m.month === month)!;
-        return crisis.kind === 'hunger' ? r.food.hungry : r.shelter.unsheltered;
+        if (crisis.kind === 'hunger') return r.food.hungry;
+        return crisis.kind === 'cold' ? r.heat.cold : r.shelter.unsheltered;
       };
       expect(affected(crisis.month)).toBeGreaterThan(0);
       expect(crisis.people).toBeGreaterThan(0);
@@ -113,6 +115,24 @@ describe.each(CASES)('a real bot game: $seed', (c) => {
     }
     const hungry = d.months.filter((m) => m.food.hungry > 0).length;
     expect(hungry > 0).toBe(d.crises.some((x) => x.kind === 'hunger'));
+    const cold = d.months.filter((m) => m.heat.cold > 0).length;
+    expect(cold > 0).toBe(d.crises.some((x) => x.kind === 'cold'));
+  });
+
+  it('asks the loss, cold and warm-all questions as the game calls for', () => {
+    const ids = d.questions.map((q) => q.id);
+    expect(ids.includes('lost')).toBe(d.lost);
+    expect(d.questions[0]?.id === 'lost').toBe(d.lost === true);
+    if (d.lost) expect(d.questions[0]?.params).toEqual({ month: d.monthsPlayed });
+
+    const crisis = d.crises.find((x) => x.kind === 'cold');
+    const month = d.months.find((m) => m.month === crisis?.month);
+    // lost, hunger and cold rank first, so the cold question always makes the four.
+    expect(d.questions.find((q) => q.id === 'cold')?.params).toEqual(
+      crisis ? { month: crisis.month, people: crisis.people, temperature: month?.heat.temperature } : undefined,
+    );
+    // Nobody cold in any month: the village may be asked how it shared the wood, never when someone was.
+    if (crisis) expect(ids).not.toContain('warm-all');
   });
 
   it('asks 1-5 valid questions with whole-number params, ending with decision-making', () => {
