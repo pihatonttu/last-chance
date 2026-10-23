@@ -133,6 +133,14 @@ describe.each(CASES)('a real bot game: $seed', (c) => {
     );
     // Nobody cold in any month: the village may be asked how it shared the wood, never when someone was.
     if (crisis) expect(ids).not.toContain('warm-all');
+    // It is a general question: asked only in a quiet game (three questions in all), first among the general ones,
+    // and not in a game ended too early to tell.
+    if (ids.includes('warm-all')) {
+      expect(d.questions.length).toBeLessThanOrEqual(3);
+      expect(ids.indexOf('warm-all')).toBeLessThan(ids.indexOf('decision-making'));
+      if (ids.includes('next-time')) expect(ids.indexOf('warm-all')).toBeLessThan(ids.indexOf('next-time'));
+      expect(d.monthsPlayed).toBeGreaterThanOrEqual(Math.ceil(d.totalMonths / 3));
+    }
   });
 
   it('asks 1-5 valid questions with whole-number params, ending with decision-making', () => {

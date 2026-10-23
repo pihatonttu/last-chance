@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { pickQuestions, QUESTION_IDS, THRESHOLDS, type QuestionFacts } from '../src/questions.ts';
 import type { QuestionId } from '../src/types.ts';
 
-/** A warm game where nothing stands out: the always-on question, 'warm-all' and a general one. */
+/** A warm game where nothing stands out: the general questions ('warm-all' first) fill it up to three. */
 function quiet(overrides: Partial<QuestionFacts> = {}): QuestionFacts {
   return {
     totalMonths: 15,
@@ -27,10 +27,19 @@ const ids = (facts: QuestionFacts) => pickQuestions(facts).map((q) => q.id);
 const find = (facts: QuestionFacts, id: QuestionId) => pickQuestions(facts).find((q) => q.id === id);
 
 describe('pickQuestions', () => {
-  it('fills a quiet game up to three questions: how the wood was shared, then a general one', () => {
+  it('fills a quiet, warm game up to three questions: how the wood was shared, then a general one', () => {
     expect(pickQuestions(quiet())).toEqual([
       { id: 'warm-all', params: {} },
       { id: 'next-time', params: {} },
+      { id: 'decision-making', params: {} },
+    ]);
+  });
+
+  it('fills a quiet game that is too short to call warm with the general questions', () => {
+    // One month of fifteen played: nobody was cold, but that says nothing yet.
+    expect(pickQuestions(quiet({ monthsPlayed: 1 }))).toEqual([
+      { id: 'next-time', params: {} },
+      { id: 'roles', params: {} },
       { id: 'decision-making', params: {} },
     ]);
   });
@@ -42,7 +51,7 @@ describe('pickQuestions', () => {
 
   it('adds only as many general questions as needed to reach three', () => {
     expect(ids(quiet({ grade: 5 }))).toEqual(['good-result', 'warm-all', 'decision-making']);
-    expect(ids(quiet({ grade: 5, ties: 2 }))).toEqual(['ties', 'good-result', 'warm-all', 'decision-making']);
+    expect(ids(quiet({ grade: 5, ties: 2 }))).toEqual(['ties', 'good-result', 'decision-making']);
   });
 
   it('asks about engagement (unused actions, votes) right after hunger', () => {
@@ -127,6 +136,21 @@ describe('pickQuestions', () => {
     expect(ids(quiet({ monthsPlayed: 0 }))).not.toContain('warm-all');
   });
 
+  it('asks how wood was shared only once a third of the game was played', () => {
+    // Fifteen planned months: the fifth is the first that counts (like skills-none and spring-never).
+    expect(ids(quiet({ monthsPlayed: 5 }))).toContain('warm-all');
+    expect(ids(quiet({ monthsPlayed: 4 }))).not.toContain('warm-all');
+    expect(ids(quiet({ totalMonths: 10, monthsPlayed: 4 }))).toContain('warm-all');
+    expect(ids(quiet({ totalMonths: 10, monthsPlayed: 3 }))).not.toContain('warm-all');
+  });
+
+  it('is a general question: it fills a quiet game and never comes on top of other triggers', () => {
+    // Two triggered questions are enough, so there is no room for the general ones.
+    expect(ids(quiet({ grade: 5, ties: 2 }))).not.toContain('warm-all');
+    // One triggered question leaves room for exactly one, and it is the fire's, ahead of next-time.
+    expect(ids(quiet({ grade: 5 }))).toEqual(['good-result', 'warm-all', 'decision-making']);
+  });
+
   it(`asks about shelter after ${THRESHOLDS.noShelterMonths} months with someone unsheltered`, () => {
     expect(find(quiet({ unshelteredMonths: 6 }), 'no-shelter-long')).toEqual({ id: 'no-shelter-long', params: { months: 6 } });
     expect(ids(quiet({ unshelteredMonths: 5 }))).not.toContain('no-shelter-long');
@@ -143,7 +167,7 @@ describe('pickQuestions', () => {
     // Two of four empty months were ties and the ties question is asked: only two left.
     expect(ids(quiet({ emptyMonths: 4, ties: 2 }))).toEqual(['ties', 'warm-all', 'decision-making']);
     // Three empty months besides the ties: both questions.
-    expect(ids(quiet({ emptyMonths: 5, ties: 2 }))).toEqual(['ties', 'empty-months', 'warm-all', 'decision-making']);
+    expect(ids(quiet({ emptyMonths: 5, ties: 2 }))).toEqual(['ties', 'empty-months', 'decision-making']);
     // One tie is not asked about, so it does not explain anything away.
     expect(find(quiet({ emptyMonths: 3, ties: 1 }), 'empty-months')).toEqual({ id: 'empty-months', params: { count: 3 } });
   });

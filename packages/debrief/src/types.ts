@@ -45,8 +45,9 @@ export interface DebriefCrisis {
  * - 'unused-actions': percent (share of actions left unused)
  * - 'low-participation': percent (share of possible votes cast)
  * - 'good-result': grade (grade 5 or 6)
- * - 'warm-all': (no params) the fire burned the whole game
- * - 'next-time', 'roles': (no params) general questions that fill a quiet game up to three
+ * - 'warm-all', 'next-time', 'roles': (no params) general questions that fill a quiet game up to
+ *   three, in this order. 'warm-all' (the fire burned the whole game) only where nobody was cold
+ *   and at least a third of the planned months were played.
  * - 'decision-making': (no params) always included last
  */
 export type QuestionId =

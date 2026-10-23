@@ -172,6 +172,9 @@ describe('buildDebrief on a game that has not ended', () => {
     expect(d.players.map((p) => p.label)).toEqual(['Pelaaja 1', 'Pelaaja 2']);
     expect(d.players.map((p) => p.votes)).toEqual([[{ month: 1, option: 'shelter-1' }], [{ month: 1, option: null }]]);
     expect(d.votes.participation).toBe(0.5);
+    // Nobody was cold, but one month of four says nothing about the fire.
+    expect(d.months.every((m) => m.heat.cold === 0)).toBe(true);
+    expect(d.questions.map((q) => q.id)).not.toContain('warm-all');
   });
 
   it('handles a game ended before the first month was over', () => {
@@ -241,10 +244,10 @@ describe('buildDebrief on a game that was not lost', () => {
     expect(pseudonymize(d).lost).toBe(false);
   });
 
-  it('asks how the wood was shared when nobody was cold', () => {
+  it('leaves the general warm-all out when two questions are triggered already', () => {
     expect(d.months.every((m) => m.heat.cold === 0)).toBe(true);
     expect(d.crises.map((c) => c.kind)).not.toContain('cold');
-    expect(d.questions.map((q) => q.id)).toContain('warm-all');
+    expect(d.questions.map((q) => q.id)).toEqual(['unused-actions', 'spring-never', 'decision-making']);
   });
 });
 
