@@ -7,9 +7,12 @@ import { createRng } from './rng.ts';
  * `firstMonthColdest`. A game of 3 months or more gets at least `minHardMonths` hard-frost
  * months. The walk alone reaches them in a few games only, so the missing ones come as a cold
  * spell in the second half of the game (never before month 3): one of the coldest months
- * there, drawn from the seed, turns to `hardAt`, and the months around it cool down so the
- * frost still changes at most one step a month (month 1 stays mild). Then the next, until
- * there are enough; the second one usually lands next to the first.
+ * there, drawn from the seed, turns to `hardAt`, and the months around it cool down so that
+ * from month 2 on the frost changes at most one step a month. Then the next, until there are
+ * enough; the second one usually lands next to the first. Month 1 always stays as drawn, so
+ * in games shorter than 8 months the cold can reach month 2 and drop it more than one step
+ * below month 1 (3–5 months: up to 15°, 6–7 months: up to 10°). The shipped lengths (10 and
+ * 15 months) never do.
  */
 export function generateTemperatures(seed: number, months: number, params: Pick<GameParams, 'weather'>): number[] {
   const W = params.weather;
@@ -35,7 +38,8 @@ export function generateTemperatures(seed: number, months: number, params: Pick<
       const coldest = Math.min(...candidates.map((i) => temperatures[i]!));
       const month = rng.pick(candidates.filter((i) => temperatures[i] === coldest));
       temperatures[month] = W.hardAt;
-      // The cold spreads: d months away it is at most d steps milder (month 1 stays as drawn).
+      // The cold spreads: d months away it is at most d steps milder. Month 1 stays as drawn,
+      // so in a game under 8 months month 2 may end up more than one step colder than it.
       for (let i = 1; i < months; i++) {
         temperatures[i] = Math.min(temperatures[i]!, W.hardAt + Math.abs(i - month) * W.step);
       }

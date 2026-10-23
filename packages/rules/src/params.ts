@@ -121,8 +121,8 @@ export const DEFAULT_PARAMS: GameParams = {
   foodPerVillager: 6,
   foodStorageMonths: 2,
   startFoodPerVillager: 6,
-  startWoodPerVillager: 2,
-  startStonePerVillager: 8,
+  startWoodPerVillager: 3,
+  startStonePerVillager: 9,
 
   harvestYield: 10,
   fishYield: 4,
@@ -157,7 +157,7 @@ export const DEFAULT_PARAMS: GameParams = {
   moodRecreation: 10,
 
   weather: { mildest: -10, coldest: -35, step: 5, firstMonthColdest: -15, coldAt: -20, hardAt: -30, minHardMonths: 2 },
-  heatWoodPerVillager: [2, 4, 8],
+  heatWoodPerVillager: [2, 4, 10],
   moodWarm: 2,
   moodColdPenalty: 6,
 
@@ -186,10 +186,10 @@ export const DEFAULT_PARAMS: GameParams = {
   costRounding: 5,
 
   gradeThresholds: {
-    normal: [-100, -30, 20, 55, 90],
-    short: [-70, -25, 0, 18, 40],
+    normal: [-51, -30, 20, 55, 90],
+    short: [-44, -25, 0, 18, 40],
   },
-  lossThreshold: { normal: -51, short: -45 },
+  lossThreshold: { normal: -52, short: -45 },
   lossWarningMargin: 20,
 
   map: {
