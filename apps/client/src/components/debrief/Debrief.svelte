@@ -3,8 +3,8 @@
   import { formatNumber, LOCALE, t, tp } from '../../i18n/index.ts';
   import { ACTION_GROUPS } from '../../lib/enums.ts';
   import { gradeName, optionName, questionText } from '../../lib/format.ts';
-  import { isWinter } from '@saari/rules';
-  import { PARAMS, parseOptionId } from '../../lib/rules-info.ts';
+  import { heatOf, temperatureText } from '../../lib/heat.ts';
+  import { parseOptionId } from '../../lib/rules-info.ts';
   import ArtIcon from '../ArtIcon.svelte';
   import Icon from '../Icon.svelte';
   import MoodFace from '../MoodFace.svelte';
@@ -35,6 +35,9 @@
   const NEGATIVE = '#e34948';
 
   const months = $derived(debrief.months.map((m) => m.month));
+  /** The village gave up (docs/10-arktinen.md §4b); debriefs stored before the arctic rules have no flag. */
+  const lost = $derived(debrief.lost === true);
+  const lostMonth = $derived(debrief.questions.find((q) => q.id === 'lost')?.params['month'] ?? debrief.monthsPlayed);
   const monthLabel = (m: number) => `${t('debrief.chart.month')} ${m}`;
   const date = $derived(new Date(debrief.createdAt).toLocaleDateString(LOCALE));
   const percentFmt = (v: number) => `${formatNumber(Math.round(v))} %`;
@@ -89,10 +92,18 @@
       {#if debrief.endedEarly}<p class="meta">{t('debrief.endedEarly')}</p>{/if}
     </div>
     <div class="result">
-      <span class="stars" aria-hidden="true">{#each [1, 2, 3, 4, 5, 6] as star (star)}<span class:on={star <= debrief.grade}>★</span>{/each}</span>
-      <span class="grade">{gradeName(debrief.grade)}</span>
-      <span>{t('end.grade', { grade: debrief.grade })} · {t('end.happiness', { n: debrief.happiness })}</span>
+      {#if lost}
+        <!-- As on the end screen: no stars and no level when the village gave up. -->
+        <span>{t('end.happiness', { n: debrief.happiness })}</span>
+      {:else}
+        <span class="stars" aria-hidden="true">{#each [1, 2, 3, 4, 5, 6] as star (star)}<span class:on={star <= debrief.grade}>★</span>{/each}</span>
+        <span class="grade">{gradeName(debrief.grade)}</span>
+        <span>{t('end.grade', { grade: debrief.grade })} · {t('end.happiness', { n: debrief.happiness })}</span>
+      {/if}
     </div>
+    {#if lost}
+      <p class="lost-banner" role="status"><ArtIcon name="ship" size={44} />{t('debrief.lost', { month: lostMonth })}</p>
+    {/if}
     <p class="badge" class:warn={debrief.named}>{debrief.named ? t('debrief.named') : t('debrief.pseudonymous')}</p>
   </header>
 
@@ -103,7 +114,7 @@
         <tbody>
           <tr>
             <th scope="row">{t('debrief.chart.month')}</th>
-            {#each debrief.months as m (m.month)}<td class="month">{m.month}{#if isWinter(m.month, PARAMS)}<Icon name="winter" size={14} />{/if}</td>{/each}
+            {#each debrief.months as m (m.month)}<td class="month" class:lost-month={lost && m.month === lostMonth}>{m.month}</td>{/each}
           </tr>
           <tr>
             <th scope="row">{t('debrief.table.built')}</th>
@@ -125,6 +136,22 @@
               <td>
                 {#if m.food.hungry > 0}<span class="bad" title={tp('debrief.story.hungry', m.food.hungry)}>✗ {m.food.hungry}</span>
                 {:else}<span class="good">✓</span>{/if}
+              </td>
+            {/each}
+          </tr>
+          <tr>
+            <th scope="row"><Icon name="thermometer" size={28} /><span class="visually-hidden">{t('debrief.story.heat')}</span></th>
+            {#each debrief.months as m (m.month)}
+              {@const heat = heatOf(m)}
+              <td>
+                {#if heat === null}
+                  <!-- Stored before the arctic rules: no fire that month. -->
+                  <span class="nothing" title={t('debrief.story.noHeat')}>–</span>
+                {:else}
+                  <span class="temp">{temperatureText(heat.temperature)}</span>
+                  {#if heat.cold > 0}<span class="bad" title={tp('debrief.story.cold', heat.cold)}>✗ {heat.cold}</span>
+                  {:else}<span class="good">✓</span>{/if}
+                {/if}
               </td>
             {/each}
           </tr>
@@ -211,6 +238,8 @@
               <th scope="col">{t('debrief.chart.foodNeed')}</th>
               <th scope="col">{t('debrief.table.hungry')}</th>
               <th scope="col">{t('debrief.table.spoiled')}</th>
+              <th scope="col">{t('debrief.table.temperature')}</th>
+              <th scope="col">{t('debrief.table.cold')}</th>
               <th scope="col">{t('debrief.chart.shelter')}</th>
               <th scope="col">{t('debrief.chart.mood')}</th>
               <th scope="col">{t('debrief.chart.happiness')}</th>
@@ -219,12 +248,15 @@
           </thead>
           <tbody>
             {#each debrief.months as m (m.month)}
+              {@const heat = heatOf(m)}
               <tr>
                 <th scope="row">{m.month}</th>
                 <td>{formatNumber(m.food.before)}</td>
                 <td>{formatNumber(m.food.need)}</td>
                 <td>{formatNumber(m.food.hungry)}</td>
                 <td>{formatNumber(m.food.spoiled)}</td>
+                <td>{heat ? temperatureText(heat.temperature) : '–'}</td>
+                <td>{heat ? formatNumber(heat.cold) : '–'}</td>
                 <td>{formatNumber(m.shelter.capacity)} / {formatNumber(m.villagers)}</td>
                 <td>{formatNumber(m.mood.total)}</td>
                 <td>{formatNumber(m.happiness)}</td>
@@ -404,6 +436,30 @@
   .story .month {
     font-weight: 900;
     color: var(--muted);
+  }
+  .story .lost-month {
+    color: var(--danger);
+  }
+  .story .temp {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #1f5f8f;
+    font-variant-numeric: tabular-nums;
+  }
+  .lost-banner {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0.5rem 0.9rem;
+    border-radius: var(--radius-small);
+    background: var(--danger-soft);
+    border: 3px solid var(--danger);
+    color: var(--danger);
+    font-size: 1.15rem;
+    font-weight: 900;
   }
   .good {
     color: var(--ok);

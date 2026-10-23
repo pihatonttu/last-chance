@@ -4,10 +4,14 @@
   import Icon, { type IconName } from './Icon.svelte';
   import PropPicture from './PropPicture.svelte';
 
-  /** A picture for each badge, from the map's own art where there is one (docs/09 §2.3). */
+  /**
+   * A picture for each badge, from the map's own art where there is one (docs/09 §2.3,
+   * docs/10-arktinen.md §7): the fisher's ice hole, the gardener's greenhouse, the ice
+   * cutter's ice block and the lumberjack's wood.
+   */
   const ART: Record<BadgeId, { icon: ArtIconName } | { prop: string } | { svg: IconName }> = {
     explorer: { svg: 'compass' },
-    fisher: { icon: 'food' },
+    fisher: { svg: 'ice-hole' },
     lumberjack: { icon: 'wood' },
     farmer: { prop: 'props/field-3' },
     stonecutter: { icon: 'stone' },

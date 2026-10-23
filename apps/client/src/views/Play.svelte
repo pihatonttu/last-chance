@@ -275,9 +275,8 @@
             <TilePanel
               tile={selectedTile}
               landing={game.map.landing}
-              villagers={game.village.villagers}
+              village={game.village}
               phase={game.phase}
-              month={game.month}
               {preview}
               pending={pendingAct !== null}
               lastAct={client.lastAct}
@@ -314,7 +313,7 @@
 
         {#if game.phase === 'summary' && game.lastReport}
           <div class="overlay">
-            <div class="card overlay-card"><MonthSummary report={game.lastReport} totalMonths={game.totalMonths} /></div>
+            <div class="card overlay-card"><MonthSummary report={game.lastReport} lossThreshold={game.village.lossThreshold} /></div>
           </div>
         {/if}
       </div>

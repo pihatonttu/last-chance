@@ -8,7 +8,6 @@ import {
   ACTION_KINDS,
   BADGE_IDS,
   BUILDING_KINDS,
-  CALENDAR_MONTHS,
   GRADES,
   ERROR_CODES,
   JOIN_REFUSALS,
@@ -18,7 +17,6 @@ import {
   QUESTION_IDS,
   REFUSALS,
   RESOURCES,
-  SEASONS,
   SKILLS,
   TERRAINS,
   TICKER_KINDS,
@@ -77,8 +75,6 @@ function familyKeys(): string[] {
   for (const kind of ['explore', 'plow', 'build-quarry']) keys.push(`yield.workDone.${kind}`);
   for (const terrain of ['forest', 'field', 'quarry']) keys.push(`tile.stock.${terrain}`);
   for (const work of ['plow', 'quarry']) keys.push(`tile.work.${work}`);
-  for (const season of SEASONS) keys.push(`season.${season}`);
-  for (const month of CALENDAR_MONTHS) keys.push(`month.${month}`);
   for (const badge of BADGE_IDS) keys.push(`badge.${badge}.name`, `badge.${badge}.text`);
   return keys;
 }
@@ -114,14 +110,41 @@ describe('translations', () => {
     expect(unused).toEqual([]);
   });
 
-  it('tells the settlers story and uses the new names (docs/09-uudisasukkaat.md)', () => {
-    expect(t('app.name')).toBe('Last Chance');
+  it('tells the arctic story and uses its names (docs/10-arktinen.md §2, §3)', () => {
+    expect(t('app.name')).toBe('Last Chance: Arctic');
+    expect(t('terrain.field.name')).toBe('Kasvihuone');
+    expect(t('terrain.rock.name')).toBe('Jäätikkö');
+    expect(t('terrain.spring.name')).toBe('Kuuma lähde');
+    expect(t('terrain.meadow.name')).toBe('Lumikenttä');
+    expect(t('terrain.forest.name')).toBe('Lumimetsä');
+    expect(t('bar.stone')).toBe('Jää');
     expect(t('building.gathering.2')).toBe('Kylätalo');
-    expect(t('terrain.spring.name')).toBe('Lampi');
     expect(t('grade.1')).toBe('Leiri rannalla');
     expect(t('vote.title')).toMatch(/^Kyläkokous/);
+    expect(t('end.arrived')).toBe('Vieraat saapuivat revontulijuhlaan!');
+    expect(t('vote.fireCold')).toBe('Nuotiolle ei jää puuta');
+  });
+
+  it('has no summer, calendar or old-island words left anywhere', () => {
     const all = allMessageKeys().map((k) => t(k as never)).join(' | ');
+    // Words that start with these, so "tekevät" (do) is not "kevät" (spring).
+    expect(all).not.toMatch(/(?<!\p{L})(palmu|lähde löytyi|Lampi|teltta|mökki|syksy|kevät|Talvi tulee)/iu);
     expect(all).not.toMatch(/itsek|Oma kehitys|haaksirik|pelastuslaiva|Selviytyjät/i);
+    expect(allMessageKeys().filter((k) => /^(month|season)\./.test(k))).toEqual([]);
+  });
+
+  it('no client file uses the calendar any more (docs/10-arktinen.md §1)', () => {
+    const calendar = /\b(isWinter|seasonOf|monthsUntilWinter|calendarMonth|monthName|SEASONS|CALENDAR_MONTHS)\b/;
+    expect(sources.filter(({ text }) => calendar.test(text)).map(({ path }) => path)).toEqual([]);
+  });
+
+  it('names the badges for the arctic village (docs/10-arktinen.md §7)', () => {
+    expect(t('badge.fisher.text')).toBe('Pilkit kylälle kalaa.');
+    expect(t('badge.farmer.name')).toBe('Puutarhuri');
+    expect(t('badge.farmer.text')).toBe('Hoidit kasvihuoneita.');
+    expect(t('badge.stonecutter.name')).toBe('Jäänhakkaaja');
+    expect(t('badge.stonecutter.text')).toBe('Hankit jäätä kylälle.');
+    expect(t('badge.lumberjack.text')).toBe('Kaadoit puita nuotioon ja rakennuksiin.');
   });
 
   it('question templates fill their params, including the grade name', () => {

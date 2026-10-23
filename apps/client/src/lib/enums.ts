@@ -12,7 +12,6 @@ import type {
   Phase,
   Refusal,
   Resources,
-  Season,
   Skill,
   Terrain,
   VoteRefusal,
@@ -159,11 +158,6 @@ export const ACTION_GROUPS = keys<ActionGroup>({
 
 export const GRADES = [1, 2, 3, 4, 5, 6] as const;
 export type Grade = (typeof GRADES)[number];
-
-export const SEASONS = keys<Season>({ spring: true, summer: true, autumn: true, winter: true });
-
-/** Calendar months 1..12 (1 = January): the month names (docs/09-uudisasukkaat.md §3.1). */
-export const CALENDAR_MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 
 export const BADGE_IDS = keys<BadgeId>({
   explorer: true,
