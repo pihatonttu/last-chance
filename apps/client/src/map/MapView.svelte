@@ -4,7 +4,6 @@
   import type { Coord } from '@saari/rules';
   import { t } from '../i18n/index.ts';
   import type { FloatingEffect } from '../state/reducer.ts';
-  import { art } from './art-style.svelte.ts';
   import type { MapMode, MapRenderer } from './renderer.ts';
 
   interface Props {
@@ -36,7 +35,6 @@
         MapRenderer.create(host, {
           mode,
           reducedMotion,
-          artStyle: art.style,
           onTap: (x, y) => onselect?.(x, y),
           onCameraMoved: (value) => (moved = value),
         }),
@@ -46,7 +44,10 @@
         if (cancelled) r.destroy();
         else renderer = r;
       })
-      .catch(() => (failed = true));
+      .catch((error: unknown) => {
+        console.warn('The map could not be shown', error);
+        failed = true;
+      });
     return () => {
       cancelled = true;
       created?.destroy();
@@ -60,10 +61,6 @@
 
   $effect(() => {
     renderer?.setSelected(selected);
-  });
-
-  $effect(() => {
-    void renderer?.setArtStyle(art.style);
   });
 
   $effect(() => {

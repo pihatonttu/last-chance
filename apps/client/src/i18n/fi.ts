@@ -553,7 +553,4 @@ export const fi = {
   'dev.speed': 'Nopeus ×{n}',
   'dev.addBots': '+5 bottia',
   'dev.phase': '{phase}, kuukausi {month}',
-  'dev.art': 'Kartta: {style}',
-  'dev.art.placeholder': 'paikkamerkit',
-  'dev.art.kenney': 'Kenney',
 } satisfies Record<string, string>;
