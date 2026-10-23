@@ -134,6 +134,8 @@ export function fallbackDebrief(game: Game, labels: readonly DebriefLabel[], now
   const unused = actionsByMonth.reduce((sum, r) => sum + r.unused, 0);
   const grade = game.grade();
   const questions: DebriefQuestion[] = [];
+  // A village that gave up asks about it first (docs/10-arktinen.md §4b).
+  if (game.lost) questions.push({ id: 'lost', params: { month: monthsPlayed } });
   const hunger = crisisList.find((c) => c.kind === 'hunger');
   if (hunger) questions.push({ id: 'hunger', params: { month: hunger.month, people: hunger.people } });
   const unshelteredMonths = reports.filter((r) => r.shelter.unsheltered > 0).length;
@@ -165,7 +167,9 @@ export function fallbackDebrief(game: Game, labels: readonly DebriefLabel[], now
     length: game.length,
     totalMonths: game.totalMonths,
     monthsPlayed,
-    endedEarly: monthsPlayed < game.totalMonths,
+    // A village that gave up played fewer months than planned but did not end early.
+    endedEarly: monthsPlayed < game.totalMonths && !game.lost,
+    lost: game.lost,
     happiness: game.happiness,
     grade,
     villagers: game.villagers,

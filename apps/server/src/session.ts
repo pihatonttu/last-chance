@@ -631,12 +631,27 @@ export class GameSession {
     }
     this.#broadcastGame();
     this.#tickers();
-    if (g.phase === 'action') {
-      const missing = g.foodNeed() - g.resources.food;
-      if (missing > 0) this.#broadcast({ t: 'ticker', event: { kind: 'food-short', missing } });
-    }
+    if (g.phase === 'action') this.#warnAtActionStart();
     this.#scheduleBots();
     this.#checkProgress();
+  }
+
+  /**
+   * What the class should know when a month's action phase starts: the food and the fire
+   * for this month, next month's hard frost and the loss limit (docs/10-arktinen.md §4, §4b, §6).
+   */
+  #warnAtActionStart(): void {
+    const g = this.#game;
+    const say = (event: TickerEvent) => this.#broadcast({ t: 'ticker', event });
+    const foodMissing = g.foodNeed() - g.resources.food;
+    if (foodMissing > 0) say({ kind: 'food-short', missing: foodMissing });
+    const forecast = g.forecast();
+    if (forecast !== null && forecast <= g.params.weather.hardAt) {
+      say({ kind: 'hard-frost-coming', temperature: forecast });
+    }
+    const woodMissing = g.heatNeed() - g.resources.wood;
+    if (woodMissing > 0) say({ kind: 'wood-short', missing: woodMissing });
+    if (g.happiness < g.params.lossThreshold[g.length] + g.params.lossWarningMargin) say({ kind: 'giving-up' });
   }
 
   /** Ends the current phase (timer ran out or everyone is done). */

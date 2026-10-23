@@ -3,7 +3,7 @@ import type { BadgeId, DebriefData } from '@saari/debrief';
 import type { GameView, PlayerSummary, ServerMessage } from '@saari/protocol';
 import { DEFAULT_PARAMS, type PublicTile } from '@saari/rules';
 import { describe, expect, it } from 'vitest';
-import { defaultNaming, GameSession, timingFor, type DebriefSink, type SessionOptions } from '../src/session.ts';
+import { defaultDebriefing, defaultNaming, GameSession, timingFor, type DebriefSink, type SessionOptions } from '../src/session.ts';
 import { FakeScheduler } from './fake-clock.ts';
 import { fakeDebriefing, fakeNaming, FakePeer, seededRandom } from './fixtures.ts';
 
@@ -84,6 +84,12 @@ function hostPlayers(host: FakePeer): PlayerSummary[] {
   }
   return [];
 }
+
+/** No game is ever lost (docs/10-arktinen.md §4b): for tests that play to the last month. */
+const NEVER_LOSE = { ...DEFAULT_PARAMS, lossThreshold: { short: -1_000_000, normal: -1_000_000 } };
+
+/** Every game is lost at its first month end. */
+const ALWAYS_LOSE = { ...DEFAULT_PARAMS, lossThreshold: { short: 1_000, normal: 1_000 } };
 
 function lastGame(peer: FakePeer): GameView {
   for (let i = peer.messages.length - 1; i >= 0; i--) {
@@ -276,12 +282,15 @@ describe('phases and timers', () => {
   });
 
   it('plays to the end and shows every client the result', () => {
-    const { clock, session, host, join, command, saved } = setup();
+    const { clock, session, host, join, command, saved } = setup({ params: NEVER_LOSE });
     const aino = join('Aino');
     const eero = join('Eero');
     command({ type: 'start' });
     clock.advance(MONTH * 10);
     expect(session.game.phase).toBe('ended');
+    // Really the whole game: the village did not give up on the way.
+    expect(session.game.month).toBe(10);
+    expect(session.game.reports).toHaveLength(10);
     for (const peer of [host, aino.peer, eero.peer]) {
       const view = lastGame(peer);
       expect(view.phase).toBe('ended');
@@ -289,7 +298,7 @@ describe('phases and timers', () => {
         happiness: session.game.happiness,
         grade: session.game.grade(),
         early: false,
-        lost: session.game.lost,
+        lost: false,
       });
       expect(view.timer).toEqual({ phaseEndsAt: null, remainingMs: 0, phaseMs: 0, paused: false });
     }
@@ -339,6 +348,139 @@ describe('phases and timers', () => {
     command({ type: 'start' });
     const need = session.game.foodNeed();
     expect(host.last('ticker')?.event).toEqual({ kind: 'food-short', missing: need });
+  });
+
+  it('warns about a hard frost the month before', () => {
+    const { clock, session, host, join, command } = setup({ params: NEVER_LOSE });
+    const aino = join('Aino');
+    host.clear();
+    aino.peer.clear();
+    command({ type: 'start' });
+    const hardAt = session.game.params.weather.hardAt;
+    let warned = 0;
+    let quiet = 0;
+    for (let month = 1; month <= 10; month++) {
+      expect(session.game.month).toBe(month);
+      expect(session.game.phase).toBe('action');
+      const forecast = session.game.forecast();
+      const frost = host.all('ticker').filter((t) => t.event.kind === 'hard-frost-coming');
+      if (forecast !== null && forecast <= hardAt) {
+        expect(frost.map((t) => t.event)).toEqual([{ kind: 'hard-frost-coming', temperature: forecast }]);
+        // The students see the same ticker (it carries no names, P34).
+        expect(aino.peer.all('ticker').filter((t) => t.event.kind === 'hard-frost-coming')).toHaveLength(1);
+        warned += 1;
+      } else {
+        expect(frost).toEqual([]);
+        quiet += 1;
+      }
+      host.clear();
+      aino.peer.clear();
+      clock.advance(MONTH);
+    }
+    expect(session.game.phase).toBe('ended');
+    // A real winter has both, and the last month has no forecast to warn about.
+    expect(warned).toBeGreaterThan(0);
+    expect(quiet).toBeGreaterThan(0);
+  });
+
+  it('warns when the wood will not keep the fire going', () => {
+    const cold = setup({ params: { ...NEVER_LOSE, startWoodPerVillager: 0 } });
+    cold.join('Aino');
+    cold.join('Eero');
+    cold.host.clear();
+    cold.command({ type: 'start' });
+    const need = cold.session.game.heatNeed();
+    expect(need).toBeGreaterThan(0);
+    expect(cold.session.game.resources.wood).toBe(0);
+    const warnings = cold.host.all('ticker').filter((t) => t.event.kind === 'wood-short');
+    expect(warnings.map((t) => t.event)).toEqual([{ kind: 'wood-short', missing: need }]);
+
+    // Wood for the whole month: no warning, and no fuss about food either.
+    const warm = setup({ params: { ...NEVER_LOSE, startWoodPerVillager: 50 } });
+    warm.join('Aino');
+    warm.host.clear();
+    warm.command({ type: 'start' });
+    expect(warm.session.game.resources.wood).toBeGreaterThanOrEqual(warm.session.game.heatNeed());
+    expect(warm.host.all('ticker').filter((t) => t.event.kind === 'wood-short')).toEqual([]);
+  });
+
+  it('warns when the village is close to giving up', () => {
+    // The village starts at happiness 0; it is warned below limit + margin (strictly below).
+    const margin = DEFAULT_PARAMS.lossWarningMargin;
+    const withLimit = (limit: number) =>
+      setup({ params: { ...DEFAULT_PARAMS, lossThreshold: { short: limit, normal: limit } } });
+    const givingUp = (host: FakePeer) => host.all('ticker').filter((t) => t.event.kind === 'giving-up');
+
+    const close = withLimit(-margin + 10);
+    close.join('Aino');
+    close.host.clear();
+    close.command({ type: 'start' });
+    expect(close.session.game.happiness).toBeLessThan(close.session.game.params.lossThreshold.short + margin);
+    expect(givingUp(close.host).map((t) => t.event)).toEqual([{ kind: 'giving-up' }]);
+
+    // Exactly at limit + margin is not close yet.
+    const edge = withLimit(-margin);
+    edge.join('Aino');
+    edge.host.clear();
+    edge.command({ type: 'start' });
+    expect(edge.session.game.happiness).toBe(0);
+    expect(givingUp(edge.host)).toEqual([]);
+
+    // The tuned default limit is far from the starting happiness.
+    const calm = setup();
+    calm.join('Aino');
+    calm.host.clear();
+    calm.command({ type: 'start' });
+    expect(givingUp(calm.host)).toEqual([]);
+  });
+
+  it('a lost game ends after the summary with result.lost, badges and the debrief still come', () => {
+    const { clock, session, host, join, command, saved } = setup({ params: ALWAYS_LOSE });
+    const aino = join('Aino');
+    const eero = join('Eero');
+    command({ type: 'start' });
+    clock.advance(ACTION + VOTE);
+    // The month-end summary still shows: the loss is only noted, the game goes on until it is over.
+    expect(session.game.phase).toBe('summary');
+    expect(session.game.lost).toBe(true);
+    expect(lastGame(host).result).toBeNull();
+    expect(lastGame(aino.peer).lastReport?.month).toBe(1);
+    clock.advance(SUMMARY - 1);
+    expect(session.game.phase).toBe('summary');
+    clock.advance(1);
+    // Then it ends as it is: month 1 and not early (the teacher did not end it).
+    expect(session.game.phase).toBe('ended');
+    expect(session.game.month).toBe(1);
+    for (const peer of [host, aino.peer, eero.peer]) {
+      const view = lastGame(peer);
+      expect(view.phase).toBe('ended');
+      expect(view.lastReport?.month).toBe(1);
+      expect(view.result).toEqual({
+        happiness: session.game.happiness,
+        grade: session.game.grade(),
+        early: false,
+        lost: true,
+      });
+    }
+    expect(session.game.log.find((e) => e.type === 'game-ended')).toMatchObject({ early: false, lost: true });
+    expect(host.last('debrief')?.debrief.named).toBe(true);
+    expect(host.last('debrief')?.storedToken).toBe('stored-1');
+    expect(saved).toHaveLength(1);
+    expect(aino.peer.all('badges')).toEqual([{ t: 'badges', badges: ['settler'] }]);
+    expect(eero.peer.all('badges')).toEqual([{ t: 'badges', badges: ['settler'] }]);
+    expect(host.all('badges')).toEqual([]);
+    expect(clock.pending).toBe(0);
+  });
+
+  it('the real debrief of a lost game says it was lost and not ended early', () => {
+    const { clock, host, join, command } = setup({ params: ALWAYS_LOSE, debriefing: defaultDebriefing });
+    join('Aino');
+    command({ type: 'start' });
+    clock.advance(MONTH);
+    const debrief = host.last('debrief')!.debrief;
+    expect(debrief.lost).toBe(true);
+    expect(debrief.endedEarly).toBe(false);
+    expect(debrief.monthsPlayed).toBe(1);
   });
 });
 

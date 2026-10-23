@@ -31,6 +31,7 @@ import {
   createRng,
   type Game,
   type GameLength,
+  type GameParams,
   type LogEntry,
   type Phase,
   type PublicTile,
@@ -69,6 +70,8 @@ export interface MockServerOptions {
   demoBots?: number;
   /** Unknown codes create a demo game instead of 'unknown-game'. */
   autoCreate?: boolean;
+  /** Rules for every game (tests). Default: the tuned DEFAULT_PARAMS. */
+  params?: GameParams;
 }
 
 export type MockSink = (message: ServerMessage) => void;
@@ -147,13 +150,20 @@ class Room {
   debrief: DebriefData | null = null;
   started = false;
 
-  constructor(code: string, hostToken: string, request: CreateGameRequest, seed: number, clock: () => number) {
+  constructor(
+    code: string,
+    hostToken: string,
+    request: CreateGameRequest,
+    seed: number,
+    clock: () => number,
+    params?: GameParams,
+  ) {
     this.code = code;
     this.hostToken = hostToken;
     this.length = request.length;
     this.actionSeconds = request.actionSeconds ?? 60;
     this.trial = request.trial ?? false;
-    this.game = createGame({ seed, length: request.length, clock });
+    this.game = createGame({ seed, length: request.length, clock, ...(params ? { params } : {}) });
   }
 }
 
@@ -162,7 +172,8 @@ export class MockServer {
   readonly #rng: Rng;
   readonly #rooms = new Map<string, Room>();
   readonly #stored = new Map<string, DebriefData>();
-  readonly #options: Required<Omit<MockServerOptions, 'scheduler' | 'seed' | 'speed'>>;
+  readonly #options: Required<Omit<MockServerOptions, 'scheduler' | 'seed' | 'speed' | 'params'>>;
+  readonly #params: GameParams | undefined;
   #speed: number;
   #playerSeq = 0;
   readonly #roomListeners = new Set<() => void>();
@@ -172,6 +183,7 @@ export class MockServer {
     this.#scheduler = options.scheduler ?? realScheduler;
     this.#rng = createRng(options.seed ?? (Math.floor(Math.random() * 0x7fffffff) >>> 0));
     this.#speed = options.speed ?? 1;
+    this.#params = options.params;
     this.#options = {
       voteSeconds: options.voteSeconds ?? 30,
       summarySeconds: options.summarySeconds ?? 8,
@@ -189,7 +201,7 @@ export class MockServer {
     const finalCode = code ?? this.#newCode();
     const token = hostToken ?? randomHex(this.#rng, 32);
     const seed = Math.floor(this.#rng.next() * 0x7fffffff);
-    const room = new Room(finalCode, token, request, seed, () => this.#now());
+    const room = new Room(finalCode, token, request, seed, () => this.#now(), this.#params);
     this.#rooms.set(finalCode, room);
     if (room.trial) for (let i = 0; i < this.#options.trialBots; i++) this.#addBot(room);
     else room.pendingBots = this.#options.demoBots;
@@ -541,13 +553,28 @@ export class MockServer {
     this.#broadcastGame(room);
     for (const seat of room.seats.values()) this.#sendYou(room, seat);
     this.#flushTicker(room);
-    if (game.phase === 'action') {
-      const need = game.foodNeed();
-      const food = game.resources.food;
-      if (food < need) this.#broadcastTicker(room, { kind: 'food-short', missing: need - food });
-    }
+    if (game.phase === 'action') this.#warnAtActionStart(room);
     this.#scheduleBots(room);
     this.#checkEarlyEnd(room);
+  }
+
+  /**
+   * What the class should know when a month's action phase starts: the food and the fire
+   * for this month, next month's hard frost and the loss limit. Like apps/server.
+   */
+  #warnAtActionStart(room: Room): void {
+    const game = room.game;
+    const foodMissing = game.foodNeed() - game.resources.food;
+    if (foodMissing > 0) this.#broadcastTicker(room, { kind: 'food-short', missing: foodMissing });
+    const forecast = game.forecast();
+    if (forecast !== null && forecast <= game.params.weather.hardAt) {
+      this.#broadcastTicker(room, { kind: 'hard-frost-coming', temperature: forecast });
+    }
+    const woodMissing = game.heatNeed() - game.resources.wood;
+    if (woodMissing > 0) this.#broadcastTicker(room, { kind: 'wood-short', missing: woodMissing });
+    if (game.happiness < game.params.lossThreshold[game.length] + game.params.lossWarningMargin) {
+      this.#broadcastTicker(room, { kind: 'giving-up' });
+    }
   }
 
   #finish(room: Room): void {
