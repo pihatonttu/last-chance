@@ -107,8 +107,15 @@ describe('summarize', () => {
     expect(empty.moodByMonth).toEqual([]);
   });
 
-  it('reports the share of games with hunger in winter', () => {
-    const s = summarize([fakeMetrics({ winterHungryMonths: 2 }), fakeMetrics(), fakeMetrics(), fakeMetrics({ winterHungryMonths: 1 })]);
-    expect(s.winterHungerRate).toBe(0.5);
+  it('reports the share of games with cold and the share lost', () => {
+    const s = summarize([
+      fakeMetrics({ coldMonths: 2, lost: true }),
+      fakeMetrics(),
+      fakeMetrics(),
+      fakeMetrics({ coldMonths: 1 }),
+    ]);
+    expect(s.coldRate).toBe(0.5);
+    expect(s.coldMonths).toBe(0.75);
+    expect(s.lostRate).toBe(0.25);
   });
 });

@@ -21,10 +21,15 @@ export interface Summary {
   villagers: number;
   moodByMonth: number[];
 
+  /** Share of games the village gave up (docs/10-arktinen.md §4b). */
+  lostRate: number;
+
   hungryMonths: number;
-  /** Share of games with at least one hungry winter month. */
-  winterHungerRate: number;
   hungerTotal: number;
+  /** Mean cold months per game. */
+  coldMonths: number;
+  /** Share of games with at least one cold month. */
+  coldRate: number;
   unshelteredMonths: number;
   /** Mean over the games that got everyone sheltered; null when none did. */
   firstShelteredMonth: number | null;
@@ -102,9 +107,12 @@ export function summarize(metrics: readonly GameMetrics[]): Summary {
     villagers: avg((m) => m.villagers),
     moodByMonth,
 
+    lostRate: rate(metrics.filter((m) => m.lost).length),
+
     hungryMonths: avg((m) => m.hungryMonths),
-    winterHungerRate: rate(metrics.filter((m) => m.winterHungryMonths > 0).length),
     hungerTotal: avg((m) => m.hungerTotal),
+    coldMonths: avg((m) => m.coldMonths),
+    coldRate: rate(metrics.filter((m) => m.coldMonths > 0).length),
     unshelteredMonths: avg((m) => m.unshelteredMonths),
     firstShelteredMonth: meanOrNull(sheltered),
     shelteredRate: rate(sheltered.filter((v) => v !== null).length),

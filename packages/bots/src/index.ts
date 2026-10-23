@@ -3,9 +3,9 @@ export {
   cooperativeAction,
   cooperativeVote,
   DEFAULT_BUILD_ORDER,
-  foodTarget,
   plannedBuilding,
   wantedOptions,
+  woodTarget,
   type CoopOptions,
 } from './cooperative.ts';
 export * from './runner.ts';

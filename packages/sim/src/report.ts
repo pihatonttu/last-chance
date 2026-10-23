@@ -33,7 +33,9 @@ function mainRow({ label, summary: s }: ReportRow): string[] {
     [h.p10, h.p50, h.p90].map((v) => fixed(v, 0)).join('/'),
     GRADES.map((g) => `${g}:${s.gradeHistogram[g]}`).join(' '),
     fixed(s.hungryMonths, 1),
-    percent(s.winterHungerRate),
+    fixed(s.coldMonths, 1),
+    percent(s.coldRate),
+    percent(s.lostRate),
     fixed(s.unshelteredMonths, 1),
     firstSheltered,
     fixed(s.buildings, 1),
@@ -47,10 +49,11 @@ function mainRow({ label, summary: s }: ReportRow): string[] {
 }
 
 /**
- * One row per scenario: happiness percentiles, grade counts, hunger months, the share of games hungry in winter, shelter months, the first
- * month with everyone sheltered (mean over the games that got there, with that share when not all
- * did), buildings, final skills, action shares, unused actions, spring found and the wood and stone
- * left at the end. A second table holds the mean mood of every month.
+ * One row per scenario: happiness percentiles, grade counts, hunger months, cold months, the
+ * shares of games with cold and of games lost, shelter months, the first month with everyone
+ * sheltered (mean over the games that got there, with that share when not all did), buildings,
+ * final skills, action shares, unused actions, spring found and the wood and ice (stone) left
+ * at the end. A second table holds the mean mood of every month.
  */
 export function markdownReport(rows: readonly ReportRow[]): string {
   const main = table(
@@ -60,7 +63,9 @@ export function markdownReport(rows: readonly ReportRow[]): string {
       'happiness p10/p50/p90',
       'grades',
       'hungry months',
-      'winter hunger',
+      'cold months',
+      'cold',
+      'lost',
       'unsheltered months',
       'first sheltered',
       'buildings',
@@ -69,9 +74,9 @@ export function markdownReport(rows: readonly ReportRow[]): string {
       `${ACTION_GROUPS.join('/')} %`,
       'unused',
       'spring found',
-      'end wood / stone',
+      'end wood / ice',
     ],
-    ['l', 'r', 'r', 'l', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r'],
+    ['l', 'r', 'r', 'l', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r'],
     rows.map(mainRow),
   );
 

@@ -23,6 +23,12 @@ describe('measureGame on a real bot game', () => {
     expect(sum(m.moodByMonth)).toBe(m.happiness);
   });
 
+  it('counts the cold months from the reports and copies the loss', () => {
+    expect(m.coldMonths).toBe(game.reports.filter((r) => r.heat.cold > 0).length);
+    expect(m.coldTotal).toBe(sum(game.reports.map((r) => r.heat.cold)));
+    expect(m.lost).toBe(game.lost);
+  });
+
   it('counts hunger, shelter and spoilage within the month count', () => {
     expect(m.hungryMonths).toBeGreaterThanOrEqual(0);
     expect(m.hungryMonths).toBeLessThanOrEqual(m.months);
@@ -98,6 +104,7 @@ describe('measureGame on a hand-made game', () => {
     params: DEFAULT_PARAMS,
     villagers: 2,
     happiness: -1,
+    lost: false,
     resources: { food: 1, wood: 2, stone: 3 },
     grade: () => 2,
     playerIds: () => ['a', 'b'],
@@ -151,11 +158,18 @@ describe('measureGame on a hand-made game', () => {
     expect(m.actionShare.recreation).toBeCloseTo(2 / 11, 12);
   });
 
-  it('counts the hungry months that fell in winter', () => {
-    const hungry = { before: 0, need: 8, eaten: 0, hungry: 2, spoiled: 0, after: 0 };
-    const wintry = measureGame({ ...fake, reports: [9, 10, 11, 12].map((month) => report(month, { food: hungry })) });
-    expect(wintry.winterHungryMonths).toBe(3);
-    expect(wintry.hungryMonths).toBe(4);
+  it('counts cold months and whether the game was lost', () => {
+    const cold = { temperature: -35, need: 6, burned: 2, cold: 2 };
+    const frozen = measureGame({
+      ...fake,
+      lost: true,
+      reports: [report(1), report(2, { heat: cold }), report(3), report(4, { heat: { ...cold, burned: 0 } })],
+    });
+    expect(frozen.coldMonths).toBe(2);
+    expect(frozen.coldTotal).toBe(4);
+    expect(frozen.lost).toBe(true);
+    expect(m.coldMonths).toBe(0);
+    expect(m.lost).toBe(false);
   });
 
   it('reads votes, hunger, shelter and the first spring', () => {

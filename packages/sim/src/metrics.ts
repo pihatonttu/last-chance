@@ -1,4 +1,4 @@
-import { isWinter, type ActionKind, type Game, type Resources } from '@saari/rules';
+import type { ActionKind, Game, Resources } from '@saari/rules';
 
 export type ActionGroup = 'food' | 'fields' | 'materials' | 'explore' | 'skills' | 'recreation';
 
@@ -22,13 +22,15 @@ export const ACTION_GROUP_OF: Readonly<Record<ActionKind, ActionGroup>> = {
 /** The parts of a finished game the metrics read; a real `Game` fits, tests can pass a hand-made one. */
 export type MeasurableGame = Pick<
   Game,
-  'seed' | 'params' | 'villagers' | 'happiness' | 'resources' | 'grade' | 'playerIds' | 'player' | 'reports' | 'log'
+  'seed' | 'params' | 'villagers' | 'happiness' | 'lost' | 'resources' | 'grade' | 'playerIds' | 'player' | 'reports' | 'log'
 >;
 
 export interface GameMetrics {
   seed: number;
   happiness: number;
   grade: number;
+  /** The village gave up (docs/10-arktinen.md §4b); the game ended early. */
+  lost: boolean;
   /** Months played (report count). */
   months: number;
   /** Villagers in the last month. */
@@ -36,10 +38,12 @@ export interface GameMetrics {
   moodByMonth: number[];
 
   hungryMonths: number;
-  /** Hungry months that fell in winter (December-February, docs/09 §3.5). */
-  winterHungryMonths: number;
   /** Sum of hungry villagers over all months. */
   hungerTotal: number;
+  /** Months in which the fire ran out of wood and somebody was cold. */
+  coldMonths: number;
+  /** Sum of cold villagers over all months. */
+  coldTotal: number;
   unshelteredMonths: number;
   /** First month in which nobody was unsheltered. */
   firstShelteredMonth: number | null;
@@ -99,13 +103,15 @@ export function measureGame(game: MeasurableGame): GameMetrics {
     seed: game.seed,
     happiness: game.happiness,
     grade: game.grade(),
+    lost: game.lost,
     months: reports.length,
     villagers: game.villagers,
     moodByMonth: reports.map((r) => r.mood.total),
 
     hungryMonths: reports.filter((r) => r.food.hungry > 0).length,
-    winterHungryMonths: reports.filter((r) => r.food.hungry > 0 && isWinter(r.month, game.params)).length,
     hungerTotal: sumOf(reports, (r) => r.food.hungry),
+    coldMonths: reports.filter((r) => r.heat.cold > 0).length,
+    coldTotal: sumOf(reports, (r) => r.heat.cold),
     unshelteredMonths: reports.filter((r) => r.shelter.unsheltered > 0).length,
     firstShelteredMonth: firstSheltered ? firstSheltered.month : null,
     spoiledTotal: sumOf(reports, (r) => r.food.spoiled),
