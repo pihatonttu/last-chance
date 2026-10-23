@@ -5,8 +5,11 @@ import { createRng } from './rng.ts';
  * The frost of every month (docs/10-arktinen.md §4), index 0 = month 1. A random walk of at
  * most one step (5°) a month between `mildest` and `coldest`; month 1 is no colder than
  * `firstMonthColdest`. A game of 3 months or more gets at least `minHardMonths` hard-frost
- * months: when the walk leaves too few, the coldest month from month 3 on (the earliest on a
- * tie) turns to `coldest`, then the next coldest, until there are enough.
+ * months. The walk alone reaches them in a few games only, so the missing ones come as a cold
+ * spell in the second half of the game (never before month 3): one of the coldest months
+ * there, drawn from the seed, turns to `hardAt`, and the months around it cool down so the
+ * frost still changes at most one step a month (month 1 stays mild). Then the next, until
+ * there are enough; the second one usually lands next to the first.
  */
 export function generateTemperatures(seed: number, months: number, params: Pick<GameParams, 'weather'>): number[] {
   const W = params.weather;
@@ -22,16 +25,21 @@ export function generateTemperatures(seed: number, months: number, params: Pick<
   }
 
   if (months >= 3) {
+    // Index of the first month of the second half, month 3 at the earliest.
+    const from = Math.max(2, Math.floor(months / 2));
     let hard = temperatures.filter((t) => t <= W.hardAt).length;
     while (hard < W.minHardMonths) {
-      let coldest = -1;
-      for (let i = 2; i < months; i++) {
-        const t = temperatures[i]!;
-        if (t > W.hardAt && (coldest < 0 || t < temperatures[coldest]!)) coldest = i;
+      const candidates: number[] = [];
+      for (let i = from; i < months; i++) if (temperatures[i]! > W.hardAt) candidates.push(i);
+      if (candidates.length === 0) break;
+      const coldest = Math.min(...candidates.map((i) => temperatures[i]!));
+      const month = rng.pick(candidates.filter((i) => temperatures[i] === coldest));
+      temperatures[month] = W.hardAt;
+      // The cold spreads: d months away it is at most d steps milder (month 1 stays as drawn).
+      for (let i = 1; i < months; i++) {
+        temperatures[i] = Math.min(temperatures[i]!, W.hardAt + Math.abs(i - month) * W.step);
       }
-      if (coldest < 0) break;
-      temperatures[coldest] = W.coldest;
-      hard += 1;
+      hard = temperatures.filter((t) => t <= W.hardAt).length;
     }
   }
   return temperatures;

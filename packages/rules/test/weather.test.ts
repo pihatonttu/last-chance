@@ -31,6 +31,29 @@ describe('generateTemperatures (docs/10-arktinen.md §4)', () => {
     }
   });
 
+  it('never changes by more than one step (5°) from one month to the next', () => {
+    for (let seed = 1; seed <= 200; seed++) {
+      for (const months of LENGTHS) {
+        const temperatures = generateTemperatures(seed, months, P);
+        for (let i = 1; i < months; i++) {
+          expect(Math.abs(temperatures[i]! - temperatures[i - 1]!), `seed ${seed}, ${months} months, month ${i + 1}`).toBeLessThanOrEqual(5);
+        }
+      }
+    }
+  });
+
+  it('brings the hard frost the walk did not reach in the second half of the game, not right after the start', () => {
+    // The walk alone reaches -30 in a few games only, so most hard months are added ones.
+    const seeds = Array.from({ length: 200 }, (_, i) => i + 1);
+    for (const months of LENGTHS) {
+      const firstHalf = Math.floor(months / 2);
+      const early = seeds.filter((seed) => generateTemperatures(seed, months, P).slice(0, firstHalf).some((t) => t <= -30));
+      const late = seeds.filter((seed) => generateTemperatures(seed, months, P).slice(firstHalf).filter((t) => t <= -30).length >= 2);
+      expect(early.length, `${months} months`).toBeLessThan(seeds.length * 0.2);
+      expect(late.length, `${months} months`).toBeGreaterThan(seeds.length * 0.8);
+    }
+  });
+
   it('is the same for the same seed and differs between seeds', () => {
     expect(generateTemperatures(7, 15, P)).toEqual(generateTemperatures(7, 15, P));
     const winters = new Set(SEEDS.map((seed) => generateTemperatures(seed, 15, P).join(',')));
