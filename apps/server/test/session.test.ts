@@ -643,7 +643,10 @@ describe('rejoin', () => {
   });
 
   it('joining closes when month 4 starts, coming back still works', () => {
-    const { clock, session, join, refusal, command } = setup();
+    // The idle village must not give up before month 4 whatever the tuned loss limit is.
+    const { clock, session, join, refusal, command } = setup({
+      params: { ...DEFAULT_PARAMS, lossThreshold: { normal: -1000, short: -1000 } },
+    });
     const aino = join('Aino');
     command({ type: 'start' });
     clock.advance(MONTH * 2);

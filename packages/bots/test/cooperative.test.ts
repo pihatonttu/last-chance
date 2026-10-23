@@ -26,6 +26,9 @@ const WOODEN_SHELTERS = [
 /** These tests are about the bot's choices, so their villages never give up (docs/10-arktinen.md §4b). */
 const NEVER_LOST = { normal: -Infinity, short: -Infinity };
 
+/** Start wood (30 for 3) that covers the fire of months 1 and 2 at any frost those months can have. */
+const FIRE_COVERED: GameParams = { ...DEFAULT_PARAMS, startWoodPerVillager: 10 };
+
 function newGame(params: GameParams = DEFAULT_PARAMS, players = ['a', 'b', 'c']) {
   const game = new Game({ seed: 1, length: 'normal', terrain: TERRAIN, params: { ...params, lossThreshold: NEVER_LOST } });
   for (const p of players) game.addPlayer(p);
@@ -58,12 +61,14 @@ describe('cooperative bot actions', () => {
   });
 
   it('plows fields while the fields cannot feed the village', () => {
-    const game = newGame(); // month 1: food covers this month, no fields yet
+    // Month 1: food and the fire's wood cover this month and next, no fields yet.
+    const game = newGame(FIRE_COVERED);
+    expect(game.resources.wood).toBeGreaterThanOrEqual(woodTarget(game));
     expect(nextKind(game)).toBe('plow');
   });
 
   it('leaves unplowed the meadow the next igloo will take, which is never the landing (the fire)', () => {
-    const game = newGame({ ...DEFAULT_PARAMS, startWoodPerVillager: 10 });
+    const game = newGame(FIRE_COVERED);
     // The engine puts the next building on the nearest revealed meadow but the landing,
     // first by row: (2,4). The bot plows the next one instead.
     const move = bot.chooseAction(game, 'a', rng)!;
@@ -85,7 +90,7 @@ describe('cooperative bot actions', () => {
 
   it('explores when food and materials are covered and there is nothing to study', () => {
     const params = {
-      ...DEFAULT_PARAMS,
+      ...FIRE_COVERED,
       foodPerVillager: 0,
       costs: { shelter: FREE, school: FREE, workshop: FREE, gathering: FREE },
     };
@@ -257,9 +262,15 @@ describe('cooperative bot and the village fire (docs/10-arktinen.md §8)', () =>
   });
 
   it('chops for the fire before building when the wood would not cover this month and next', () => {
-    const params = { ...DEFAULT_PARAMS, foodPerVillager: 0, startWoodPerVillager: 1, startStonePerVillager: 0 };
+    const params = {
+      ...DEFAULT_PARAMS,
+      foodPerVillager: 0,
+      startWoodPerVillager: 1,
+      startStonePerVillager: 0,
+      heatWoodPerVillager: [1, 2, 3] as const,
+    };
     const game = newGame(params);
-    // 5 wood: enough for this month's fire but not for next month's as well.
+    // 5 wood: enough for this month's fire (3) but not for next month's as well.
     expect(game.resources.wood).toBeGreaterThanOrEqual(game.heatNeed());
     expect(game.resources.wood).toBeLessThan(woodTarget(game));
     // The igloo still needs ice, which the bot used to fetch first.
@@ -275,24 +286,82 @@ describe('cooperative bot and the village fire (docs/10-arktinen.md §8)', () =>
     expect(nextKind(game)).toBe('explore');
   });
 
-  it("keeps this month's fire out of the wood it saves for a building", () => {
+  it("saves wood for a building on top of the fire's wood for this month and next", () => {
     const params = {
       ...DEFAULT_PARAMS,
       foodPerVillager: 0,
-      startWoodPerVillager: 20,
+      startWoodPerVillager: 30,
       heatWoodPerVillager: [10, 10, 10] as const,
-      costs: { ...DEFAULT_PARAMS.costs, shelter: [{ wood: 20, stone: 0 }, FREE[1], FREE[2]] as const },
+      costs: { ...DEFAULT_PARAMS.costs, shelter: [{ wood: 15, stone: 0 }, FREE[1], FREE[2]] as const },
     };
     const game = newGame(params);
-    // 60 wood covers the fire now and next month, and the igloo's 60 is in store,
-    // but building it would leave the fire cold: more wood first.
-    expect(game.resources.wood).toBe(60);
+    // 90 wood: the fire wants 30 now and 30 next month. The building's 45 would leave this
+    // month's fire warm but eat into next month's: more wood first.
+    expect(game.resources.wood).toBe(90);
     expect(woodTarget(game)).toBe(60);
     const order = ['shelter:first'];
-    expect(plannedBuilding(game, order)).toMatchObject({ id: 'shelter-1', blocked: [], leavesFireCold: true });
+    expect(plannedBuilding(game, order)).toMatchObject({ id: 'shelter-1', blocked: [], leavesFireCold: false });
     const shelterOnly = createBot('cooperative', { noise: 0, buildOrder: order });
     const move = shelterOnly.chooseAction(game, 'a', rng)!;
     expect(game.preview('a', move.x, move.y).kind).toBe('chop');
+  });
+
+  it('chops the fullest forest first, so the logging spreads and the forests grow back', () => {
+    // Two forests as near the landing (2,2): (1,1) comes first in the tile order.
+    const rows = ['~~~~~', '~T.T~', '~...~', '~~~~~'];
+    const legend = { '~': 'sea', '.': 'meadow', T: 'forest' } as const;
+    const terrain = rows.flatMap((r) => [...r].map((c) => legend[c as keyof typeof legend]));
+    const params = {
+      ...DEFAULT_PARAMS,
+      foodPerVillager: 0,
+      startWoodPerVillager: 0,
+      heatWoodPerVillager: [10, 10, 10] as const,
+      lossThreshold: NEVER_LOST,
+    };
+    const game = new Game({ seed: 1, length: 'normal', params, terrain: { width: 5, height: 4, terrain, landing: { x: 2, y: 2 } } });
+    for (const p of ['a', 'b', 'c']) game.addPlayer(p);
+    game.start();
+    game.act('b', 1, 1); // 30 trees left there, 40 at (3,1)
+    expect(game.resources.wood).toBeLessThan(woodTarget(game));
+    expect(bot.chooseAction(game, 'a', rng)).toEqual({ x: 3, y: 1 });
+  });
+
+  it('takes wood for buildings only from forests that keep half their trees; the fire may take the rest', () => {
+    // A tiny island with nothing left to explore: its only forest (2,1) next to the landing (2,2).
+    const rows = ['~~~~~', '~.T.~', '~...~', '~~~~~'];
+    const legend = { '~': 'sea', '.': 'meadow', T: 'forest' } as const;
+    const terrain = rows.flatMap((r) => [...r].map((c) => legend[c as keyof typeof legend]));
+    const island = (heat: number, chops: number) => {
+      const params = {
+        ...DEFAULT_PARAMS,
+        foodPerVillager: 0,
+        startWoodPerVillager: 0,
+        heatWoodPerVillager: [heat, heat, heat] as const,
+        lossThreshold: NEVER_LOST,
+        costs: { ...DEFAULT_PARAMS.costs, shelter: [{ wood: 40, stone: 0 }, FREE[1], FREE[2]] as const },
+      };
+      const game = new Game({ seed: 1, length: 'normal', params, terrain: { width: 5, height: 4, terrain, landing: { x: 2, y: 2 } } });
+      for (const p of ['a', 'b', 'c']) game.addPlayer(p);
+      game.start();
+      for (let i = 0; i < chops; i++) game.act('b', 2, 1);
+      expect(game.tile(2, 1)?.stock).toBe(40 - 10 * chops);
+      return game;
+    };
+    const shelterOnly = createBot('cooperative', { noise: 0, buildOrder: ['shelter:first'] });
+
+    // The fire is covered. 20 trees left: one more chop for the igloo would leave fewer than half.
+    const warm = island(1, 2);
+    expect(warm.resources.wood).toBeGreaterThanOrEqual(woodTarget(warm));
+    expect(shelterOnly.chooseAction(warm, 'a', rng)).toBeNull();
+    // 10 trees left: no building is worth the last trees either.
+    expect(shelterOnly.chooseAction(island(1, 3), 'a', rng)).toBeNull();
+
+    // The fire wants 60 + 60: it takes the thinned forest, and clears it when nothing else is left.
+    for (const chops of [2, 3]) {
+      const cold = island(20, chops);
+      expect(cold.resources.wood).toBeLessThan(woodTarget(cold));
+      expect(shelterOnly.chooseAction(cold, 'a', rng)).toEqual({ x: 2, y: 1 });
+    }
   });
 });
 

@@ -122,20 +122,20 @@ export const DEFAULT_PARAMS: GameParams = {
   foodStorageMonths: 2,
   startFoodPerVillager: 6,
   startWoodPerVillager: 2,
-  startStonePerVillager: 4,
+  startStonePerVillager: 8,
 
   harvestYield: 10,
   fishYield: 4,
   chopYield: 10,
-  mineYield: 8,
+  mineYield: 12,
   mineMinYield: 2,
 
   fieldCapacity: 30,
   plowWork: 3,
   forestCapacity: 40,
   forestRegrowth: 1.25,
-  quarryCapacity: 60,
-  quarryWork: 4,
+  quarryCapacity: 120,
+  quarryWork: 2,
 
   exploreBase: 1,
   exploreDistanceDivisor: 2,
@@ -157,9 +157,9 @@ export const DEFAULT_PARAMS: GameParams = {
   moodRecreation: 10,
 
   weather: { mildest: -10, coldest: -35, step: 5, firstMonthColdest: -15, coldAt: -20, hardAt: -30, minHardMonths: 2 },
-  heatWoodPerVillager: [1, 2, 3],
+  heatWoodPerVillager: [2, 4, 8],
   moodWarm: 2,
-  moodColdPenalty: 10,
+  moodColdPenalty: 6,
 
   costs: {
     shelter: [
@@ -186,10 +186,10 @@ export const DEFAULT_PARAMS: GameParams = {
   costRounding: 5,
 
   gradeThresholds: {
-    normal: [-100, -30, 20, 58, 70],
-    short: [-70, -25, 10, 23, 31],
+    normal: [-100, -30, 20, 55, 90],
+    short: [-70, -25, 0, 18, 40],
   },
-  lossThreshold: { normal: -60, short: -60 },
+  lossThreshold: { normal: -51, short: -45 },
   lossWarningMargin: 20,
 
   map: {
