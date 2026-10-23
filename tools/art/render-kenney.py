@@ -4,9 +4,11 @@ Run headless with Blender 4.2+:
   blender -b --factory-startup -P tools/art/render-kenney.py -- <spec.json> <kits-dir> <out-dir>
 
 <kits-dir> holds the unzipped kits as subfolders named in the spec (e.g. survival/,
-town/), each with "Models/GLB format/*.glb" (or "Models/GLTF format/*.glb"). The spec lists sprites; each sprite is a
-group of models placed on one map tile (1 x 1 world units, origin at the tile centre on
-the ground). Every sprite is rendered on the same canvas with the tile centre at the
+town/), each with "Models/GLB format/*.glb" (or "Models/GLTF format/*.glb"). The kit "own"
+is not there: it is the repo's tools/art/own/*.glb, built by tools/art/own-models.py.
+
+The spec lists sprites; each sprite is a group of models placed on one map tile (1 x 1
+world units, origin at the tile centre on the ground). Every sprite is rendered on the same canvas with the tile centre at the
 same pixel, so the client needs one anchor for all of them (apps/client/src/map/kenney.ts).
 
 Camera and light are fixed to the look of the Kenney "Tower Defense" isometric tiles:
@@ -15,7 +17,8 @@ Camera and light are fixed to the look of the Kenney "Tower Defense" isometric t
 - flat albedo on top faces, left faces at 89 % and right faces at 68 % brightness
   (measured from grass.png), no cast shadows, no specular highlights.
 
-A sprite with "snow": true gets snow on its upward faces (winter variants).
+A sprite with "snow": true gets snow on its upward faces (winter variants). A part with
+"snow": false keeps its colours: what is under glass, hot, or made of snow already.
 """
 import json
 import math
@@ -106,7 +109,15 @@ def matte(materials):
                     node.inputs[name].default_value = value
 
 
+OWN_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'own')
+
+
 def model_path(kit, model):
+    if kit == 'own':  # our own models live in the repo, next to this script
+        path = os.path.join(OWN_DIR, model + '.glb')
+        if os.path.exists(path):
+            return path
+        raise FileNotFoundError(f'{kit}/{model}: run tools/art/own-models.py first')
     # Most kits ship "GLB format/"; the Nature Kit keeps its .glb files in "GLTF format/".
     for folder in ('GLB format', 'GLTF format'):
         path = os.path.join(kits_dir, kit, 'Models', folder, model + '.glb')
@@ -181,6 +192,7 @@ def place(part, kit_images):
     for o in added:
         if o.type == 'MESH':
             matte(o.data.materials)
+    return added
 
 
 def recolor(kit_images, swaps):
@@ -203,8 +215,9 @@ def recolor(kit_images, swaps):
 
 
 SNOW = spec.get('snowColor', '#f1f6fa')
-# Open water stays blue in winter (the pond reads as a hole in the ice, an avanto).
-SNOWLESS_MATERIALS = {'water'}
+# Open water stays blue in winter (the pond reads as a hole in the ice, an avanto), and the
+# glass of a heated greenhouse stays clear so the plants show (tools/art/own-models.py).
+SNOWLESS_MATERIALS = {'water', 'glass'}
 
 
 def socket(sockets, identifier):
@@ -254,11 +267,14 @@ for sprite in spec['sprites']:
         continue
     scene = reset_scene()
     kit_images = {}
+    snowy = []
     for part in sprite['parts']:
-        place(part, kit_images)
+        added = place(part, kit_images)
+        if part.get('snow', True):
+            snowy += added
     recolor(kit_images, [spec['swatches'][name] for name in sprite.get('recolor', [])])
     if sprite.get('snow'):
-        add_snow(list(bpy.context.scene.objects))
+        add_snow(snowy)
     scene.render.filepath = os.path.join(out_dir, sprite['name'] + '.png')
     bpy.ops.render.render(write_still=True)
     print('rendered', sprite['name'], flush=True)

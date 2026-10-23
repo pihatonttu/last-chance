@@ -1,5 +1,5 @@
 {
-  "//": "HUD icons rendered from Kenney 3D kits by render-kenney.py, then cropped by kenney-icons-post.py.",
+  "//": "HUD icons rendered from Kenney 3D kits and our own models (kit \"own\", tools/art/own-models.py) by render-kenney.py, then cropped by kenney-icons-post.py.",
   "canvas": [
     240,
     240
@@ -12,23 +12,6 @@
   "srgbFactorKits": [
     "nature"
   ],
-  "swatches": {
-    "town-roof-red": {
-      "kit": "town",
-      "from": [
-        0,
-        384
-      ],
-      "into": [
-        64,
-        384
-      ],
-      "size": [
-        64,
-        128
-      ]
-    }
-  },
   "sprites": [
     {
       "name": "wood",
@@ -43,11 +26,9 @@
       "name": "stone",
       "parts": [
         {
-          "model": "nature/stone_largeA",
-          "z": 0.05,
-          "materials": {
-            "stone": "#aab4bd"
-          }
+          "model": "own/ice-block",
+          "scale": 4,
+          "turn": 20
         }
       ]
     },
@@ -62,63 +43,10 @@
     },
     {
       "name": "home",
-      "recolor": [
-        "town-roof-red"
-      ],
       "parts": [
         {
-          "model": "town/wall-wood-window-shutters",
-          "scale": 0.5,
-          "at": [
-            0,
-            0
-          ]
-        },
-        {
-          "model": "town/wall-wood",
-          "scale": 0.5,
-          "turn": 90,
-          "at": [
-            0,
-            0
-          ]
-        },
-        {
-          "model": "town/wall-wood",
-          "scale": 0.5,
-          "turn": 180,
-          "at": [
-            0,
-            0
-          ]
-        },
-        {
-          "model": "town/wall-wood-door",
-          "scale": 0.5,
-          "turn": 270,
-          "at": [
-            0,
-            0
-          ]
-        },
-        {
-          "model": "town/roof-gable",
-          "scale": 0.5,
-          "z": 0.5,
-          "at": [
-            0,
-            0
-          ]
-        },
-        {
-          "model": "town/chimney",
-          "scale": 0.5,
-          "turn": 180,
-          "z": 0.5,
-          "at": [
-            0,
-            0
-          ]
+          "model": "own/igloo",
+          "scale": 1.5
         }
       ]
     },
@@ -127,9 +55,9 @@
       "size": 192,
       "parts": [
         {
-          "model": "pirate/ship-medium",
-          "scale": 0.12,
-          "turn": 65
+          "model": "own/icebreaker",
+          "scale": 1.1,
+          "turn": 20
         }
       ]
     }

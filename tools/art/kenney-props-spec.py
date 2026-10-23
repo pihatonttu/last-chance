@@ -1,22 +1,28 @@
-"""Write kenney-props.json: every map sprite rendered from the Kenney 3D kits.
+"""Write kenney-props.json: every map sprite rendered from the Kenney 3D kits and our own models.
 
 Usage: python -I tools/art/kenney-props-spec.py
 
 Coordinates are tile units with the tile centre on the ground at 0, 0; a tile spans
 -0.5..0.5. The camera looks from +x / -y, so the back corner of a tile is (-0.5, 0.5) and
 the front corner (0.5, -0.5): tall things go to the back, small things to the front.
-Scales are chosen so a palm is about two thirds of a tile tall and a house about as tall
-as a tree, with room around it for a yard (Samu: the buildings must look sensibly sized).
+Scales are chosen so a pine is about two thirds of a tile tall and a building about as tall
+as a tree, with room around it for a yard (P39: the buildings must look sensibly sized).
+
+The world is the arctic island (docs/10-arktinen.md section 9): everything on land stands in
+snow, so every sprite has "snow": true except the boat on the water. Parts with
+"snow": false keep their colours (plants under glass, fire, steam, snow-block igloos).
 
 Kits (CC0, kenney.nl): survival = Survival Kit 2.0, town = Fantasy Town Kit 2.0,
-nature = Nature Kit, pirate = Pirate Kit.
+nature = Nature Kit, pirate = Pirate Kit. own = tools/art/own/*.glb, built from primitives
+by tools/art/own-models.py (igloos, greenhouse, snow castle, ice block, steam, flames).
 """
 import json
 import math
 import os
 
-N, S, T, P = 'nature/', 'survival/', 'town/', 'pirate/'
+N, S, T, P, O = 'nature/', 'survival/', 'town/', 'pirate/', 'own/'
 GROUND = 0.05  # Nature Kit models stand at z = -0.05
+ICE = '#bfe3f2'  # Nature Kit stones recoloured to glacier ice
 
 
 def part(model, at=(0, 0), scale=1.0, turn=0, z=None, **extra):
@@ -45,92 +51,85 @@ def house(scale, roof='roof-gable', storeys=1, chimney=False, at=(0, 0), door='w
     return parts
 
 
-def campfire(at, scale=1.0):
-    return [part(N + 'campfire_stones', at, 0.9 * scale), part(N + 'campfire_logs', at, 0.9 * scale)]
-
-
 def tree(kind, at, scale=1.0, turn=0):
+    """Spruces (kuusi) and pines (mänty) from the Nature Kit, about 0.65 tiles tall at scale 1."""
     models = {
-        'palm': (N + 'tree_palm', 0.42),
-        'palm-tall': (N + 'tree_palmTall', 0.44),
-        'palm-bend': (N + 'tree_palmBend', 0.42),
-        'leafy': (N + 'tree_default', 0.34),
-        'oak': (N + 'tree_oak', 0.42),
-        'round': (N + 'tree_fat', 0.4),
+        'spruce': (N + 'tree_pineDefaultA', 0.42),
+        'spruce-b': (N + 'tree_pineDefaultB', 0.42),
+        'spruce-round': (N + 'tree_pineRoundC', 0.52),
+        'spruce-round-b': (N + 'tree_pineRoundE', 0.52),
+        'spruce-small': (N + 'tree_pineSmallA', 0.42),
+        'pine': (N + 'tree_pineTallA', 0.43),
+        'pine-b': (N + 'tree_pineTallC', 0.4),
     }
     model, base = models[kind]
-    extra = {'materials': {'leafsGreen': '#62ad4b'}} if kind.startswith('palm') else {}
-    return part(model, at, round(base * scale, 3), turn, **extra)
-
-
-def bush(at, scale=1.0, turn=0):
-    return part(N + 'plant_bushLarge', at, round(0.9 * scale, 3), turn)
+    return part(model, at, round(base * scale, 3), turn)
 
 
 # ---------------------------------------------------------------- terrain
 
 FOREST_SPOTS = [(-0.27, 0.27), (0.02, 0.3), (-0.3, -0.02), (0.3, 0.04), (-0.02, 0.0), (0.02, -0.29), (-0.28, -0.3), (0.28, -0.26)]
-FOREST_MIX = ['palm', 'leafy', 'oak', 'palm-tall', 'round', 'palm-bend', 'leafy', 'palm']
+FOREST_MIX = ['spruce', 'pine', 'spruce-round', 'spruce-b', 'pine-b', 'spruce-round-b', 'spruce', 'pine']
 
 
 def forest(trees, variant):
+    """Snowy spruce and pine forest; thinned forests show stumps where trees were cut."""
     order = FOREST_SPOTS if variant == 0 else FOREST_SPOTS[1:] + FOREST_SPOTS[:1]
     mix = FOREST_MIX if variant == 0 else FOREST_MIX[3:] + FOREST_MIX[:3]
     parts = [tree(mix[i], order[i], 0.92 + 0.08 * ((i * 7 + variant) % 3), turn=(i * 53 + variant * 31) % 360) for i in range(trees)]
-    parts += [bush(order[(trees + k) % len(order)], 0.8, turn=k * 70) for k in range(2 if trees > 2 else 1)]
-    if trees <= 2:  # a thinned forest: what was cut shows as stumps
+    parts += [tree('spruce-small', order[(trees + k) % len(order)], 0.55, turn=k * 70) for k in range(2 if trees > 2 else 1)]
+    if trees <= 2:
         parts.append(part(N + 'stump_round', (0.24, -0.22) if variant == 0 else (-0.22, -0.26), 0.8))
     return parts
 
 
-def rocks(variant):
-    """A pile of grey boulders: something to quarry later."""
+def glacier(variant):
+    """Jäätikkö: boulders of blue ice, something to quarry later."""
+    ice = {'materials': {'stone': ICE, '_defaultMat': ICE}}
     if variant == 0:
-        return [part(N + 'stone_largeD', (-0.12, 0.14), 0.62), part(N + 'stone_largeF', (0.2, -0.02), 0.5, 40),
-                part(N + 'stone_smallG', (-0.1, -0.24), 0.9), part(N + 'grass', (0.28, -0.3), 0.6)]
-    return [part(N + 'stone_largeF', (-0.14, 0.1), 0.6, 120), part(N + 'stone_largeB', (0.2, 0.18), 0.5, 20),
-            part(N + 'stone_smallG', (0.16, -0.22), 0.9, 60), part(N + 'grass', (-0.28, -0.22), 0.6)]
+        return [part(N + 'stone_largeD', (-0.12, 0.14), 0.62, **ice), part(N + 'stone_largeF', (0.2, -0.02), 0.5, 40, **ice),
+                part(N + 'stone_smallG', (-0.1, -0.24), 0.9, **ice), part(N + 'stone_smallA', (0.28, -0.3), 0.4, **ice)]
+    return [part(N + 'stone_largeF', (-0.14, 0.1), 0.6, 120, **ice), part(N + 'stone_largeB', (0.2, 0.18), 0.5, 20, **ice),
+            part(N + 'stone_smallG', (0.16, -0.22), 0.9, 60, **ice), part(N + 'stone_smallA', (-0.28, -0.22), 0.4, **ice)]
 
 
-def meadow(variant):
-    tufts = [(-0.25, 0.2), (0.22, 0.12), (-0.05, -0.22), (0.18, -0.3)]
-    parts = [part(N + 'grass', tufts[i], 0.55, i * 80) for i in range(3)]
-    if variant == 1:
-        parts += [part(N + 'flower_yellowA', (0.08, 0.05), 0.9), part(N + 'flower_yellowB', (-0.2, -0.05), 0.8)]
-    if variant == 2:
-        parts += [part(N + 'flower_purpleA', (0.1, 0.18), 0.9), part(N + 'flower_redA', (-0.12, -0.1), 0.8)]
-    return parts
+TWIG = S + 'resource-wood'
+
+
+def snowfield(variant):
+    """Lumikenttä: open snow with a few twigs and small stones (buildable land)."""
+    twigs = [[(-0.22, 0.16, 20), (0.2, -0.2, 110)], [(0.18, 0.2, 70), (-0.16, -0.22, 150)], [(-0.05, 0.24, 130), (0.24, -0.05, 40)]][variant]
+    stones = [[(0.16, 0.12, 'stone_smallA'), (-0.12, -0.08, 'stone_smallC')],
+              [(-0.2, 0.08, 'stone_smallB'), (0.1, -0.06, 'stone_smallA'), (0.26, 0.04, 'stone_smallE')],
+              [(-0.2, -0.12, 'stone_smallC'), (0.1, 0.05, 'stone_smallB')]][variant]
+    return ([part(TWIG, (x, y), 1.4, t) for x, y, t in twigs] +
+            [part(N + model, (x, y), 0.38, (k * 70) % 360) for k, (x, y, model) in enumerate(stones)])
 
 
 DIRT = {'dirt': '#b98a5a', 'dirtDark': '#8f6540'}
 
 
-def field(stage):
-    parts = [part(N + 'crops_dirtDoubleRow', scale=0.8, materials=DIRT, z=0.04)]
-    parts += [part(N + 'fence_simpleLow', scale=0.82, turn=t, z=0.04) for t in (0, 90, 180, 270)]
+def greenhouse(stage):
+    """Kasvihuone: our glass house over two beds; the plants grow inside in four stages
+    (empty, sprouts, green, ripe) like the old field. What is under the glass gets no snow."""
+    parts = [part(O + 'greenhouse'), part(N + 'crops_dirtDoubleRow', scale=0.6, materials=DIRT, snow=False)]
     crop = {
         1: ('crops_leafsStageA', 0.5, {'grass': '#7cbf4a'}),
-        2: ('crops_wheatStageA', 0.75, {'grass': '#b5c94f'}),
-        3: ('crops_wheatStageB', 0.78, {'_defaultMat': '#e8c04e', 'woodInner': '#c99a3c'}),
+        2: ('crops_wheatStageA', 0.72, {'grass': '#b5c94f'}),
+        3: ('crops_wheatStageB', 0.7, {'_defaultMat': '#e8c04e', 'woodInner': '#c99a3c'}),
     }.get(stage)
     if crop:
         model, scale, mats = crop
-        parts += [part(N + model, (x, y), scale, materials=mats, z=0.04) for x in (-0.22, 0, 0.22) for y in (-0.22, 0, 0.22)]
+        parts += [part(N + model, (x, y), scale, materials=mats, z=0.03, snow=False) for x in (-0.21, 0, 0.21) for y in (-0.12, 0.12)]
     return parts
 
 
 # ---------------------------------------------------------------- buildings
 
 def shelter(level):
-    if level == 1:  # a camp: tent, fire, log to sit on
-        return [part(N + 'tent_detailedOpen', (-0.12, 0.14), 0.55, 0), *campfire((0.2, -0.18), 0.8),
-                part(N + 'log_large', (0.3, 0.1), 0.22, 0)]
-    if level == 2:  # a hut with a barrel and firewood
-        return [*house(0.36, 'roof-point', at=(-0.1, 0.1)), part(P + 'barrel', (0.24, -0.04), 0.1),
-                part(N + 'log_stack', (0.0, -0.3), 0.32, 90), *campfire((0.28, -0.3), 0.6)]
-    return [*house(0.44, 'roof-gable', chimney=True, at=(-0.08, 0.08)),  # a house with a yard
-            *[part(N + 'fence_simpleLow', scale=0.94, turn=t, z=0.04) for t in (0, 270)],
-            part(N + 'flower_redA', (0.3, -0.05), 0.8), part(N + 'plant_bushLarge', (0.05, -0.3), 0.7)]
+    """Koti: small igloo, igloo, large igloo with an ice window (tunnels open to the front left)."""
+    model, at = {1: ('igloo-small', (-0.04, 0.08)), 2: ('igloo', (-0.04, 0.08)), 3: ('igloo-large', (-0.02, 0.06))}[level]
+    return [part(O + model, at, snow=False)]
 
 
 def school(level):
@@ -141,7 +140,7 @@ def school(level):
         return [*house(0.4, at=(-0.08, 0.08)), part(N + 'sign', (0.27, -0.22), 0.8, 45),
                 part(T + 'stall-bench', (0.28, 0.12), 0.4)]
     return [*house(0.38, storeys=2, at=(-0.08, 0.08)), part(N + 'sign', (0.28, -0.24), 0.8, 45),
-            part(T + 'stall-bench', (0.28, 0.14), 0.4), tree('round', (0.05, -0.32), 0.6)]
+            part(T + 'stall-bench', (0.28, 0.14), 0.4), tree('spruce-small', (0.05, -0.32), 0.6)]
 
 
 def workshop(level):
@@ -156,51 +155,65 @@ def workshop(level):
 
 
 def gathering(level):
-    if level == 1:  # Laavu: a lean-to with a fire in front of it, logs to sit on
-        return [part(S + 'tent-canvas-half', (-0.14, 0.16), 0.85, 45), *campfire((0.16, -0.14), 0.8),
+    if level == 1:  # Laavu: a lean-to with logs to sit on; the village fire burns elsewhere
+        return [part(S + 'tent-canvas-half', (-0.14, 0.16), 0.85, 45),
                 part(N + 'log_large', (0.32, 0.04), 0.22, 0), part(N + 'log_large', (-0.04, -0.34), 0.22, 90)]
     if level == 2:  # Kylätalo: a wooden village hall with a wide door and benches outside
         return [*house(0.42, 'roof-gable', door='wall-wood-doorway-square-wide', at=(-0.08, 0.08)),
                 part(T + 'stall-bench', (0.3, -0.04), 0.4, -45), part(T + 'stall-bench', (0.06, -0.3), 0.4, -45),
                 part(T + 'lantern', (0.33, -0.3), 0.3)]
-    # Juhlatalo: a bigger hall dressed for a party: banners by the door, a stall and lanterns
-    return [*house(0.5, 'roof-gable', door='wall-wood-doorway-square-wide', at=(-0.06, 0.06)),
-            part(T + 'banner-green', (0.26, -0.1), 0.42, -45), part(T + 'banner-green', (-0.1, -0.3), 0.42, -45),
-            part(T + 'stall-red', (0.36, 0.12), 0.3, -45), part(T + 'lantern', (-0.38, -0.36), 0.3),
-            part(T + 'lantern', (0.4, 0.3), 0.3)]
+    # Lumilinna: our snow castle (ice walls, two towers with flags, a gate to the front left)
+    return [part(O + 'snow-castle', (-0.03, 0.05), 0.85)]
+
+
+def bonfire():
+    """Kylän nuotio: a big bonfire (kokko) on the landing tile. The Nature Kit campfire scaled
+    up, a ring of logs leaning together over it, and our flames rising through them."""
+    hot = {'snow': False}  # the fire has melted the snow on it
+    parts = [part(N + 'campfire_stones', scale=1.3, **hot), part(N + 'campfire_logs', scale=1.8, **hot)]
+    length, scale, lean = 0.71, 0.5, 50  # Nature Kit log: 0.71 long along y
+    half = length * scale / 2
+    for k in range(6):
+        azimuth = 360 * k / 6 + 15
+        r = 0.05 + half * math.cos(math.radians(lean))
+        at = (r * math.cos(math.radians(azimuth)), r * math.sin(math.radians(azimuth)))
+        parts.append(part(N + 'log', at, scale, azimuth + 90, z=half * math.sin(math.radians(lean)) + 0.01, tilt=[lean, 0], **hot))
+    parts.append(part(O + 'flames', (0.0, 0.0), 1.5, z=0.03, **hot))
+    return parts
 
 
 sprites = []
 for kind, make in (('shelter', shelter), ('school', school), ('workshop', workshop), ('gathering', gathering)):
     for level in (1, 2, 3):
         sprite = {'name': f'{kind}-{level}', 'parts': make(level)}
-        recolor = {'school': ['town-roof-blue', 'survival-canvas-blue'], 'shelter': ['town-roof-red'],
+        recolor = {'school': ['town-roof-blue', 'survival-canvas-blue'], 'shelter': [],
                    'workshop': ['town-roof-grey'], 'gathering': ['town-red-purple']}[kind]
-        sprite['recolor'] = recolor
+        if recolor:
+            sprite['recolor'] = recolor
         sprites.append(sprite)
-sprites += [{'name': f'field-{n}', 'parts': field(n)} for n in range(4)]
+sprites += [{'name': f'field-{n}', 'parts': greenhouse(n)} for n in range(4)]
 sprites += [{'name': f'forest-{n}{v}', 'parts': forest({1: 2, 2: 4, 3: 7}[n], i)} for n in (1, 2, 3) for i, v in enumerate('ab')]
-sprites += [{'name': f'rock-{v}', 'parts': rocks(i)} for i, v in enumerate('ab')]
-sprites += [{'name': f'meadow-{v}', 'parts': meadow(i)} for i, v in enumerate('abc')]
+sprites += [{'name': f'rock-{v}', 'parts': glacier(i)} for i, v in enumerate('ab')]
+sprites += [{'name': f'meadow-{v}', 'parts': snowfield(i)} for i, v in enumerate('abc')]
 sprites += [
-    {'name': 'quarry', 'parts': [
-        part(N + 'cliff_blockHalf_stone', (-0.17, 0.17), 0.5, materials={'grass': '#5b8e50'}),
-        part(N + 'stone_smallA', (0.24, -0.1), 0.7), part(N + 'stone_smallB', (0.0, -0.28), 0.6, 60),
-        part(S + 'tool-pickaxe', (-0.3, -0.24), 1.6, 20), part(P + 'crate', (0.25, 0.22), 0.12, 20)]},
-    {'name': 'spring', 'parts': [  # Lampi: a pond with a small jetty for swimming
+    {'name': 'quarry', 'parts': [  # Jäälouhos: a cut ice face, stacked blocks, a pickaxe
+        part(N + 'cliff_blockHalf_stone', (-0.17, 0.17), 0.5, materials={'grass': ICE, 'stone': ICE}),
+        part(O + 'ice-block', (0.2, 0.02), 0.9, 90), part(O + 'ice-block', (0.2, 0.2), 0.9, 90),
+        part(O + 'ice-block', (0.2, 0.11), 0.9, 90, z=0.108), part(O + 'ice-block', (0.02, -0.22), 0.9, 25),
+        part(O + 'ice-block', (0.26, -0.26), 0.8, -20), part(S + 'tool-pickaxe', (-0.3, -0.2), 1.6, 20)]},
+    {'name': 'spring', 'parts': [  # Kuuma lähde: the pond with its jetty, steaming
         part(N + 'ground_riverTile', scale=0.9, z=0.09, materials={'grass': '#5b8e50', 'water': '#62c0ea'}),
         part(P + 'structure-platform-dock-small', (0.3, -0.3), 0.08, 45, z=0.09),
-        part(N + 'lily_large', (-0.06, 0.1), 0.8, z=0.0), part(N + 'stone_smallA', (0.3, 0.28), 0.6),
-        tree('palm-bend', (-0.32, 0.3), 0.8)]},
+        part(N + 'stone_smallA', (0.3, 0.28), 0.6), part(N + 'stone_smallB', (-0.32, 0.26), 0.5, 50),
+        part(O + 'steam', (-0.14, -0.02), 0.9, z=0.09, snow=False), part(O + 'steam', (0.06, 0.12), 0.65, 120, z=0.09, snow=False)]},
+    {'name': 'fire', 'parts': bonfire()},
     # The boat the class came ashore in, pulled up at the landing.
     {'name': 'boat', 'parts': [part(P + 'boat-row-large', (0, 0), 0.3, 35, tilt=[4, -6]),
                                part(P + 'crate', (0.26, -0.26), 0.12, 10)]},
 ]
-
-# Winter (docs/09-uudisasukkaat.md §3.3): the same sprites with snow on their upward faces.
-# The boat stays on the water, and fields are bare under the snow (stage 0) all winter.
-SNOWLESS = {'boat', 'field-1', 'field-2', 'field-3'}
-sprites += [{**s, 'name': s['name'] + '-snow', 'snow': True} for s in list(sprites) if s['name'] not in SNOWLESS]
+for sprite in sprites:  # everything on land is in snow; the boat is on the water
+    if sprite['name'] != 'boat':
+        sprite['snow'] = True
 
 spec = {
     '//': 'Generated by kenney-props-spec.py; edit that file, not this one. Rendered by render-kenney.py.',
@@ -216,11 +229,9 @@ spec = {
         },
     },
     'swatches': {
-        'town-roof-red': {'kit': 'town', 'from': [0, 384], 'into': [64, 384], 'size': [64, 128]},
         'town-roof-blue': {'kit': 'town', 'from': [192, 128], 'into': [64, 384], 'size': [64, 128]},
         'town-roof-grey': {'kit': 'town', 'from': [448, 384], 'into': [64, 384], 'size': [64, 128]},
         'town-red-purple': {'kit': 'town', 'from': [320, 128], 'into': [0, 384], 'size': [64, 128]},
-        'survival-canvas-red': {'kit': 'survival', 'from': [192, 256], 'into': [64, 256], 'size': [64, 128]},
         'survival-canvas-blue': {'kit': 'survival', 'from': [256, 256], 'into': [64, 256], 'size': [64, 128]},
     },
     'sprites': sprites,
