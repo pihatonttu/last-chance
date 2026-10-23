@@ -315,7 +315,8 @@ tarkoittaa entistä kiveä. Hinnat ovat tiedostossa `params.ts` (`costs`).
 
 **Esiehdot (P30): koti ensin.** Alussa voi äänestää vain kodista (pieni iglu) tai olla
 rakentamatta. Kun ensimmäinen koti on valmis, koulu, paja ja kylätalo avautuvat kerralla.
-Aloitusvarat (6 ruokaa, 3 puuta ja 9 jäätä per kyläläinen) riittävät kahteen ensimmäiseen
+Aloitusvarat (6 ruokaa, 3 puuta ja 9 jäätä per kyläläinen; puu ja jää pyöristetään hintojen
+tapaan ylöspäin viiden kerrannaiseksi) riittävät kahteen ensimmäiseen
 pieneen igluun ja ensimmäisen kuun nuotioon.
 
 Nimet ovat P54:n mukaiset. Sisäiset tunnisteet (`shelter`, `school`, `workshop`, `gathering`)
@@ -512,7 +513,7 @@ kokeilutilassa (P19).
 900 puuta, kun rakennus maksaa ~180. Puu voi siis olla liian helppoa, ellei toimintoja kulu
 muualle. Koko pelin kysyntä (~2000 toimintoa: ruoka ~225, rakennusaineet ~500, tutkiminen ~200,
 oma kehitys jopa ~1000) ylittää tarjonnan (~1350), joten niukkuutta on, mutta jakauma pitää
-tarkistaa simulaattorilla. Luvut ovat päivätty päässälasku suunnitteluvaiheesta; simulaattorin
+tarkistaa simulaattorilla. Luvut ovat suunnitteluvaiheen päässälaskua; simulaattorin
 tulokset ovat dokumentissa `05-tasapaino.md`.
 
 ## 16. Parametrit (oletusarvot)
