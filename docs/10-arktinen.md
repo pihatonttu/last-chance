@@ -36,6 +36,7 @@ pysyvät.
 | Eläimet | **Ei nyt.** |
 | Nimi | **Last Chance: Arctic.** Domain `last-chance.novanet.fi` pysyy. |
 | Vanha vektorikartta | **Poistetaan kokonaan** (päätetty jo 2026-10-23 ennen teeman vaihtoa). |
+| Häviö | **Onnellisuus alle häviörajan → kylä luovuttaa,** jäänmurtaja hakee kotiin. **Aina käytössä.** Vain laiminlyönti häviää (§4b). |
 
 ## Tavoitteet
 
@@ -47,6 +48,7 @@ pysyvät.
   tarkoittaa enemmän puuta.
 - Muut säännöt pysyvät, joten peli on yhä tuttu sille, joka on pelannut saariversion
   sääntöjä.
+- Pelin voi hävitä: jos kylä jätetään kylmään ja nälkään, se luovuttaa (§4b).
 
 ## Ei tavoitteita (nyt)
 
@@ -180,6 +182,42 @@ Tarve = taulukon luku × *N*. Luvut ovat alkuarvoja ja viritetään simulaattori
 tarve`, kortissa lukee punaisella "Nuotiolle ei jää puuta". Äänestää saa silti, ja palvelin
 hyväksyy äänen.
 
+## 4b. Häviö (Samu 2026-10-23)
+
+Peli pitää pystyä häviämään, jotta pakkanen ja nuotio tuntuvat oikealta uhalta.
+
+- **Sääntö:** jos onnellisuus (kuukausien mielialojen summa) on kuukauden vaihteen jälkeen
+  alle **häviörajan**, kylä luovuttaa. Kyseisen kuun yhteenveto näytetään, ja sen jälkeen
+  peli päättyy. Raja on parametri (alkuarvo esim. −60, viritetään).
+- **Aina käytössä:** opettajalla ei ole valintaa, ja raja on molemmissa pelipituuksissa
+  (Lyhyelle oma raja, jos simulaattori niin vaatii).
+- **Vaikeus** (simulaattorin hyväksymisehto):
+
+  | Luokka | Häviää |
+  |---|---|
+  | Yhteistyö | ei koskaan |
+  | Sekoitus | alle 5 % peleistä |
+  | Satunnainen | noin 30–50 % |
+  | Laiska ja vain taidot | yli 80 % |
+
+- **Varoitus (Clauden ratkaisu):**
+  - yläpalkin onnellisuusluvun kohdalla näkyy häviöraja;
+  - kun onnellisuus on lähellä rajaa (esim. alle rajan + 20), tapahtumanauha ja kuukauden
+    yhteenveto varoittavat: "Kylä on luovuttamassa! Pitäkää nuotio ja ruoka kunnossa."
+- **Loppu:** jäänmurtaja tulee ilman juhlaa. Teksti: "Kylä ei jaksanut. Jäänmurtaja haki
+  kaikki kotiin. Kokeilkaa uudelleen!" Tähtiä ja tasonimeä ei näytetä. Omat merkit ja
+  jälkipuinti näkyvät kuten muulloinkin.
+- **Jälkipuinti:** ensimmäinen kysymys on uusi `lost`: "Kylä luovutti kuukautena {month}.
+  Mikä meni pieleen, ja milloin sen olisi voinut huomata?" Kuukausitarina näyttää, milloin
+  raja ylittyi.
+- **Tekniikka (Clauden ratkaisu):**
+  - Häviö on oma tuloksensa: `GameResult` saa kentän `lost`, ja lokin `game-ended`-tapahtuma
+    kertoo syyn. Tallennettu jälkipuinti saa kentän, joka kertoo häviöstä, joten
+    `DebriefData` versioidaan tai kenttä on valinnainen, ja vanhat jälkipuinnit toimivat
+    ennallaan.
+  - Lopetus tapahtuu sääntömoottorissa kuukauden vaihteen jälkeen, ja palvelin päättää pelin
+    kuten opettajan lopetuksessa.
+
 ## 5. Rakennusaineet ja hinnat
 
 - **Jää** (sisäisesti `stone`) louhitaan jäälouhoksesta, kuten kivi ennen.
@@ -264,6 +302,7 @@ Muut merkit pysyvät ennallaan.
   - yhteistyö ei palele yli 80 %:ssa peleistä;
   - sekoitus palelee joskus;
   - satunnainen palelee usein.
+  - häviöt §4b:n taulukon mukaan.
 
 ## 9. Kuvat
 
