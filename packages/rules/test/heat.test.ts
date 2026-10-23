@@ -113,7 +113,12 @@ describe('the village fire (docs/10-arktinen.md §4)', () => {
     game.endActionPhase();
     expect(game.vote('p1', 'school-1')).toEqual({ ok: true });
 
+    // No wood at all: an option that costs no wood takes nothing from the fire.
     const cold = setup({ players: 3, params: { ...P, startWoodPerVillager: 0 } });
+    expect(cold.resources.wood).toBeLessThan(cold.heatNeed());
+    const igloo = cold.voteOptions().find((o) => o.id === 'shelter-1')!;
+    expect(igloo.cost.wood).toBe(0);
+    expect(igloo.leavesFireCold).toBe(false);
     expect(cold.voteOptions().find((o) => o.id === 'none')?.leavesFireCold).toBe(false);
   });
 

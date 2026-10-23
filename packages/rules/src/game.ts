@@ -120,8 +120,9 @@ export interface VoteOption {
   cost: Cost;
   blocked: VoteBlock[];
   /**
-   * Its wood would leave the fire short this month: cost.wood > wood - heatNeed()
-   * (docs/10-arktinen.md §4). A warning only; the vote is still accepted.
+   * Its wood would leave the fire short this month: cost.wood > 0 and cost.wood > wood - heatNeed()
+   * (docs/10-arktinen.md §4). An option that costs no wood takes nothing from the fire, so it never
+   * warns, even when the store is already short. A warning only; the vote is still accepted.
    */
   leavesFireCold: boolean;
 }
@@ -844,7 +845,7 @@ export class Game {
     if (this.#resources.wood < cost.wood) blocked.push('wood');
     if (this.#resources.stone < cost.stone) blocked.push('stone');
     if (!upgrade && !this.#freeMeadow()) blocked.push('space');
-    const leavesFireCold = cost.wood > this.#resources.wood - this.heatNeed();
+    const leavesFireCold = cost.wood > 0 && cost.wood > this.#resources.wood - this.heatNeed();
     return { id: `${kind}-${level}`, kind, level, upgrade, cost, blocked, leavesFireCold };
   }
 
