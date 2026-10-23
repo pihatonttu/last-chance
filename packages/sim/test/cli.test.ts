@@ -63,12 +63,15 @@ describe('scenariosFor', () => {
     expect(list.every((s) => s.length === 'normal')).toBe(true);
   });
 
-  it('filters with --only and adds short games for cooperative, mixed and random with --short', () => {
+  it('filters with --only and adds short games for every standard mix with --short', () => {
     const list = scenariosFor(parseArgs(['--villagers', '15', '--only', 'cooperative,lazy', '--short']));
     expect(list.map((s) => [s.label, s.length])).toEqual([
       ['cooperative N=15', 'normal'],
       ['cooperative N=15 short', 'short'],
       ['lazy N=15', 'normal'],
+      ['lazy N=15 short', 'short'],
     ]);
+    // The loss criterion (docs/10-arktinen.md §4b) covers both lengths for every mix.
+    expect(STANDARD_SCENARIOS.every((s) => s.short)).toBe(true);
   });
 });

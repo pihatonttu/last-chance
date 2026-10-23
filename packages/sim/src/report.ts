@@ -49,11 +49,12 @@ function mainRow({ label, summary: s }: ReportRow): string[] {
 }
 
 /**
- * One row per scenario: happiness percentiles, grade counts, hunger months, cold months, the
- * shares of games with cold and of games lost, shelter months, the first month with everyone
- * sheltered (mean over the games that got there, with that share when not all did), buildings,
- * final skills, action shares, unused actions, spring found and the wood and ice (stone) left
- * at the end. A second table holds the mean mood of every month.
+ * One row per scenario: happiness percentiles, grade counts of the games that were not lost
+ * (a lost game shows no grade), hunger months, cold months, the shares of games with cold and
+ * of games lost, shelter months, the first month with everyone sheltered (mean over the games
+ * that got there, with that share when not all did), buildings, final skills, action shares,
+ * unused actions, spring found and the wood and ice (stone) left at the end. A second table
+ * holds the mean mood of every month.
  */
 export function markdownReport(rows: readonly ReportRow[]): string {
   const main = table(

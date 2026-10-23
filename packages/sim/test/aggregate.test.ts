@@ -107,6 +107,21 @@ describe('summarize', () => {
     expect(empty.moodByMonth).toEqual([]);
   });
 
+  it('counts the grades of the games that were not lost only: a lost game shows no grade', () => {
+    const s = summarize([
+      fakeMetrics({ grade: 1, lost: true }),
+      fakeMetrics({ grade: 1, lost: true }),
+      fakeMetrics({ grade: 1 }),
+      fakeMetrics({ grade: 3 }),
+    ]);
+    expect(s.gradeHistogram).toEqual({ 1: 1, 2: 0, 3: 1, 4: 0, 5: 0, 6: 0 });
+    expect(s.grade).toBe(2);
+    expect(s.lostRate).toBe(0.5);
+    const allLost = summarize([fakeMetrics({ grade: 2, lost: true })]);
+    expect(allLost.gradeHistogram).toEqual({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 });
+    expect(allLost.grade).toBe(0);
+  });
+
   it('reports the share of games with cold and the share lost', () => {
     const s = summarize([
       fakeMetrics({ coldMonths: 2, lost: true }),
