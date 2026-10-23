@@ -1,20 +1,25 @@
 <script lang="ts">
+  import type { VillageView } from '@saari/protocol';
   import type { ActionPreview, Coord, Phase, PublicTile } from '@saari/rules';
   import { formatNumber, t } from '../i18n/index.ts';
-  import { actionName, buildingTitle, gainText, terrainDescription, terrainName } from '../lib/format.ts';
+  import { actionName, buildingName, gainText, terrainDescription, terrainName } from '../lib/format.ts';
+  import { fireShort, temperatureText } from '../lib/heat.ts';
   import { exploreNeeded, shelterPeople, stockMax, tileUseCapacity, workNeeded } from '../lib/rules-info.ts';
   import type { ActOutcome } from '../state/reducer.ts';
+  import ArtIcon from './ArtIcon.svelte';
   import GainChip from './GainChip.svelte';
+  import Icon from './Icon.svelte';
 
   /**
    * What a tapped tile offers, as a small popup: its name and one big action button.
    * The rest (description, stock, work, uses) waits behind "More info" so the screen
-   * stays calm for young players.
+   * stays calm for young players. The landing is the village fire (docs/10-arktinen.md §6):
+   * its popup shows the frost, the forecast and the wood the fire burns, with no button.
    */
   interface Props {
     tile: PublicTile;
     landing: Coord;
-    villagers: number;
+    village: VillageView;
     phase: Phase;
     preview: ActionPreview | null;
     pending: boolean;
@@ -22,10 +27,14 @@
     onact: () => void;
     onclose: () => void;
   }
-  let { tile, landing, villagers, phase, preview, pending, lastAct, onact, onclose }: Props = $props();
+  let { tile, landing, village, phase, preview, pending, lastAct, onact, onclose }: Props = $props();
 
+  const villagers = $derived(village.villagers);
   const isLanding = $derived(tile.x === landing.x && tile.y === landing.y);
-  const title = $derived(tile.building ? buildingTitle(tile.building.kind, tile.building.level) : terrainName(tile));
+  const fireCold = $derived(fireShort(village));
+  const title = $derived(
+    isLanding ? t('fire.title') : tile.building ? buildingName(tile.building.kind, tile.building.level) : terrainName(tile),
+  );
   const description = $derived.by(() => {
     const b = tile.building;
     if (!b) return terrainDescription(tile);
@@ -101,60 +110,82 @@
     <button type="button" class="close" aria-label={t('common.close')} onclick={onclose}>✕</button>
   </header>
 
-  <div class="action">
-    {#if phase !== 'action'}
-      <p class="muted">{t('action.waitPhase')}</p>
-    {:else if !preview}
-      <p class="muted">{t('common.loading')}</p>
-    {:else if preview.kind === null}
-      <p class="muted">{preview.reason && preview.reason !== 'no-action' ? t(`refusal.${preview.reason}`) : t('action.none')}</p>
-    {:else}
-      <button type="button" class="btn btn-primary btn-big act" disabled={!preview.available || pending} onclick={onact}>
-        {#if pending}
-          {t('action.pending')}
-        {:else}
-          <span>{actionName(preview.kind)}</span>
-          <GainChip gain={preview.yield} />
+  {#if isLanding}
+    <div class="fire">
+      <div class="temps">
+        <span class="temp">
+          <Icon name="thermometer" size={40} />
+          <span><small>{t('fire.now')}</small><strong>{temperatureText(village.temperature)}</strong></span>
+        </span>
+        {#if village.forecast !== null}
+          <span class="temp next">
+            <span><small>{t('fire.forecast')}</small><strong>{temperatureText(village.forecast)}</strong></span>
+          </span>
         {/if}
-      </button>
-      {#if preview.yield.type === 'work'}
-        {@const y = preview.yield}
-        <!-- Shared work: how far it is and how far this action takes it. -->
-        <div class="work" aria-label={t('yield.work', { done: y.done, after: Math.min(y.needed, y.done + y.amount), needed: y.needed })}>
-          <div class="bar">
-            <span class="next" style:width="{Math.min(1, (y.done + y.amount) / y.needed) * 100}%"></span>
-            <span style:width="{Math.min(1, y.done / y.needed) * 100}%"></span>
-          </div>
-          <span class="steps">{formatNumber(y.done)} / {formatNumber(y.needed)}</span>
-        </div>
-      {/if}
-      {#if !preview.available && preview.reason}
-        <p class="reason" role="status">{t(`refusal.${preview.reason}`)}</p>
-      {/if}
-    {/if}
-    {#if actHere}
-      {#if actHere.ok}
-        <p class="done" role="status">{t('action.done', { gain: gainText(actHere.gain) })}</p>
-      {:else}
-        <p class="reason" role="alert">{t(`refusal.${actHere.reason}`)}</p>
-      {/if}
-    {/if}
-  </div>
-
-  <details class="more">
-    <summary>{t('tile.more')}</summary>
-    {#if isLanding}<p class="landing">{t('tile.landing')}</p>{/if}
-    <p>{description}</p>
-    {#each meters as meter (meter.label)}
-      <div class="meter">
-        <span>{meter.label}</span>
-        <div class="bar" aria-hidden="true"><span style:width="{Math.min(1, meter.share) * 100}%"></span></div>
       </div>
-    {/each}
-    {#each detail as line (line)}
-      <p class="detail">{line}</p>
-    {/each}
-  </details>
+      <p class="need"><ArtIcon name="wood" size={30} />{t('fire.need', { need: village.heatNeed })}</p>
+      <p>{t('fire.have', { wood: village.resources.wood })}</p>
+      {#if fireCold}
+        <p class="reason" role="status">{t('fire.short', { missing: village.heatNeed - village.resources.wood })}</p>
+      {/if}
+      <p class="muted">{t('fire.text')}</p>
+    </div>
+  {:else}
+    <div class="action">
+      {#if phase !== 'action'}
+        <p class="muted">{t('action.waitPhase')}</p>
+      {:else if !preview}
+        <p class="muted">{t('common.loading')}</p>
+      {:else if preview.kind === null}
+        <p class="muted">{preview.reason && preview.reason !== 'no-action' ? t(`refusal.${preview.reason}`) : t('action.none')}</p>
+      {:else}
+        <button type="button" class="btn btn-primary btn-big act" disabled={!preview.available || pending} onclick={onact}>
+          {#if pending}
+            {t('action.pending')}
+          {:else}
+            {#if preview.kind === 'fish'}<Icon name="ice-hole" size={28} />{/if}
+            <span>{actionName(preview.kind)}</span>
+            <GainChip gain={preview.yield} />
+          {/if}
+        </button>
+        {#if preview.yield.type === 'work'}
+          {@const y = preview.yield}
+          <!-- Shared work: how far it is and how far this action takes it. -->
+          <div class="work" aria-label={t('yield.work', { done: y.done, after: Math.min(y.needed, y.done + y.amount), needed: y.needed })}>
+            <div class="bar">
+              <span class="next" style:width="{Math.min(1, (y.done + y.amount) / y.needed) * 100}%"></span>
+              <span style:width="{Math.min(1, y.done / y.needed) * 100}%"></span>
+            </div>
+            <span class="steps">{formatNumber(y.done)} / {formatNumber(y.needed)}</span>
+          </div>
+        {/if}
+        {#if !preview.available && preview.reason}
+          <p class="reason" role="status">{t(`refusal.${preview.reason}`)}</p>
+        {/if}
+      {/if}
+      {#if actHere}
+        {#if actHere.ok}
+          <p class="done" role="status">{t('action.done', { gain: gainText(actHere.gain) })}</p>
+        {:else}
+          <p class="reason" role="alert">{t(`refusal.${actHere.reason}`)}</p>
+        {/if}
+      {/if}
+    </div>
+
+    <details class="more">
+      <summary>{t('tile.more')}</summary>
+      <p>{description}</p>
+      {#each meters as meter (meter.label)}
+        <div class="meter">
+          <span>{meter.label}</span>
+          <div class="bar" aria-hidden="true"><span style:width="{Math.min(1, meter.share) * 100}%"></span></div>
+        </div>
+      {/each}
+      {#each detail as line (line)}
+        <p class="detail">{line}</p>
+      {/each}
+    </details>
+  {/if}
 </section>
 
 <style>
@@ -245,9 +276,58 @@
   .more p {
     margin: 0.35rem 0;
   }
-  .landing {
+  .fire {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+  .fire p {
+    margin: 0;
+    font-weight: 700;
+  }
+  .temps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .temp {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.8rem 0.35rem 0.45rem;
+    border-radius: var(--radius-small);
+    background: #eaf4fb;
+    border: 2px solid #9cc3dc;
+  }
+  .temp > span {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+  .temp small {
+    font-size: 0.8rem;
     font-weight: 800;
-    color: var(--primary-dark);
+    color: var(--muted);
+  }
+  .temp strong {
+    font-size: 1.6rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+  }
+  .temp.next {
+    background: var(--card-2);
+    border-color: var(--line);
+  }
+  .temp.next strong {
+    font-size: 1.25rem;
+  }
+  .need {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .fire .muted {
+    font-weight: 600;
   }
   .meter {
     display: flex;

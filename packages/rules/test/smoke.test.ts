@@ -38,12 +38,21 @@ function playRandomGame(seed: number, villagers: number, length: 'normal' | 'sho
   return game;
 }
 
+/** The game ends after its last month, or right after the first month below the loss limit. */
+function expectPlayedOut(game: Game, length: 'normal' | 'short') {
+  const limit = game.params.lossThreshold[length];
+  const lostIn = game.reports.findIndex((r) => r.happiness < limit);
+  expect(game.lost).toBe(lostIn >= 0);
+  expect(game.reports).toHaveLength(lostIn >= 0 ? lostIn + 1 : game.totalMonths);
+  expect(game.log.at(-1)).toMatchObject({ type: 'game-ended', early: false, lost: game.lost });
+}
+
 describe('random full games on generated islands', () => {
   for (const villagers of [2, 15, 30]) {
     it(`${villagers} villagers play to the end without breaking invariants`, () => {
       for (const seed of [1, 2, 3]) {
         const game = playRandomGame(seed, villagers);
-        expect(game.reports).toHaveLength(15);
+        expectPlayedOut(game, 'normal');
         expect(game.grade()).toBeGreaterThanOrEqual(1);
         expect(game.grade()).toBeLessThanOrEqual(6);
         const seqs = game.log.map((e) => e.seq);
@@ -52,7 +61,9 @@ describe('random full games on generated islands', () => {
     });
   }
 
-  it('a short game ends after 10 months', () => {
-    expect(playRandomGame(4, 10, 'short').reports).toHaveLength(10);
+  it('a short game ends after 10 months or when the village gives up', () => {
+    const game = playRandomGame(4, 10, 'short');
+    expect(game.totalMonths).toBe(10);
+    expectPlayedOut(game, 'short');
   });
 });

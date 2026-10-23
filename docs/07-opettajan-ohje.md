@@ -1,15 +1,17 @@
 # Opettajan ohje (luonnos)
 
-**Tila: luonnos 2026-10-09.** Teksti näytetään pelissä sivulla `/ohje`.
+**Tila: luonnos 2026-10-09, päivitetty 2026-10-23 (napateema: nuotio, pakkanen ja häviö).** Pelissä sivulla `/ohje` on tämän ohjeen lyhyt versio.
 
 ---
 
-## Last Chance – opettajan ohje
+## Last Chance: Arctic – opettajan ohje
 
-Last Chance on yhteistyöpeli koko luokalle. Luokka on haaksirikkoutunut saarelle, ja kaikki
-resurssit ovat yhteisiä. Jokainen oppilas tekee muutaman toiminnon kuukaudessa, ja isoista
-asioista, kuten siitä mitä rakennetaan, päätetään äänestämällä. Pelin lopussa luokka saa
-arvosanan ja te saatte jälkipuinnin, josta näkee, miten yhteistyö sujui.
+Last Chance: Arctic on yhteistyöpeli koko luokalle. Jäänmurtaja tuo luokan jäiselle saarelle,
+ja luokka perustaa sinne kylän talkoilla. Kylän keskellä palaa nuotio, joka pitää kaikki
+lämpimänä, kunhan sille riittää puuta. Kaikki kerätty menee kylän yhteiseen varastoon. Jokainen
+oppilas tekee muutaman toiminnon kuukaudessa, ja kuun lopussa kyläkokous äänestää, mitä
+rakennetaan. Peli päättyy revontulijuhlaan, johon jäänmurtaja tuo vieraat. Pelin lopussa luokka
+saa arvosanan ja te saatte jälkipuinnin, josta näkee, miten yhteistyö sujui.
 
 ### Mitä tarvitaan
 
@@ -28,15 +30,58 @@ arvosanan ja te saatte jälkipuinnin, josta näkee, miten yhteistyö sujui.
    osoitteeseen tai skannaavat QR-koodin, syöttävät koodin ja keksivät nimimerkin. Voit
    vaihtaa nimimerkin satunnaiseksi tai poistaa pelaajan nimen vieressä olevista napeista,
    ja piilottaa nimet projektorilta.
-3. **Kerro tarina ja tavoite (2–5 min).** Laiva on ajanut karille, ja pelastus tulee 15
-   kuukauden päästä. Jokainen tarvitsee ruokaa ja suojaa. Kaikki resurssit ovat yhteisiä.
-4. **Pelatkaa (15–25 min).** Joka kuukausi on toimintavuoro, äänestys ja yhteenveto. Voit
-   pysäyttää pelin, antaa lisäaikaa (+30 s) tai lopettaa pelin kesken. Pysäytys sopii
-   opetushetkiin: "Katsokaa, ruokaa on liian vähän. Mitä teemme?"
+3. **Kerro tarina ja tavoite (2–5 min).** Jäänmurtaja toi luokan jäiselle saarelle. Luokka
+   perustaa kylän, ja 15 kuukauden päästä (Lyhyessä pelissä 10) pidetään revontulijuhla,
+   johon tulee vieraita. Jokainen tarvitsee ruokaa ja kodin, ja kylän nuotion pitää palaa.
+   Mitä kovempi pakkanen, sitä enemmän nuotio polttaa puuta.
+4. **Pelatkaa (15–25 min).** Joka kuukausi on toimintavuoro, kyläkokous (äänestys) ja
+   yhteenveto. Voit pysäyttää pelin, antaa lisäaikaa (+30 s) tai lopettaa pelin kesken.
+   Pysäytys sopii opetushetkiin: "Katsokaa, ruokaa on liian vähän. Mitä teemme?" tai "Ensi
+   kuussa on kova pakkanen. Paljonko puuta tarvitaan, ja paljonko meillä on?"
 5. **Jälkipuinti (10–15 min).** Pelin lopussa saat jälkipuinnin: kuukausien kulku,
    kriisihetket, mihin toiminnot käytettiin, äänestykset ja valmiit keskustelukysymykset.
    Tulosta tai tallenna nimellinen versio ennen kuin suljet sivun. Palvelimelle jää 30
    päiväksi versio ilman nimiä.
+
+### Nuotio ja pakkanen
+
+- Kylän nuotio palaa saaren rannalla, siinä paikassa, johon vene toi luokan. Siihen ei
+  rakenneta mitään, eikä sillä ole omaa toimintoa. Kun nuotiota napauttaa kartalla, ikkuna
+  kertoo pakkasen, ensi kuun ennusteen ja nuotion puuntarpeen.
+- Nuotio polttaa kuun lopussa puuta. Määrä riippuu pakkasesta ja kyläläisten määrästä.
+  Jokaista kyläläistä kohden nuotio polttaa:
+  - 2 puuta, kun pakkanen on −10° tai −15°;
+  - 4 puuta, kun pakkanen on −20° tai −25°;
+  - 10 puuta, kun pakkanen on −30° tai −35° (kova pakkanen).
+
+  Esimerkki: 20 kyläläisen kylässä nuotio polttaa 40, 80 tai 200 puuta kuussa. Yksi
+  "Kaada puita" -toiminto antaa 10 puuta.
+- Pakkanen vaihtelee kuukaudesta toiseen. Ensimmäinen kuukausi on leuto, ja pelissä on aina
+  vähintään kaksi kovan pakkasen kuukautta. Lämpömittari ylärivillä näyttää tämän kuun
+  pakkasen ja sen alla ennusteen ensi kuulle, esimerkiksi "−25°" ja "→ −35°".
+- Ylärivin puun luku on muotoa "120/60": varastossa on 120 puuta ja nuotio polttaa tässä
+  kuussa 60. Jos luku on punainen, puuta ei riitä.
+- Jos puuta ei riitä, nuotio polttaa kaiken, mitä varastossa on, ja osa kyläläisistä palelee.
+  Palelu laskee vain kylän mielialaa, kuten nälkä. Kukaan ei sairastu eikä kuole.
+- Iglut eivät tarvitse lämmitystä. Vain yhteinen nuotio lämmittää.
+- Kyläkokouksen äänestyskortissa lukee punaisella "Nuotiolle ei jää puuta", jos vaihtoehto
+  veisi puun, jota nuotio tarvitsee. Äänestää saa silti. Tästä voi keskustella luokan kanssa.
+
+### Kun kylä luovuttaa
+
+- Peli voi päättyä myös ennen revontulijuhlaa. Jos kylän onnellisuus putoaa alle rajan, kylä
+  luovuttaa. Normaalissa pelissä raja on −52 ja Lyhyessä −45. Raja näkyy ylärivillä
+  onnellisuuden alla.
+- Kun onnellisuus on lähellä rajaa, yhteenveto ja tapahtumanauha varoittavat: "Kylä on
+  luovuttamassa! Pitäkää nuotio ja ruoka kunnossa."
+- Kun kylä luovuttaa, kuukauden yhteenveto näytetään vielä. Sen jälkeen jäänmurtaja hakee
+  kaikki kotiin ilman juhlaa ("Kylä ei jaksanut."). Tähtiä ja tasonimeä ei näytetä, mutta
+  oppilaat näkevät omat merkkinsä ja sinä saat jälkipuinnin.
+- Häviö on aina käytössä, eikä sitä voi kytkeä pois. Siihen päätyy vain, jos ruoka, nuotion
+  puu ja kodit ovat huonolla tolalla pitkään.
+- Häviäminen on hyvä keskustelun aihe. Jälkipuinnin ensimmäinen kysymys on silloin: "Kylä
+  luovutti kuukautena X. Mikä meni pieleen, ja milloin sen olisi voinut huomata?" Peliä voi
+  kokeilla uudelleen.
 
 ### Vinkkejä
 
@@ -47,12 +92,25 @@ arvosanan ja te saatte jälkipuinnin, josta näkee, miten yhteistyö sujui.
   tilanne on rauhallinen.
 - Jos oppilaan kone kaatuu, hän palaa samaan peliin samalla nimimerkillä koodin avulla.
 - Uusia pelaajia voi liittyä kolmen ensimmäisen kuukauden aikana.
+- Kun ennuste lupaa kovaa pakkasta, projektori varoittaa: "Ensi kuussa kova pakkanen: −35°!"
+  Hyvä pysäytyskohta: "Riittääkö puu nuotiolle?" Jos puu ei riitä kuun alussa, tapahtumanauha
+  ilmoittaa: "Puu ei riitä nuotiolle: puuttuu 40."
+- Pelin lopussa jokainen oppilas näkee omalla laitteellaan omat merkkinsä, kuten Löytöretkeilijä,
+  Kalastaja tai Jäänhakkaaja. Niitä ei näytetä projektorilla eikä verrata.
 
 ### Pelin tärkeimmät säännöt lyhyesti
 
-- Jokainen syö 6 ruokaa kuukaudessa. Ruokaa saa pelloilta ja kalastamalla.
-- Suojia tarvitaan, jotta kaikilla on katto pään päällä. Kuussa voidaan rakentaa yksi
-  rakennus, ja ensimmäinen on aina suoja.
-- Koulu antaa lisää toimintoja ja työpaja parempia työkaluja, mutta vain itselle.
-- Nuotio, teatteri ja lähde tekevät kylästä onnellisemman.
-- Arvosana tulee onnellisuudesta. Tasapelissä ei rakenneta mitään: neuvotelkaa!
+- Jokainen syö 6 ruokaa kuukaudessa. Ruokaa saa kasvihuoneista ("Rakenna kasvihuone", "Korjaa
+  sato") ja pilkkimällä ("Pilki").
+- Puuta saa lumimetsästä ("Kaada puita"). Nuotio polttaa puuta joka kuukausi, ja
+  rakennukset maksavat puuta.
+- Jäätä saa jäätikölle perustetusta jäälouhoksesta ("Perusta jäälouhos", "Louhi jäätä").
+  Iglut maksavat jäätä. Mitä vähemmän louhoksessa on jäätä jäljellä, sitä vähemmän sitä irtoaa.
+- Koteja (iglut) tarvitaan, jotta kaikilla on katto pään päällä. Kuussa voidaan rakentaa
+  yksi rakennus, ja ensimmäinen on aina koti.
+- Koulussa oppii tekemään enemmän ja pajassa saa parempia työkaluja: oppija saa enemmän aikaan
+  koko kylälle.
+- Kylätalo ja kuuma lähde ("Ui") tekevät kylästä onnellisemman.
+- Kuukauden mieliala koostuu ruoasta, lämmöstä, koteista ja virkistyksestä. Onnellisuus on
+  kaikkien kuukausien mielialojen summa, ja arvosana tulee siitä.
+- Tasapelissä ei rakenneta mitään: neuvotelkaa!

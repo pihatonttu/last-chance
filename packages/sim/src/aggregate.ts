@@ -15,14 +15,23 @@ export interface Distribution {
 export interface Summary {
   games: number;
   happiness: Distribution;
+  /** Mean grade of the games that were not lost; 0 when every game was lost. */
   grade: number;
+  /** Grades of the games that were not lost: a lost game shows no grade (docs/10-arktinen.md §4b). */
   gradeHistogram: Record<Grade, number>;
   months: number;
   villagers: number;
   moodByMonth: number[];
 
+  /** Share of games the village gave up (docs/10-arktinen.md §4b). */
+  lostRate: number;
+
   hungryMonths: number;
   hungerTotal: number;
+  /** Mean cold months per game. */
+  coldMonths: number;
+  /** Share of games with at least one cold month. */
+  coldRate: number;
   unshelteredMonths: number;
   /** Mean over the games that got everyone sheltered; null when none did. */
   firstShelteredMonth: number | null;
@@ -75,7 +84,8 @@ export function summarize(metrics: readonly GameMetrics[]): Summary {
   const rate = (hits: number) => (metrics.length > 0 ? hits / metrics.length : 0);
 
   const gradeHistogram: Record<Grade, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
-  for (const m of metrics) {
+  const finished = metrics.filter((m) => !m.lost);
+  for (const m of finished) {
     const g = Math.min(6, Math.max(1, Math.round(m.grade))) as Grade;
     gradeHistogram[g] += 1;
   }
@@ -94,14 +104,18 @@ export function summarize(metrics: readonly GameMetrics[]): Summary {
   return {
     games: metrics.length,
     happiness: distribution(metrics.map((m) => m.happiness)),
-    grade: avg((m) => m.grade),
+    grade: mean(finished.map((m) => m.grade)),
     gradeHistogram,
     months: avg((m) => m.months),
     villagers: avg((m) => m.villagers),
     moodByMonth,
 
+    lostRate: rate(metrics.filter((m) => m.lost).length),
+
     hungryMonths: avg((m) => m.hungryMonths),
     hungerTotal: avg((m) => m.hungerTotal),
+    coldMonths: avg((m) => m.coldMonths),
+    coldRate: rate(metrics.filter((m) => m.coldMonths > 0).length),
     unshelteredMonths: avg((m) => m.unshelteredMonths),
     firstShelteredMonth: meanOrNull(sheltered),
     shelteredRate: rate(sheltered.filter((v) => v !== null).length),

@@ -6,6 +6,7 @@ export * from './grid.ts';
 export * from './params.ts';
 export * from './rng.ts';
 export * from './types.ts';
+export * from './weather.ts';
 export { describeTerrain, generateTerrain } from './mapgen.ts';
 
 /** A game whose island is generated from the seed when it starts. */

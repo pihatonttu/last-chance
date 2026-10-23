@@ -1,4 +1,4 @@
-import { chebyshev, type Coord, type Game, type Rng, type VoteOption } from '@saari/rules';
+import { chebyshev, woodPerVillager, type Coord, type Game, type Rng, type VoteOption } from '@saari/rules';
 import { availableMoves, hasActionsLeft, movesOfKind, openOptions, toCoord, type Move } from './bot.ts';
 
 /** Skills are worth studying only with at least this many months left after this one. */
@@ -29,6 +29,26 @@ export const DEFAULT_BUILD_ORDER: readonly string[] = [
   'school-3',
   'workshop-3',
 ];
+
+/**
+ * Wood the class wants in store for the village fire (docs/10-arktinen.md §8): this month's
+ * need and, by the forecast, next month's, so a hard frost never comes as a surprise. In the
+ * last month only this month's.
+ */
+export function woodTarget(game: Game): number {
+  const forecast = game.forecast();
+  const next = forecast === null ? 0 : woodPerVillager(forecast, game.params) * Math.max(1, game.villagers);
+  return game.heatNeed() + next;
+}
+
+/**
+ * Wood that is free for buildings: what is left over the fire of this month and next. The
+ * vote itself only must not leave this month's fire cold; saving for next month as well keeps
+ * a village from spending next month's fire on a building and then finding no forest left.
+ */
+function spareWood(game: Game): number {
+  return game.resources.wood - woodTarget(game);
+}
 
 export interface CoopOptions {
   noise: number;
@@ -63,7 +83,7 @@ function context(game: Game): Context {
   };
 }
 
-/** Stone is scarcer than wood, so it weighs double when comparing prices. */
+/** Ice (`stone`) is scarcer than wood, so it weighs double when comparing prices. */
 const price = (o: VoteOption) => o.cost.wood + 2 * o.cost.stone;
 
 /**
@@ -97,10 +117,18 @@ export function plannedBuilding(game: Game, order: readonly string[] = DEFAULT_B
   return wantedOptions(game, order)[0];
 }
 
+/**
+ * The first wanted building that can be built now. An option that would leave this month's
+ * fire cold is never chosen while another open option exists ('none' always is), not even
+ * by the random slips of the noise.
+ */
 export function cooperativeVote(game: Game, _playerId: string, rng: Rng, options: CoopOptions): string {
   const open = openOptions(game);
-  if (options.noise > 0 && rng.next() < options.noise) return rng.pick(open).id;
-  return wantedOptions(game, options.buildOrder).find((o) => o.blocked.length === 0)?.id ?? 'none';
+  const warm = open.filter((o) => !o.leavesFireCold);
+  const choices = warm.length > 0 ? warm : open;
+  if (options.noise > 0 && rng.next() < options.noise) return rng.pick(choices).id;
+  const allowed = new Set(choices.map((o) => o.id));
+  return wantedOptions(game, options.buildOrder).find((o) => allowed.has(o.id))?.id ?? 'none';
 }
 
 export function cooperativeAction(game: Game, playerId: string, rng: Rng, options: CoopOptions): Coord | null {
@@ -115,10 +143,22 @@ function choose(game: Game, moves: Move[], order: readonly string[]): Move | und
   const landing = game.landing;
   const dist = (m: Move) => chebyshev(m, landing);
   const resource = (m: Move) => (m.preview.yield.type === 'resource' ? m.preview.yield.amount : 0);
-  /** Highest yield first, nearest the landing on ties. */
-  const richest = (list: Move[]) => best(list, (m) => resource(m) - dist(m) / 1000);
-  /** Chops that leave trees standing, so the forest grows back. */
-  const sustainable = (list: Move[]) => list.filter((m) => m.preview.kind !== 'chop' || resource(m) < (game.tile(m.x, m.y)?.stock ?? 0));
+  const stock = (m: Move) => game.tile(m.x, m.y)?.stock ?? 0;
+  /**
+   * Highest yield first, nearest the landing on ties. Among chops the fullest forest first:
+   * a forest near full grows back the most (25 % a month up to the cap), so the logging
+   * spreads over the forests instead of thinning the nearest ones until only clearing is left.
+   */
+  const richest = (list: Move[]) =>
+    best(list, (m) => resource(m) + (m.preview.kind === 'chop' ? stock(m) / 100 : 0) - dist(m) / 10000);
+  /** Chops that leave trees standing, so the forest grows back: wood for the fire. */
+  const sustainable = (list: Move[]) => list.filter((m) => m.preview.kind !== 'chop' || resource(m) < stock(m));
+  /**
+   * Chops that leave at least half the trees: wood for buildings. A thinned forest barely
+   * grows back, so the rest is kept for the fire, which needs wood every month.
+   */
+  const thriving = (list: Move[]) =>
+    list.filter((m) => m.preview.kind !== 'chop' || stock(m) - resource(m) >= game.params.forestCapacity / 2);
   /** Least work left first, nearest the landing on ties. */
   const quickest = (list: Move[]) =>
     best(list, (m) => {
@@ -140,6 +180,14 @@ function choose(game: Game, moves: Move[], order: readonly string[]): Move | und
     if (m) return m;
   }
 
+  // 1b. The fire burns this month and, by the forecast, next month too. Never clear a forest
+  // while another can be found; when nothing else is left, the fire comes first.
+  if (game.resources.wood < woodTarget(game)) {
+    const chops = movesOfKind(moves, 'chop');
+    const m = richest(sustainable(chops)) ?? quickest(movesOfKind(moves, 'explore')) ?? richest(chops);
+    if (m) return m;
+  }
+
   // 2. Enough fields to feed the village.
   const fields = game.tiles().filter((t) => t.terrain === 'field').length;
   if (fields * game.params.fieldCapacity < need && monthsLeft >= 2) {
@@ -148,13 +196,12 @@ function choose(game: Game, moves: Move[], order: readonly string[]): Move | und
     if (m) return m;
   }
 
-  // 3. Materials and room for the planned building.
+  // 3. Materials and room for the planned building. Its wood comes on top of the fire's
+  // and only from forests that keep half their trees.
   if (target) {
-    if (target.cost.wood > game.resources.wood) {
-      // Never clear a forest while another can be found; no forest in sight: go and find one.
-      const chops = movesOfKind(moves, 'chop');
-      const m =
-        richest(sustainable(chops)) ?? quickest(movesOfKind(moves, 'explore')) ?? richest(chops);
+    if (target.cost.wood > 0 && target.cost.wood > spareWood(game)) {
+      // No such forest in sight: go and find one.
+      const m = richest(thriving(movesOfKind(moves, 'chop'))) ?? quickest(movesOfKind(moves, 'explore'));
       if (m) return m;
     }
     if (target.cost.stone > game.resources.stone) {
@@ -181,10 +228,11 @@ function choose(game: Game, moves: Move[], order: readonly string[]): Move | und
   const fun = movesOfKind(moves, 'swim', 'gather')[0];
   if (fun) return fun;
 
-  // 6. Save up for next month's building too.
+  // 6. Save up for next month's building too, on top of the fire's wood.
   if (target && next) {
-    if (target.cost.wood + next.cost.wood > game.resources.wood) {
-      const m = richest(sustainable(movesOfKind(moves, 'chop')));
+    const wood = target.cost.wood + next.cost.wood;
+    if (wood > 0 && wood > spareWood(game)) {
+      const m = richest(thriving(movesOfKind(moves, 'chop')));
       if (m) return m;
     }
     if (target.cost.stone + next.cost.stone > game.resources.stone) {
@@ -193,12 +241,12 @@ function choose(game: Game, moves: Move[], order: readonly string[]): Move | und
     }
   }
 
-  // 7. Exploring, 8. food up to the storage limit, 9. wood without clearing forests.
+  // 7. Exploring, 8. food up to the storage limit, 9. wood from forests that keep half their trees.
   // Nothing sensible left: leave the action unused rather than waste the island.
   return (
     quickest(movesOfKind(moves, 'explore')) ??
     (food < game.foodStorage() ? richest(movesOfKind(moves, 'harvest', 'fish')) : undefined) ??
-    richest(sustainable(movesOfKind(moves, 'chop')))
+    richest(thriving(movesOfKind(moves, 'chop')))
   );
 }
 
@@ -215,10 +263,14 @@ function best(moves: Move[], score: (m: Move) => number): Move | undefined {
   return top;
 }
 
-/** The meadow the next new building will take (same order as the engine's placement). */
+/**
+ * The meadow the next new building will take (same order as the engine's placement, which
+ * never builds on the landing: it is the village fire).
+ */
 function reservedMeadow(game: Game): Coord | undefined {
   const landing = game.landing;
-  const free = game.tiles().filter((t) => !t.fog && t.terrain === 'meadow' && !t.building);
+  const isLanding = (t: Coord) => t.x === landing.x && t.y === landing.y;
+  const free = game.tiles().filter((t) => !t.fog && t.terrain === 'meadow' && !t.building && !isLanding(t));
   free.sort(
     (a, b) =>
       (a.work > 0 ? 1 : 0) - (b.work > 0 ? 1 : 0) ||

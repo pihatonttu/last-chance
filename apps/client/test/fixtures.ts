@@ -1,5 +1,22 @@
 import type { GameView, PlayerSummary, TimerView, VillageView, YouView } from '@saari/protocol';
-import type { PublicTile } from '@saari/rules';
+import type { MonthReport, PublicTile } from '@saari/rules';
+
+/** A month that ran out of wood at −30°: 4 of 10 villagers were cold. */
+export function monthReport(over: Partial<MonthReport> = {}): MonthReport {
+  return {
+    month: 4,
+    villagers: 10,
+    vote: { outcome: 'none', counts: {} },
+    food: { before: 40, need: 40, eaten: 40, hungry: 0, spoiled: 0, after: 0 },
+    heat: { temperature: -30, need: 30, burned: 18, cold: 4 },
+    shelter: { share: 1, capacity: 10, unsheltered: 0 },
+    recreation: 0,
+    mood: { food: 2, heat: -4, shelter: 2, recreation: 0, total: 0 },
+    happiness: -10,
+    unusedActions: 0,
+    ...over,
+  };
+}
 
 export function tile(x: number, y: number, over: Partial<PublicTile> = {}): PublicTile {
   return {
@@ -26,6 +43,10 @@ export function village(over: Partial<VillageView> = {}): VillageView {
     shelterCapacity: 0,
     happiness: 0,
     recreationThisMonth: 0,
+    temperature: -10,
+    forecast: -15,
+    heatNeed: 10,
+    lossThreshold: -60,
     ...over,
   };
 }

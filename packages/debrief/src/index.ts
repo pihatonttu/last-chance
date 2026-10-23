@@ -1,14 +1,15 @@
-import type { Game, LogEntry } from '@saari/rules';
+import type { Game, LogEntry, MonthReport } from '@saari/rules';
 import { copyCounts, countByMonth, shareOf, sumCounts } from './actions.ts';
 import { findCrises } from './crises.ts';
 import { buildPlayers, pseudonym } from './players.ts';
 import { pickQuestions } from './questions.ts';
-import type { DebriefData, DebriefLabel } from './types.ts';
+import type { DebriefCrisis, DebriefData, DebriefLabel } from './types.ts';
 import { collectVotes, participation, voteOutcomes } from './votes.ts';
 
 export * from './types.ts';
 export { ACTION_GROUPS, groupOf } from './actions.ts';
 export { QUESTION_IDS, THRESHOLDS } from './questions.ts';
+export { BADGE_IDS, BADGE_RULES, badgesFor, type BadgeId } from './badges.ts';
 
 /** First month a spring was found, within the months played. */
 function springFoundMonth(log: readonly LogEntry[], monthsPlayed: number): number | null {
@@ -16,13 +17,29 @@ function springFoundMonth(log: readonly LogEntry[], monthsPlayed: number): numbe
   return found ? found.month : null;
 }
 
-/** true when the teacher ended the game, or when it has not ended at all yet. */
-function endedEarly(log: readonly LogEntry[]): boolean {
+function gameEnded(log: readonly LogEntry[]): Extract<LogEntry, { type: 'game-ended' }> | undefined {
   for (let i = log.length - 1; i >= 0; i--) {
     const e = log[i]!;
-    if (e.type === 'game-ended') return e.early;
+    if (e.type === 'game-ended') return e;
   }
-  return true;
+  return undefined;
+}
+
+/** true when the teacher ended the game, or when it has not ended at all yet. */
+function endedEarly(log: readonly LogEntry[]): boolean {
+  return gameEnded(log)?.early ?? true;
+}
+
+/** The month the village gave up (docs/10-arktinen.md §4b), from the log; null when it did not. */
+function lostMonth(log: readonly LogEntry[]): number | null {
+  const end = gameEnded(log);
+  return end?.lost ? end.month : null;
+}
+
+/** The frost of the first month the fire ran out (the first cold crisis); null when nobody was ever cold. */
+function coldTemperature(reports: readonly MonthReport[], crises: readonly DebriefCrisis[]): number | null {
+  const first = crises.find((c) => c.kind === 'cold');
+  return first ? (reports.find((r) => r.month === first.month)?.heat.temperature ?? null) : null;
 }
 
 /**
@@ -51,6 +68,7 @@ export function buildDebrief(game: Game, labels: readonly DebriefLabel[], now: D
   const spring = springFoundMonth(log, monthsPlayed);
   const grade = game.grade();
   const views = game.playerIds().flatMap((id) => game.player(id) ?? []);
+  const lost = lostMonth(log);
 
   return {
     version: 1,
@@ -60,6 +78,7 @@ export function buildDebrief(game: Game, labels: readonly DebriefLabel[], now: D
     totalMonths: game.totalMonths,
     monthsPlayed,
     endedEarly: endedEarly(log),
+    lost: lost !== null,
     happiness: game.happiness,
     grade,
     villagers: reports.at(-1)?.villagers ?? game.villagers,
@@ -83,6 +102,8 @@ export function buildDebrief(game: Game, labels: readonly DebriefLabel[], now: D
       actions,
       unused,
       springFoundMonth: spring,
+      lostMonth: lost,
+      coldTemperature: coldTemperature(reports, crises),
     }),
   };
 }
@@ -103,6 +124,7 @@ export function pseudonymize(d: DebriefData): DebriefData {
     totalMonths: d.totalMonths,
     monthsPlayed: d.monthsPlayed,
     endedEarly: d.endedEarly,
+    ...(d.lost === undefined ? {} : { lost: d.lost }),
     happiness: d.happiness,
     grade: d.grade,
     villagers: d.villagers,

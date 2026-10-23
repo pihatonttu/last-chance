@@ -3,14 +3,17 @@ import type { DebriefCrisis } from './types.ts';
 
 type CrisisKind = DebriefCrisis['kind'];
 
-/** Hunger before shelter when two crises start in the same month. */
-const KINDS: readonly CrisisKind[] = ['hunger', 'no-shelter'];
+/** Hunger, then cold, then shelter when crises start in the same month (the question priority). */
+const KINDS: readonly CrisisKind[] = ['hunger', 'cold', 'no-shelter'];
 
 function affected(report: MonthReport, kind: CrisisKind): number {
-  return kind === 'hunger' ? report.food.hungry : report.shelter.unsheltered;
+  if (kind === 'hunger') return report.food.hungry;
+  // Debriefs stored before the arctic rules have no heat in their reports: nobody was cold.
+  if (kind === 'cold') return (report as Partial<Pick<MonthReport, 'heat'>>).heat?.cold ?? 0;
+  return report.shelter.unsheltered;
 }
 
-/** Maximal runs of consecutive months in which somebody went hungry or had no shelter. */
+/** Maximal runs of consecutive months in which somebody went hungry, was cold or had no shelter. */
 function runsOf(reports: readonly MonthReport[], kind: CrisisKind): DebriefCrisis[] {
   const crises: DebriefCrisis[] = [];
   let current: DebriefCrisis | null = null;

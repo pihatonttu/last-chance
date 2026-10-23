@@ -19,9 +19,16 @@ import type {
   VoteOption,
   VoteRefusal,
 } from '@saari/rules';
-import type { DebriefData } from '@saari/debrief';
+import type { BadgeId, DebriefData } from '@saari/debrief';
 
-export const PROTOCOL_VERSION = 1;
+/**
+ * 2: the settlers' badges (`badges` message) and the arctic fields: the frost
+ * (`temperature`, `forecast`), the village fire's wood (`heatNeed`), the loss limit
+ * (`lossThreshold`), `GameResult.lost` and the `hard-frost-coming`, `wood-short` and
+ * `giving-up` ticker events (docs/09-uudisasukkaat.md, docs/10-arktinen.md); tabs from
+ * before must reload.
+ */
+export const PROTOCOL_VERSION = 2;
 
 // ------------------------------------------------------------------ HTTP
 
@@ -79,6 +86,14 @@ export interface VillageView {
   shelterCapacity: number;
   happiness: number;
   recreationThisMonth: number;
+  /** This month's frost in °C (docs/10-arktinen.md §4); the lobby shows month 1. */
+  temperature: number;
+  /** Next month's frost; null in the last month. */
+  forecast: number | null;
+  /** Wood the village fire burns at the end of this month. */
+  heatNeed: number;
+  /** The village gives up when the happiness falls below this (docs/10-arktinen.md §4b). */
+  lossThreshold: number;
 }
 
 export interface MapView {
@@ -118,6 +133,8 @@ export interface GameResult {
   /** 1..6 (P32); the client maps it to the grade name. */
   grade: number;
   early: boolean;
+  /** The village gave up: no party, no grade shown (docs/10-arktinen.md §4b). */
+  lost: boolean;
 }
 
 export interface GameView {
@@ -163,7 +180,13 @@ export type TickerEvent =
   | { kind: 'built'; option: string; x: number; y: number }
   | { kind: 'tie' }
   | { kind: 'player-joined' }
-  | { kind: 'food-short'; missing: number };
+  | { kind: 'food-short'; missing: number }
+  /** Next month is a hard frost (docs/10-arktinen.md §4). */
+  | { kind: 'hard-frost-coming'; temperature: number }
+  /** The wood does not cover this month's fire. */
+  | { kind: 'wood-short'; missing: number }
+  /** The happiness is close to the loss limit (docs/10-arktinen.md §4b). */
+  | { kind: 'giving-up' };
 
 // ------------------------------------------------------------------ client → server
 
@@ -265,6 +288,11 @@ export type ServerMessage =
    * teacher's own device (P23), and the link to the stored pseudonymised copy.
    */
   | { t: 'debrief'; debrief: DebriefData; storedToken: string | null }
+  /**
+   * A player's own badges at the end of the game (docs/09 §2.3): only to that player,
+   * never to the host or other players, and never stored.
+   */
+  | { t: 'badges'; badges: BadgeId[] }
   | { t: 'kicked' }
   | { t: 'error'; code: ErrorCode }
   | { t: 'pong'; serverTime: number };

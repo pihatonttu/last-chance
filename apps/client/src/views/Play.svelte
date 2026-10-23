@@ -229,7 +229,7 @@
     <main class="page center">
       <div class="card message">
         {#if game.result}
-          <EndScreen result={game.result}>
+          <EndScreen result={game.result} badges={client.badges}>
             <a class="btn btn-secondary" href={href('/')} onclick={router.link}>{t('common.home')}</a>
           </EndScreen>
         {:else}
@@ -275,7 +275,7 @@
             <TilePanel
               tile={selectedTile}
               landing={game.map.landing}
-              villagers={game.village.villagers}
+              village={game.village}
               phase={game.phase}
               {preview}
               pending={pendingAct !== null}
@@ -313,7 +313,13 @@
 
         {#if game.phase === 'summary' && game.lastReport}
           <div class="overlay">
-            <div class="card overlay-card"><MonthSummary report={game.lastReport} /></div>
+            <div class="card overlay-card">
+              <MonthSummary
+                report={game.lastReport}
+                lossThreshold={game.village.lossThreshold}
+                lastMonth={game.lastReport.month >= game.totalMonths}
+              />
+            </div>
           </div>
         {/if}
       </div>

@@ -6,11 +6,13 @@
   import { effectText, missingFor, optionArt, voteShare } from '../lib/vote.ts';
   import type { VoteOutcome } from '../state/reducer.ts';
   import ArtIcon from './ArtIcon.svelte';
+  import Icon from './Icon.svelte';
   import PropPicture from './PropPicture.svelte';
 
   /**
-   * The month's vote as picture cards: what would be built, its price in wood and stone,
-   * and how many have chosen it. Tapping a card votes. What each option does waits behind
+   * The month's vote as picture cards: what would be built, its price in wood and ice,
+   * and how many have chosen it. Tapping a card votes. A red line warns when the option's
+   * wood would leave the village fire short. What each option does waits behind
    * "What do these do?" (P38: little text at a time).
    */
   interface Props {
@@ -78,6 +80,9 @@
             <span class="lock">
               {#if missing.space}{t('vote.blocked.space')}{:else}{t('vote.missing')}{/if}
             </span>
+          {:else if option.leavesFireCold}
+            <!-- A warning only: the vote is still accepted (docs/10-arktinen.md §4). -->
+            <span class="fire-cold"><Icon name="thermometer" size={18} />{t('vote.fireCold')}</span>
           {/if}
           <span class="tally" aria-label={tp('vote.votes', count)}>
             <span class="bar"><span style:width="{voteShare(vote, option.id) * 100}%"></span></span>
@@ -212,6 +217,19 @@
     font-size: 0.8rem;
     font-weight: 800;
     color: var(--danger);
+    text-align: center;
+  }
+  .fire-cold {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.1rem 0.45rem 0.1rem 0.2rem;
+    border-radius: 6px;
+    background: var(--danger-soft);
+    color: var(--danger);
+    font-size: 0.8rem;
+    font-weight: 800;
+    line-height: 1.15;
     text-align: center;
   }
   .tally {

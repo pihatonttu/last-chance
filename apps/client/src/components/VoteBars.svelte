@@ -5,9 +5,13 @@
   import { buildingName } from '../lib/format.ts';
   import { missingFor, optionArt, voteShare } from '../lib/vote.ts';
   import ArtIcon from './ArtIcon.svelte';
+  import Icon from './Icon.svelte';
   import PropPicture from './PropPicture.svelte';
 
-  /** Live vote for the projector: pictures, prices and bars. Counts only, never names (P34). */
+  /**
+   * Live vote for the projector: pictures, prices and bars, and a red line when an option's
+   * wood would leave the village fire short. Counts only, never names (P34).
+   */
   interface Props {
     vote: VoteView;
     voters: number;
@@ -48,7 +52,12 @@
               <span class="count" aria-label={tp('vote.votes', count)}>{formatNumber(count)}</span>
             </div>
           {/if}
-          {#if missing.space}<span class="lock">{t('vote.blocked.space')}</span>{/if}
+          {#if missing.space}
+            <span class="lock">{t('vote.blocked.space')}</span>
+          {:else if option.leavesFireCold && option.blocked.length === 0}
+            <!-- A warning only: the vote is still accepted (docs/10-arktinen.md §4). -->
+            <span class="lock fire-cold"><Icon name="thermometer" size={16} />{t('vote.fireCold')}</span>
+          {/if}
         </div>
       </li>
     {/each}
@@ -134,6 +143,12 @@
     font-size: 0.8em;
     font-weight: 700;
     color: var(--danger);
+  }
+  .fire-cold {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15em;
+    font-weight: 800;
   }
   .blocked .name {
     color: var(--muted);

@@ -17,9 +17,12 @@ export function randomAction(game: Game, playerId: string, rng: Rng): Coord | nu
   return moves.length > 0 ? toCoord(rng.pick(moves)) : null;
 }
 
-/** Studies and makes tools whenever it can; votes for its own development. */
-export const selfishBot: Bot = {
-  strategy: 'selfish',
+/**
+ * Studies and makes tools whenever it can and votes for school and workshop. A class that
+ * only learns gathers no food: the balance check of core c (P7), not a moral label (docs/09 §2.2).
+ */
+export const skillsOnlyBot: Bot = {
+  strategy: 'skillsOnly',
   chooseAction(game, playerId, rng) {
     if (!hasActionsLeft(game, playerId)) return null;
     const moves = availableMoves(game, playerId);

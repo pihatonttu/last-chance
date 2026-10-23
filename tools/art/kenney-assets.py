@@ -6,8 +6,11 @@ Usage: python -I tools/art/kenney-assets.py <extracted-packs-dir>
   towerdefense/  kenney.nl/assets/tower-defense                  (the land block)
   background/    kenney.nl/assets/background-elements-remastered (fog clouds)
 The block is 132 px wide with a 132 x 66 top diamond; the renderer scales it to the map's
-96 x 48 tiles (apps/client/src/map/kenney.ts). Everything standing on the land is rendered
-from Kenney 3D kits instead (kenney-props-spec.py, render-kenney.py).
+96 x 48 tiles (apps/client/src/map/kenney.ts). This copies it green: the arctic island's
+block (snow on top, ice-blue sides) is made from it by kenney-arctic-block.py, so run
+  python -I tools/art/kenney-arctic-block.py apps/client/public/art/kenney/grass.png
+afterwards. Everything standing on the land is rendered from Kenney 3D kits and our own
+models instead (kenney-props-spec.py, render-kenney.py).
 """
 import os
 import shutil

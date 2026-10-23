@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { PROTOCOL_VERSION, type ClientMessage, type ServerMessage } from '@saari/protocol';
+import { PROTOCOL_VERSION, type ClientMessage, type ServerMessage, type TickerEvent } from '@saari/protocol';
+import { createGame, DEFAULT_PARAMS, type Game, type GameParams } from '@saari/rules';
+import { fallbackDebrief } from '../src/net/mock/debrief-fallback.ts';
 import { MockServer } from '../src/net/mock/server.ts';
 import { MockTransport } from '../src/net/mock/transport.ts';
 import { applyServerMessage, initialState, type ClientState } from '../src/state/reducer.ts';
@@ -32,6 +34,27 @@ function connect(server: MockServer): TestClient {
 }
 
 const flush = () => vi.advanceTimersByTimeAsync(0);
+
+/** No game is ever lost (docs/10-arktinen.md §4b): for tests that play to the last month. */
+const NEVER_LOSE: GameParams = { ...DEFAULT_PARAMS, lossThreshold: { short: -1_000_000, normal: -1_000_000 } };
+
+/** Every game is lost at its first month end. */
+const ALWAYS_LOSE: GameParams = { ...DEFAULT_PARAMS, lossThreshold: { short: 1_000, normal: 1_000 } };
+
+/** Every ticker kind there is; the Record keeps this list complete when a kind is added. */
+const TICKER_KINDS: Record<TickerEvent['kind'], true> = {
+  'spring-found': true,
+  'field-ready': true,
+  'quarry-ready': true,
+  'forest-cleared': true,
+  built: true,
+  tie: true,
+  'player-joined': true,
+  'food-short': true,
+  'hard-frost-coming': true,
+  'wood-short': true,
+  'giving-up': true,
+};
 
 function newServer(): MockServer {
   return new MockServer({ seed: 7, trialBots: 4, demoBots: 0, botStepMs: 40, voteSeconds: 6, summarySeconds: 2 });
@@ -141,6 +164,13 @@ describe('MockServer', () => {
     expect(student.state.game?.result?.grade).toBeGreaterThanOrEqual(1);
     expect(student.state.game?.result?.grade).toBeLessThanOrEqual(6);
     expect(student.state.game?.result?.early).toBe(false);
+    // Ten votes mean the village never gave up on the way.
+    expect(student.state.game?.result).toHaveProperty('lost', false);
+    expect(host.state.game?.result).toHaveProperty('lost', false);
+    // The ticker only ever carries kinds the client knows how to show.
+    const kinds = host.of('ticker').map((m) => m.event.kind);
+    expect(kinds.length).toBeGreaterThan(0);
+    for (const kind of kinds) expect(TICKER_KINDS).toHaveProperty(kind);
     expect(actions).toBeGreaterThan(5);
     expect(votes).toBe(10);
     expect(student.of('act-result').some((m) => m.ok)).toBe(true);
@@ -155,6 +185,10 @@ describe('MockServer', () => {
     expect(debrief[0]!.debrief.monthsPlayed).toBe(10);
     expect(debrief[0]!.debrief.named).toBe(true);
     expect(debrief[0]!.debrief.players.map((p) => p.label)).toContain('Testi');
+    // The student's own badges, never the host's (docs/09 §2.3).
+    expect(student.of('badges')).toHaveLength(1);
+    expect(student.state.badges?.length).toBeGreaterThan(0);
+    expect(host.of('badges')).toHaveLength(0);
     // Students never get the debrief or other players' names (P34).
     expect(student.of('debrief')).toHaveLength(0);
     for (const m of student.messages) {
@@ -265,6 +299,115 @@ describe('MockServer', () => {
     expect(student.of('effect')).toHaveLength(0);
     expect(student.state.effects.length).toBeGreaterThan(0);
     expect(host.of('effect').length).toBe(student.of('act-result').filter((m) => m.ok).length);
+  });
+
+  describe('warnings and the lost result', () => {
+    /** One idle student in a normal game on the given rules; the host has started it. */
+    async function idleGame(params: GameParams) {
+      const server = new MockServer({ seed: 7, trialBots: 0, demoBots: 0, voteSeconds: 6, summarySeconds: 2, params });
+      const { code, hostToken } = server.createGame({ length: 'short', actionSeconds: 45 });
+      const host = connect(server);
+      host.send({ t: 'hello-host', protocol: PROTOCOL_VERSION, code, hostToken });
+      const student = connect(server);
+      student.send({ t: 'hello-player', protocol: PROTOCOL_VERSION, code, nickname: 'Aapo' });
+      await flush();
+      const mark = host.messages.length;
+      host.send({ t: 'host', command: { type: 'start' } });
+      await flush();
+      return { host, student, mark };
+    }
+    const tickersSince = (client: TestClient, mark: number, kind: TickerEvent['kind']) =>
+      client.messages.slice(mark).flatMap((m) => (m.t === 'ticker' && m.event.kind === kind ? [m.event] : []));
+    const MONTH_MS = (45 + 6 + 2) * 1000;
+
+    it('warns about a hard frost the month before', async () => {
+      const { host, mark: first } = await idleGame(NEVER_LOSE);
+      const hardAt = DEFAULT_PARAMS.weather.hardAt;
+      let mark = first;
+      let warned = 0;
+      let quiet = 0;
+      for (let month = 1; month <= 10; month++) {
+        expect(host.state.game?.month).toBe(month);
+        const forecast = host.state.game!.village.forecast;
+        const frost = tickersSince(host, mark, 'hard-frost-coming');
+        if (forecast !== null && forecast <= hardAt) {
+          expect(frost).toEqual([{ kind: 'hard-frost-coming', temperature: forecast }]);
+          warned += 1;
+        } else {
+          expect(frost).toEqual([]);
+          quiet += 1;
+        }
+        mark = host.messages.length;
+        await vi.advanceTimersByTimeAsync(MONTH_MS);
+      }
+      expect(host.state.game?.phase).toBe('ended');
+      expect(warned).toBeGreaterThan(0);
+      expect(quiet).toBeGreaterThan(0);
+    });
+
+    it('warns when the wood will not keep the fire going', async () => {
+      const cold = await idleGame({ ...NEVER_LOSE, startWoodPerVillager: 0 });
+      const village = cold.host.state.game!.village;
+      expect(village.heatNeed).toBeGreaterThan(0);
+      expect(tickersSince(cold.host, cold.mark, 'wood-short')).toEqual([
+        { kind: 'wood-short', missing: village.heatNeed - village.resources.wood },
+      ]);
+      const warm = await idleGame({ ...NEVER_LOSE, startWoodPerVillager: 50 });
+      expect(tickersSince(warm.host, warm.mark, 'wood-short')).toEqual([]);
+    });
+
+    it('warns when the village is close to giving up', async () => {
+      const margin = DEFAULT_PARAMS.lossWarningMargin;
+      const limit = (n: number): GameParams => ({ ...DEFAULT_PARAMS, lossThreshold: { short: n, normal: n } });
+      const close = await idleGame(limit(-margin + 10));
+      expect(tickersSince(close.host, close.mark, 'giving-up')).toEqual([{ kind: 'giving-up' }]);
+      // Exactly at limit + margin is not close yet; neither is the tuned default.
+      const edge = await idleGame(limit(-margin));
+      expect(tickersSince(edge.host, edge.mark, 'giving-up')).toEqual([]);
+      const calm = await idleGame(DEFAULT_PARAMS);
+      expect(tickersSince(calm.host, calm.mark, 'giving-up')).toEqual([]);
+    });
+
+    it('a lost game ends after the summary with result.lost, badges and the debrief still come', async () => {
+      const { host, student } = await idleGame(ALWAYS_LOSE);
+      await vi.advanceTimersByTimeAsync(45_000 + 6_000);
+      // The summary of the month the village gave up in still shows.
+      expect(host.state.game?.phase).toBe('summary');
+      expect(host.state.game?.result).toBeNull();
+      expect(host.state.game?.lastReport?.month).toBe(1);
+      await vi.advanceTimersByTimeAsync(2_000);
+      for (const client of [host, student]) {
+        expect(client.state.game?.phase).toBe('ended');
+        expect(client.state.game?.month).toBe(1);
+        expect(client.state.game?.result).toMatchObject({ early: false, lost: true });
+      }
+      expect(host.of('debrief')).toHaveLength(1);
+      expect(host.of('debrief')[0]!.debrief).toMatchObject({ lost: true, endedEarly: false, monthsPlayed: 1 });
+      expect(student.of('badges')).toHaveLength(1);
+      expect(host.of('badges')).toHaveLength(0);
+    });
+  });
+
+  it('the stand-in debrief calls a lost game lost and a teacher-ended one early', () => {
+    const play = (finish: (game: Game) => void): Game => {
+      const game = createGame({ seed: 7, length: 'short', params: ALWAYS_LOSE, clock: () => 0 });
+      game.addPlayer('p1');
+      game.start();
+      finish(game);
+      return game;
+    };
+    const lost = play((game) => {
+      game.endActionPhase();
+      game.endVotePhase();
+      game.nextMonth();
+    });
+    expect(lost.lost).toBe(true);
+    const lostDebrief = fallbackDebrief(lost, []);
+    expect(lostDebrief).toMatchObject({ lost: true, endedEarly: false, monthsPlayed: 1 });
+    expect(lostDebrief.questions[0]).toEqual({ id: 'lost', params: { month: 1 } });
+    const stopped = play((game) => game.endEarly());
+    expect(stopped.lost).toBe(false);
+    expect(fallbackDebrief(stopped, [])).toMatchObject({ lost: false, endedEarly: true, monthsPlayed: 0 });
   });
 
   it('pauses, resumes and extends the phase timer', async () => {

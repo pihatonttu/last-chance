@@ -12,6 +12,8 @@ describe('markdownReport', () => {
     fakeMetrics({
       happiness: -30,
       grade: 1,
+      lost: true,
+      coldMonths: 3,
       firstShelteredMonth: null,
       unusedActions: 10,
       actions: 30,
@@ -28,6 +30,8 @@ describe('markdownReport', () => {
   it('starts with a header and a separator', () => {
     expect(lines[0]).toMatch(/^\| scenario \| games \| happiness p10\/p50\/p90 \| grades \|/);
     expect(lines[0]).toContain('food/fields/materials/explore/skills/recreation %');
+    expect(lines[0]).toContain('| hungry months | cold months | cold | lost |');
+    expect(lines[0]).not.toContain('winter');
     expect(lines[1]).toMatch(/^\|( ?-+:? ?\|)+$/);
   });
 
@@ -39,6 +43,13 @@ describe('markdownReport', () => {
     expect(coopRow).toContain('| 40/40/60 |');
     expect(coopRow).toContain('| 1:0 2:0 3:0 4:1 5:1 6:0 |');
     expect(coopRow).toContain('| 50% |');
+  });
+
+  it('shows the cold months, the share of games with cold and the share lost', () => {
+    const coopRow = lines.find((l) => l.startsWith('| cooperative N=15 | 2 |'))!;
+    expect(coopRow).toContain('| 0.0 | 0.0 | 0% | 0% |');
+    const lazyRow = lines.find((l) => l.startsWith('| lazy N=2 short | 1 |'))!;
+    expect(lazyRow).toContain('| 0.0 | 3.0 | 100% | 100% |');
   });
 
   it('formats shares, unused, never-sheltered and end materials', () => {

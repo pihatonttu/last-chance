@@ -36,12 +36,12 @@ describe('lobby', () => {
     expect(setup({ players: 3 }).villagers).toBe(3);
   });
 
-  it('gives one month of food and exactly the price of a level-1 shelter in wood', () => {
+  it('gives one month of food, wood for the fire and exactly the price of a level-1 igloo in ice', () => {
     const game = setup({ players: 3 });
-    // Food 4 x 3 = 12. Wood 4 x 3 = 12 rounded up to 5 like every price = 15.
-    expect(game.resources).toEqual({ food: 12, wood: 15, stone: 0 });
+    // Food 4 x 3 = 12. Wood 2 x 3 = 6 and ice 4 x 3 = 12, rounded up to 5 like every price.
+    expect(game.resources).toEqual({ food: 12, wood: 10, stone: 15 });
     const shelter = game.voteOptions().find((o) => o.id === 'shelter-1');
-    expect(shelter?.cost.wood).toBe(15);
+    expect(shelter?.cost.stone).toBe(15);
   });
 
   it('cannot start twice', () => {

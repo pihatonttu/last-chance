@@ -12,7 +12,7 @@ describe('seatsFor', () => {
   });
 
   it('always fills every seat, even when weights do not divide evenly', () => {
-    const seats = seatsFor({ cooperative: 1, random: 1, selfish: 1 }, 2);
+    const seats = seatsFor({ cooperative: 1, random: 1, skillsOnly: 1 }, 2);
     expect(seats).toHaveLength(2);
   });
 });

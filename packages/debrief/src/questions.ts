@@ -18,16 +18,24 @@ export interface QuestionFacts {
   actions: GroupCounts;
   unused: number;
   springFoundMonth: number | null;
+  /** Month the village gave up (docs/10-arktinen.md §4b); null when it did not. */
+  lostMonth: number | null;
+  /** The frost of the first month the fire ran out of wood; null when nobody was ever cold. */
+  coldTemperature: number | null;
 }
 
 /**
- * Every question id in priority order. Engagement (unused actions, votes) comes right after
- * hunger: it is the clearest sign of how the class worked together, and in lazy classes
- * it used to be pushed out by four earlier triggers. The general questions fill a quiet
- * game up to three; 'decision-making' is always asked, last.
+ * Every question id in priority order. A lost game asks about it first (docs/10-arktinen.md
+ * §4b). Engagement (unused actions, votes) comes right after hunger and cold: it is the
+ * clearest sign of how the class worked together, and in lazy classes it used to be pushed
+ * out by four earlier triggers. The general questions ('warm-all' where it applies, then
+ * 'next-time' and 'roles') are not triggered: they only fill a quiet game up to three, and
+ * 'warm-all' comes first among them. 'decision-making' is always asked, last.
  */
 export const QUESTION_IDS = [
+  'lost',
   'hunger',
+  'cold',
   'unused-actions',
   'low-participation',
   'no-shelter-long',
@@ -38,6 +46,7 @@ export const QUESTION_IDS = [
   'spring-never',
   'spring-late',
   'good-result',
+  'warm-all',
   'next-time',
   'roles',
   'decision-making',
@@ -46,6 +55,24 @@ export const QUESTION_IDS = [
 /** Asked when few triggers fire, in this order (design doc: 3-5 questions per game). */
 const GENERAL_QUESTIONS = ['next-time', 'roles'] as const satisfies readonly QuestionId[];
 
+/** What 'absence' questions need: enough of the planned game played for "never" to mean something. */
+function playedLongEnough(f: QuestionFacts): boolean {
+  return f.monthsPlayed > 0 && f.monthsPlayed >= Math.ceil(f.totalMonths * THRESHOLDS.absenceMinPlayed);
+}
+
+/**
+ * The general questions of this game, in the order they fill it. A game where the fire burned
+ * every month asks how the wood was shared first (docs/10-arktinen.md §6). A cold crisis is a
+ * cold month, so no crisis means nobody was cold; one month played says nothing yet, hence the
+ * same 'long enough' rule as the other questions about something that never happened.
+ */
+function generalQuestions(f: QuestionFacts): readonly QuestionId[] {
+  // A game ended before the first month gives nothing to talk about beyond decision-making.
+  if (f.monthsPlayed === 0) return [];
+  const warm = playedLongEnough(f) && !f.crises.some((c) => c.kind === 'cold');
+  return warm ? ['warm-all', ...GENERAL_QUESTIONS] : GENERAL_QUESTIONS;
+}
+
 // Compile-time check that QUESTION_IDS lists every QuestionId.
 const _allListed: [Exclude<QuestionId, (typeof QUESTION_IDS)[number]>] extends [never] ? true : false = true;
 void _allListed;
@@ -53,7 +80,7 @@ void _allListed;
 /**
  * Trigger thresholds. Checked against bot games (2026-10-09, @saari/bots, 5 and 20
  * villagers, normal and short): cooperative classes trigger almost nothing, random,
- * lazy and selfish classes each trigger the questions about their weak spot.
+ * lazy and skills-only classes each trigger the questions about their weak spot.
  */
 export const THRESHOLDS = {
   /** Most triggered questions; 'decision-making' comes on top (design doc: 3-5 questions). */
@@ -76,12 +103,12 @@ export const THRESHOLDS = {
   unusedPercent: 15,
   /** 'low-participation': asked below this percent of possible votes. */
   lowParticipationPercent: 70,
-  /** 'good-result': grade 5 (Kukoistava kylä) or 6 (Saaren paratiisi). */
+  /** 'good-result': grade 5 (Kukoistava kylä) or 6 (Unelmien kylä). */
   goodGrade: 5,
   /** 'spring-late': found after this share of the planned months, i.e. in the last third. */
   springLateAfter: 2 / 3,
   /**
-   * 'skills-none' and 'spring-never' ask about something that never happened, which says
+   * 'skills-none', 'spring-never' and 'warm-all' ask about something that never happened, which says
    * nothing in a game ended after a month or two: they need this share of the planned months played.
    */
   absenceMinPlayed: 1 / 3,
@@ -98,9 +125,15 @@ function triggered(f: QuestionFacts): Partial<Record<QuestionId, Record<string, 
   const out: Partial<Record<QuestionId, Record<string, number>>> = {};
   const used = totalOf(f.actions);
 
+  if (f.lostMonth !== null) out.lost = { month: f.lostMonth };
+
   const hunger = f.crises.filter((c) => c.kind === 'hunger');
-  if (hunger.length > 0) {
-    out.hunger = { month: hunger[0]!.month, people: Math.max(...hunger.map((c) => c.people)) };
+  if (hunger.length > 0) out.hunger = { month: hunger[0]!.month, people: Math.max(...hunger.map((c) => c.people)) };
+
+  // The first fire crisis only: the month it began, the most cold in one month of it, that month's frost.
+  const cold = f.crises.find((c) => c.kind === 'cold');
+  if (cold && f.coldTemperature !== null) {
+    out.cold = { month: cold.month, people: cold.people, temperature: f.coldTemperature };
   }
 
   if (f.unshelteredMonths >= T.noShelterMonths) out['no-shelter-long'] = { months: f.unshelteredMonths };
@@ -113,7 +146,7 @@ function triggered(f: QuestionFacts): Partial<Record<QuestionId, Record<string, 
   const skills = percent(f.actions.skills, used);
   if (used > 0 && skills >= T.skillsHeavyPercent) out['skills-heavy'] = { percent: skills };
 
-  const longEnough = f.monthsPlayed > 0 && f.monthsPlayed >= Math.ceil(f.totalMonths * T.absenceMinPlayed);
+  const longEnough = playedLongEnough(f);
   if (longEnough && f.actions.skills === 0) out['skills-none'] = {};
   if (longEnough && f.springFoundMonth === null) out['spring-never'] = {};
   if (f.springFoundMonth !== null && f.springFoundMonth > f.totalMonths * T.springLateAfter) {
@@ -142,8 +175,7 @@ export function pickQuestions(f: QuestionFacts): DebriefQuestion[] {
     const params = fired[id];
     if (params && picked.length < THRESHOLDS.maxTriggered) picked.push({ id, params });
   }
-  // A game ended before the first month gives nothing to talk about beyond decision-making.
-  for (const id of f.monthsPlayed > 0 ? GENERAL_QUESTIONS : []) {
+  for (const id of generalQuestions(f)) {
     if (picked.length + 1 >= THRESHOLDS.minQuestions) break;
     picked.push({ id, params: {} });
   }

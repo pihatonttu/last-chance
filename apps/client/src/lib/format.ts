@@ -3,6 +3,7 @@ import type { DebriefQuestion } from '@saari/debrief';
 import type { TickerEvent } from '@saari/protocol';
 import type { ActionKind, BuildingKind, Gain, Level, PublicTile, Terrain, VoteOption, Yield } from '@saari/rules';
 import { formatNumber, t, tp, type MessageKey } from '../i18n/index.ts';
+import { temperatureText } from './heat.ts';
 import { parseOptionId } from './rules-info.ts';
 
 export function gradeName(grade: number): string {
@@ -26,17 +27,12 @@ export function buildingName(kind: BuildingKind, level: Level): string {
   return t(`building.${kind}.${level}`);
 }
 
-/** "Koulu (taso 2)"; level names that already differ (Teltta/Maja/Talo) stay plain. */
-export function buildingTitle(kind: BuildingKind, level: Level): string {
-  const name = buildingName(kind, level);
-  return kind === 'school' || kind === 'workshop' ? t('building.withLevel', { name, level }) : name;
-}
-
 export function optionName(option: Pick<VoteOption, 'id'>): string {
   const parsed = parseOptionId(option.id);
-  return parsed ? buildingTitle(parsed.kind, parsed.level) : t('building.none');
+  return parsed ? buildingName(parsed.kind, parsed.level) : t('building.none');
 }
 
+/** Fishing is always ice fishing ("Pilki"): it is always winter (docs/10-arktinen.md §3). */
 export function actionName(kind: ActionKind): string {
   return t(`action.${kind}`);
 }
@@ -83,16 +79,22 @@ export function tickerText(event: TickerEvent): string {
       return t('ticker.built', { name: optionName({ id: event.option }) });
     case 'food-short':
       return t('ticker.food-short', { missing: event.missing });
+    case 'hard-frost-coming':
+      return t('ticker.hard-frost-coming', { temperature: temperatureText(event.temperature) });
+    case 'wood-short':
+      return t('ticker.wood-short', { missing: event.missing });
     default:
       return t(`ticker.${event.kind}`);
   }
 }
 
-/** Discussion question from its template; adds {gradeName} for the grade param. */
+/** Discussion question from its template; adds {gradeName} for the grade param and writes the frost as "−25°". */
 export function questionText(question: DebriefQuestion): string {
   const params: Record<string, string | number> = { ...question.params };
   const grade = question.params['grade'];
   if (grade !== undefined) params['gradeName'] = gradeName(grade);
+  const temperature = question.params['temperature'];
+  if (temperature !== undefined) params['temperature'] = temperatureText(temperature);
   return t(`debrief.question.${question.id}` as MessageKey, params);
 }
 

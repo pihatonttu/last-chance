@@ -2,17 +2,27 @@
   import type { MonthReport } from '@saari/rules';
   import { formatNumber, t, tp } from '../i18n/index.ts';
   import { optionName } from '../lib/format.ts';
+  import { gaveUp, givingUpSoon, heatOf, temperatureText } from '../lib/heat.ts';
   import { parseOptionId } from '../lib/rules-info.ts';
   import ArtIcon from './ArtIcon.svelte';
   import MoodFace from './MoodFace.svelte';
   import PropPicture from './PropPicture.svelte';
 
   /**
-   * The end of a month in four pictures: what was built, whether everyone ate, whether
-   * everyone had shelter, and how the mood changed. The numbers behind them wait under
-   * "More info" (P38).
+   * The end of a month in five pictures (docs/10-arktinen.md §6): what was built, whether
+   * everyone ate, whether the fire kept everyone warm, whether everyone had a home, and
+   * how the mood changed. A red line warns when the village is close to giving up (§4b),
+   * except in the last month, when the party comes next. In the month the village gives up
+   * the rules show this summary and then end the game, so it says so instead of "next month".
+   * The numbers behind the pictures wait under "More info" (P38).
    */
-  let { report }: { report: MonthReport } = $props();
+  interface Props {
+    report: MonthReport;
+    lossThreshold: number;
+    /** The game's last month: the party (or the end) comes next, not another month. */
+    lastMonth: boolean;
+  }
+  let { report, lossThreshold, lastMonth }: Props = $props();
 
   const built = $derived(report.vote.outcome === 'built' ? parseOptionId(report.vote.option ?? '') : null);
   const voteLine = $derived.by(() => {
@@ -28,7 +38,11 @@
     }
   });
   const fed = $derived(report.food.hungry === 0);
+  const heat = $derived(heatOf(report));
+  const warm = $derived(heat === null || heat.cold === 0);
   const sheltered = $derived(report.shelter.unsheltered === 0);
+  const lost = $derived(gaveUp(report.happiness, lossThreshold));
+  const givingUp = $derived(!lost && !lastMonth && givingUpSoon(report.happiness, lossThreshold));
 
   function signed(n: number): string {
     return n > 0 ? `+${formatNumber(n)}` : formatNumber(n);
@@ -48,9 +62,16 @@
       <span class="icon"><ArtIcon name="food" size={64} /><span class="mark" aria-hidden="true">{fed ? '✓' : '✗'}</span></span>
       <strong>{fed ? t('summary.food.allFed') : tp('summary.food.hungry', report.food.hungry)}</strong>
     </div>
+    {#if heat}
+      <div class="tile" class:good={warm} class:bad={!warm}>
+        <span class="visually-hidden">{t('summary.heat')}</span>
+        <span class="icon"><PropPicture texture="props/fire" size={64} /><span class="mark" aria-hidden="true">{warm ? '✓' : '✗'}</span></span>
+        <strong>{warm ? t('summary.heat.warm') : tp('summary.heat.cold', heat.cold)}</strong>
+      </div>
+    {/if}
     <div class="tile" class:good={sheltered} class:bad={!sheltered}>
       <span class="visually-hidden">{t('summary.shelter')}</span>
-      <span class="icon"><ArtIcon name="shelter" size={64} /><span class="mark" aria-hidden="true">{sheltered ? '✓' : '✗'}</span></span>
+      <span class="icon"><ArtIcon name="home" size={64} /><span class="mark" aria-hidden="true">{sheltered ? '✓' : '✗'}</span></span>
       <strong>{sheltered ? t('summary.shelter.all') : tp('summary.shelter.without', report.shelter.unsheltered)}</strong>
     </div>
     <div class="tile" class:good={report.mood.total > 0} class:bad={report.mood.total < 0}>
@@ -60,21 +81,38 @@
     </div>
   </div>
 
+  {#if lost}
+    <p class="giving-up gave-up" role="alert">
+      <span class="ship"><ArtIcon name="ship" size={56} /></span>
+      <strong>{t('summary.gaveUp')}</strong>
+    </p>
+  {:else if givingUp}
+    <p class="giving-up" role="alert">
+      <strong>{t('summary.givingUp')}</strong>
+      <span>{t('bar.lossLimitHint', { n: lossThreshold })}</span>
+    </p>
+  {/if}
+
   <details class="more">
     <summary>{t('tile.more')}</summary>
     <ul>
       <li>{t('summary.food.eaten', { eaten: report.food.eaten, need: report.food.need })}</li>
       {#if report.food.spoiled > 0}<li class="warn">{t('summary.food.spoiled', { n: report.food.spoiled })}</li>{/if}
       <li>{t('summary.food.left', { n: report.food.after })}</li>
+      {#if heat}
+        <li>{t('summary.heat.temperature', { temperature: temperatureText(heat.temperature) })}</li>
+        <li>{t('summary.heat.burned', { burned: heat.burned, need: heat.need })}</li>
+      {/if}
       <li>{t('summary.shelter.value', { capacity: report.shelter.capacity, villagers: report.villagers })}</li>
       <li>{t('summary.mood.food')}: {signed(report.mood.food)}</li>
+      {#if heat}<li>{t('summary.mood.heat')}: {signed(report.mood.heat)}</li>{/if}
       <li>{t('summary.mood.shelter')}: {signed(report.mood.shelter)}</li>
       <li>{t('summary.mood.recreation', { n: report.recreation })}: {signed(report.mood.recreation)}</li>
       <li><strong>{t('summary.happiness')}: {formatNumber(report.happiness)}</strong></li>
       {#if report.vote.outcome === 'tie'}<li>{t('summary.tieHint')}</li>{/if}
     </ul>
   </details>
-  <p class="next">{t('summary.next')}</p>
+  {#if !lost}<p class="next">{lastMonth ? t('summary.partyNext') : t('summary.next')}</p>{/if}
 </section>
 
 <style>
@@ -85,8 +123,8 @@
   }
   .tiles {
     display: grid;
-    /* Never fewer than two columns: all four pictures fit on a phone without scrolling. */
-    grid-template-columns: repeat(auto-fit, minmax(min(9.5em, 42%), 1fr));
+    /* Never fewer than two columns: all five pictures fit on a phone without scrolling. */
+    grid-template-columns: repeat(auto-fit, minmax(min(8em, 42%), 1fr));
     gap: 0.7em;
   }
   .tile {
@@ -113,7 +151,8 @@
       font-size: 0.95em;
     }
     .tile :global(.art-icon),
-    .tile :global(svg[role='img']) {
+    .tile :global(svg[role='img']),
+    .tile :global(svg.icon) {
       width: 48px;
       height: 48px;
     }
@@ -156,6 +195,31 @@
   }
   .bad .delta {
     color: var(--danger);
+  }
+  .giving-up {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2em;
+    margin: 0.7em 0 0;
+    padding: 0.6em 0.8em;
+    border-radius: var(--radius-small);
+    background: var(--danger-soft);
+    border: 3px solid var(--danger);
+    color: var(--danger);
+    text-align: center;
+    font-weight: 700;
+  }
+  .giving-up strong {
+    font-size: 1.15em;
+  }
+  .gave-up {
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.6em;
+  }
+  .gave-up .ship {
+    display: inline-flex;
   }
   .more {
     margin-top: 0.8em;

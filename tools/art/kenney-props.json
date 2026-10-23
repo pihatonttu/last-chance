@@ -29,21 +29,6 @@
   }
  },
  "swatches": {
-  "town-roof-red": {
-   "kit": "town",
-   "from": [
-    0,
-    384
-   ],
-   "into": [
-    64,
-    384
-   ],
-   "size": [
-    64,
-    128
-   ]
-  },
   "town-roof-blue": {
    "kit": "town",
    "from": [
@@ -89,21 +74,6 @@
     128
    ]
   },
-  "survival-canvas-red": {
-   "kit": "survival",
-   "from": [
-    192,
-    256
-   ],
-   "into": [
-    64,
-    256
-   ],
-   "size": [
-    64,
-    128
-   ]
-  },
   "survival-canvas-blue": {
    "kit": "survival",
    "from": [
@@ -125,232 +95,46 @@
    "name": "shelter-1",
    "parts": [
     {
-     "model": "nature/tent_detailedOpen",
+     "model": "own/igloo-small",
      "at": [
-      -0.12,
-      0.14
+      -0.04,
+      0.08
      ],
-     "scale": 0.55,
-     "z": 0.0275
-    },
-    {
-     "model": "nature/campfire_stones",
-     "at": [
-      0.2,
-      -0.18
-     ],
-     "scale": 0.7200000000000001,
-     "z": 0.036
-    },
-    {
-     "model": "nature/campfire_logs",
-     "at": [
-      0.2,
-      -0.18
-     ],
-     "scale": 0.7200000000000001,
-     "z": 0.036
-    },
-    {
-     "model": "nature/log_large",
-     "at": [
-      0.3,
-      0.1
-     ],
-     "scale": 0.22,
-     "z": 0.011
+     "scale": 1.0,
+     "snow": false
     }
    ],
-   "recolor": [
-    "town-roof-red"
-   ]
+   "snow": true
   },
   {
    "name": "shelter-2",
    "parts": [
     {
-     "model": "town/wall-wood-window-shutters",
+     "model": "own/igloo",
      "at": [
-      -0.1,
-      0.1
+      -0.04,
+      0.08
      ],
-     "scale": 0.36
-    },
-    {
-     "model": "town/wall-wood",
-     "at": [
-      -0.1,
-      0.1
-     ],
-     "scale": 0.36,
-     "turn": 90
-    },
-    {
-     "model": "town/wall-wood",
-     "at": [
-      -0.1,
-      0.1
-     ],
-     "scale": 0.36,
-     "turn": 180
-    },
-    {
-     "model": "town/wall-wood-door",
-     "at": [
-      -0.1,
-      0.1
-     ],
-     "scale": 0.36,
-     "turn": 270
-    },
-    {
-     "model": "town/roof-point",
-     "at": [
-      -0.1,
-      0.1
-     ],
-     "scale": 0.36,
-     "z": 0.36
-    },
-    {
-     "model": "pirate/barrel",
-     "at": [
-      0.24,
-      -0.04
-     ],
-     "scale": 0.1
-    },
-    {
-     "model": "nature/log_stack",
-     "at": [
-      0.0,
-      -0.3
-     ],
-     "scale": 0.32,
-     "turn": 90,
-     "z": 0.016
-    },
-    {
-     "model": "nature/campfire_stones",
-     "at": [
-      0.28,
-      -0.3
-     ],
-     "scale": 0.54,
-     "z": 0.027
-    },
-    {
-     "model": "nature/campfire_logs",
-     "at": [
-      0.28,
-      -0.3
-     ],
-     "scale": 0.54,
-     "z": 0.027
+     "scale": 1.0,
+     "snow": false
     }
    ],
-   "recolor": [
-    "town-roof-red"
-   ]
+   "snow": true
   },
   {
    "name": "shelter-3",
    "parts": [
     {
-     "model": "town/wall-wood-window-shutters",
+     "model": "own/igloo-large",
      "at": [
-      -0.08,
-      0.08
+      -0.02,
+      0.06
      ],
-     "scale": 0.44
-    },
-    {
-     "model": "town/wall-wood",
-     "at": [
-      -0.08,
-      0.08
-     ],
-     "scale": 0.44,
-     "turn": 90
-    },
-    {
-     "model": "town/wall-wood",
-     "at": [
-      -0.08,
-      0.08
-     ],
-     "scale": 0.44,
-     "turn": 180
-    },
-    {
-     "model": "town/wall-wood-door",
-     "at": [
-      -0.08,
-      0.08
-     ],
-     "scale": 0.44,
-     "turn": 270
-    },
-    {
-     "model": "town/roof-gable",
-     "at": [
-      -0.08,
-      0.08
-     ],
-     "scale": 0.44,
-     "z": 0.44
-    },
-    {
-     "model": "town/chimney",
-     "at": [
-      -0.08,
-      0.08
-     ],
-     "scale": 0.44,
-     "turn": 180,
-     "z": 0.44
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.94,
-     "z": 0.04
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.94,
-     "turn": 270,
-     "z": 0.04
-    },
-    {
-     "model": "nature/flower_redA",
-     "at": [
-      0.3,
-      -0.05
-     ],
-     "scale": 0.8,
-     "z": 0.04
-    },
-    {
-     "model": "nature/plant_bushLarge",
-     "at": [
-      0.05,
-      -0.3
-     ],
-     "scale": 0.7,
-     "z": 0.035
+     "scale": 1.0,
+     "snow": false
     }
    ],
-   "recolor": [
-    "town-roof-red"
-   ]
+   "snow": true
   },
   {
    "name": "school-1",
@@ -393,7 +177,8 @@
    "recolor": [
     "town-roof-blue",
     "survival-canvas-blue"
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "school-2",
@@ -464,7 +249,8 @@
    "recolor": [
     "town-roof-blue",
     "survival-canvas-blue"
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "school-3",
@@ -571,19 +357,20 @@
      "scale": 0.4
     },
     {
-     "model": "nature/tree_fat",
+     "model": "nature/tree_pineSmallA",
      "at": [
       0.05,
       -0.32
      ],
-     "scale": 0.24,
-     "z": 0.012
+     "scale": 0.252,
+     "z": 0.0126
     }
    ],
    "recolor": [
     "town-roof-blue",
     "survival-canvas-blue"
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "workshop-1",
@@ -617,7 +404,8 @@
    ],
    "recolor": [
     "town-roof-grey"
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "workshop-2",
@@ -651,7 +439,8 @@
    ],
    "recolor": [
     "town-roof-grey"
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "workshop-3",
@@ -731,777 +520,525 @@
    ],
    "recolor": [
     "town-roof-grey"
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "gathering-1",
    "parts": [
     {
-     "model": "nature/campfire_stones",
+     "model": "survival/tent-canvas-half",
      "at": [
-      0,
-      0
+      -0.14,
+      0.16
      ],
-     "scale": 1.08,
-     "z": 0.054
-    },
-    {
-     "model": "nature/campfire_logs",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 1.08,
-     "z": 0.054
+     "scale": 0.85,
+     "turn": 45,
+     "snow": false
     },
     {
      "model": "nature/log_large",
      "at": [
-      -0.27,
-      0.0
+      0.32,
+      0.04
      ],
-     "scale": 0.28,
+     "scale": 0.22,
+     "z": 0.011
+    },
+    {
+     "model": "nature/log_large",
+     "at": [
+      -0.04,
+      -0.34
+     ],
+     "scale": 0.22,
      "turn": 90,
-     "z": 0.014
-    },
-    {
-     "model": "nature/log_large",
-     "at": [
-      0.0,
-      0.27
-     ],
-     "scale": 0.28,
-     "z": 0.014
+     "z": 0.011
     }
    ],
    "recolor": [
     "town-red-purple"
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "gathering-2",
    "parts": [
     {
-     "model": "town/stall-red",
+     "model": "town/wall-wood-window-shutters",
      "at": [
-      -0.17,
-      0.17
+      -0.08,
+      0.08
      ],
-     "scale": 0.46,
-     "turn": 45
+     "scale": 0.42
+    },
+    {
+     "model": "town/wall-wood",
+     "at": [
+      -0.08,
+      0.08
+     ],
+     "scale": 0.42,
+     "turn": 90
+    },
+    {
+     "model": "town/wall-wood",
+     "at": [
+      -0.08,
+      0.08
+     ],
+     "scale": 0.42,
+     "turn": 180
+    },
+    {
+     "model": "town/wall-wood-doorway-square-wide",
+     "at": [
+      -0.08,
+      0.08
+     ],
+     "scale": 0.42,
+     "turn": 270
+    },
+    {
+     "model": "town/roof-gable",
+     "at": [
+      -0.08,
+      0.08
+     ],
+     "scale": 0.42,
+     "z": 0.42
     },
     {
      "model": "town/stall-bench",
      "at": [
-      0.1,
-      -0.1
+      0.3,
+      -0.04
      ],
-     "scale": 0.45,
+     "scale": 0.4,
      "turn": -45
     },
     {
      "model": "town/stall-bench",
      "at": [
-      0.27,
-      -0.27
+      0.06,
+      -0.3
      ],
-     "scale": 0.45,
+     "scale": 0.4,
      "turn": -45
     },
     {
      "model": "town/lantern",
      "at": [
-      -0.36,
-      -0.2
+      0.33,
+      -0.3
      ],
      "scale": 0.3
     }
    ],
    "recolor": [
     "town-red-purple"
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "gathering-3",
    "parts": [
     {
-     "model": "nature/path_stoneCircle",
+     "model": "own/snow-castle",
      "at": [
-      0.06,
-      -0.06
+      -0.03,
+      0.05
      ],
-     "scale": 0.62,
-     "z": 0.031
-    },
-    {
-     "model": "town/stall-bench",
-     "at": [
-      -0.028,
-      -0.388
-     ],
-     "scale": 0.38,
-     "turn": -105
-    },
-    {
-     "model": "town/stall-bench",
-     "at": [
-      0.204,
-      -0.368
-     ],
-     "scale": 0.38,
-     "turn": -65
-    },
-    {
-     "model": "town/stall-bench",
-     "at": [
-      0.368,
-      -0.204
-     ],
-     "scale": 0.38,
-     "turn": -25
-    },
-    {
-     "model": "town/stall-bench",
-     "at": [
-      0.388,
-      0.028
-     ],
-     "scale": 0.38,
-     "turn": 15
-    },
-    {
-     "model": "town/stall-bench",
-     "at": [
-      0.255,
-      0.219
-     ],
-     "scale": 0.38,
-     "turn": 55
-    },
-    {
-     "model": "town/stall-red",
-     "at": [
-      -0.3,
-      0.3
-     ],
-     "scale": 0.36,
-     "turn": 45
-    },
-    {
-     "model": "town/lantern",
-     "at": [
-      -0.4,
-      -0.1
-     ],
-     "scale": 0.3
-    },
-    {
-     "model": "town/lantern",
-     "at": [
-      0.1,
-      0.4
-     ],
-     "scale": 0.3
+     "scale": 0.85
     }
    ],
    "recolor": [
     "town-red-purple"
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "field-0",
    "parts": [
     {
+     "model": "own/greenhouse",
+     "at": [
+      0,
+      0
+     ],
+     "scale": 1.0
+    },
+    {
      "model": "nature/crops_dirtDoubleRow",
      "at": [
       0,
       0
      ],
-     "scale": 0.8,
-     "z": 0.04,
+     "scale": 0.6,
+     "z": 0.03,
      "materials": {
       "dirt": "#b98a5a",
       "dirtDark": "#8f6540"
-     }
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.82,
-     "z": 0.04
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.82,
-     "turn": 90,
-     "z": 0.04
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.82,
-     "turn": 180,
-     "z": 0.04
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.82,
-     "turn": 270,
-     "z": 0.04
+     },
+     "snow": false
     }
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "field-1",
    "parts": [
     {
+     "model": "own/greenhouse",
+     "at": [
+      0,
+      0
+     ],
+     "scale": 1.0
+    },
+    {
      "model": "nature/crops_dirtDoubleRow",
      "at": [
       0,
       0
      ],
-     "scale": 0.8,
-     "z": 0.04,
+     "scale": 0.6,
+     "z": 0.03,
      "materials": {
       "dirt": "#b98a5a",
       "dirtDark": "#8f6540"
-     }
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.82,
-     "z": 0.04
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.82,
-     "turn": 90,
-     "z": 0.04
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.82,
-     "turn": 180,
-     "z": 0.04
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.82,
-     "turn": 270,
-     "z": 0.04
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_leafsStageA",
      "at": [
-      -0.22,
-      -0.22
+      -0.21,
+      -0.12
      ],
      "scale": 0.5,
-     "z": 0.04,
+     "z": 0.03,
      "materials": {
       "grass": "#7cbf4a"
-     }
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_leafsStageA",
      "at": [
-      -0.22,
-      0
+      -0.21,
+      0.12
      ],
      "scale": 0.5,
-     "z": 0.04,
+     "z": 0.03,
      "materials": {
       "grass": "#7cbf4a"
-     }
-    },
-    {
-     "model": "nature/crops_leafsStageA",
-     "at": [
-      -0.22,
-      0.22
-     ],
-     "scale": 0.5,
-     "z": 0.04,
-     "materials": {
-      "grass": "#7cbf4a"
-     }
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_leafsStageA",
      "at": [
       0,
-      -0.22
+      -0.12
      ],
      "scale": 0.5,
-     "z": 0.04,
+     "z": 0.03,
      "materials": {
       "grass": "#7cbf4a"
-     }
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_leafsStageA",
      "at": [
       0,
-      0
+      0.12
      ],
      "scale": 0.5,
-     "z": 0.04,
+     "z": 0.03,
      "materials": {
       "grass": "#7cbf4a"
-     }
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_leafsStageA",
      "at": [
-      0,
-      0.22
+      0.21,
+      -0.12
      ],
      "scale": 0.5,
-     "z": 0.04,
+     "z": 0.03,
      "materials": {
       "grass": "#7cbf4a"
-     }
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_leafsStageA",
      "at": [
-      0.22,
-      -0.22
+      0.21,
+      0.12
      ],
      "scale": 0.5,
-     "z": 0.04,
+     "z": 0.03,
      "materials": {
       "grass": "#7cbf4a"
-     }
-    },
-    {
-     "model": "nature/crops_leafsStageA",
-     "at": [
-      0.22,
-      0
-     ],
-     "scale": 0.5,
-     "z": 0.04,
-     "materials": {
-      "grass": "#7cbf4a"
-     }
-    },
-    {
-     "model": "nature/crops_leafsStageA",
-     "at": [
-      0.22,
-      0.22
-     ],
-     "scale": 0.5,
-     "z": 0.04,
-     "materials": {
-      "grass": "#7cbf4a"
-     }
+     },
+     "snow": false
     }
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "field-2",
    "parts": [
     {
+     "model": "own/greenhouse",
+     "at": [
+      0,
+      0
+     ],
+     "scale": 1.0
+    },
+    {
      "model": "nature/crops_dirtDoubleRow",
      "at": [
       0,
       0
      ],
-     "scale": 0.8,
-     "z": 0.04,
+     "scale": 0.6,
+     "z": 0.03,
      "materials": {
       "dirt": "#b98a5a",
       "dirtDark": "#8f6540"
-     }
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.82,
-     "z": 0.04
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.82,
-     "turn": 90,
-     "z": 0.04
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.82,
-     "turn": 180,
-     "z": 0.04
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.82,
-     "turn": 270,
-     "z": 0.04
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_wheatStageA",
      "at": [
-      -0.22,
-      -0.22
+      -0.21,
+      -0.12
      ],
-     "scale": 0.75,
-     "z": 0.04,
+     "scale": 0.72,
+     "z": 0.03,
      "materials": {
       "grass": "#b5c94f"
-     }
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_wheatStageA",
      "at": [
-      -0.22,
-      0
+      -0.21,
+      0.12
      ],
-     "scale": 0.75,
-     "z": 0.04,
+     "scale": 0.72,
+     "z": 0.03,
      "materials": {
       "grass": "#b5c94f"
-     }
-    },
-    {
-     "model": "nature/crops_wheatStageA",
-     "at": [
-      -0.22,
-      0.22
-     ],
-     "scale": 0.75,
-     "z": 0.04,
-     "materials": {
-      "grass": "#b5c94f"
-     }
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_wheatStageA",
      "at": [
       0,
-      -0.22
+      -0.12
      ],
-     "scale": 0.75,
-     "z": 0.04,
+     "scale": 0.72,
+     "z": 0.03,
      "materials": {
       "grass": "#b5c94f"
-     }
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_wheatStageA",
      "at": [
       0,
-      0
+      0.12
      ],
-     "scale": 0.75,
-     "z": 0.04,
+     "scale": 0.72,
+     "z": 0.03,
      "materials": {
       "grass": "#b5c94f"
-     }
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_wheatStageA",
      "at": [
-      0,
-      0.22
+      0.21,
+      -0.12
      ],
-     "scale": 0.75,
-     "z": 0.04,
+     "scale": 0.72,
+     "z": 0.03,
      "materials": {
       "grass": "#b5c94f"
-     }
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_wheatStageA",
      "at": [
-      0.22,
-      -0.22
+      0.21,
+      0.12
      ],
-     "scale": 0.75,
-     "z": 0.04,
+     "scale": 0.72,
+     "z": 0.03,
      "materials": {
       "grass": "#b5c94f"
-     }
-    },
-    {
-     "model": "nature/crops_wheatStageA",
-     "at": [
-      0.22,
-      0
-     ],
-     "scale": 0.75,
-     "z": 0.04,
-     "materials": {
-      "grass": "#b5c94f"
-     }
-    },
-    {
-     "model": "nature/crops_wheatStageA",
-     "at": [
-      0.22,
-      0.22
-     ],
-     "scale": 0.75,
-     "z": 0.04,
-     "materials": {
-      "grass": "#b5c94f"
-     }
+     },
+     "snow": false
     }
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "field-3",
    "parts": [
     {
+     "model": "own/greenhouse",
+     "at": [
+      0,
+      0
+     ],
+     "scale": 1.0
+    },
+    {
      "model": "nature/crops_dirtDoubleRow",
      "at": [
       0,
       0
      ],
-     "scale": 0.8,
-     "z": 0.04,
+     "scale": 0.6,
+     "z": 0.03,
      "materials": {
       "dirt": "#b98a5a",
       "dirtDark": "#8f6540"
-     }
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.82,
-     "z": 0.04
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.82,
-     "turn": 90,
-     "z": 0.04
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.82,
-     "turn": 180,
-     "z": 0.04
-    },
-    {
-     "model": "nature/fence_simpleLow",
-     "at": [
-      0,
-      0
-     ],
-     "scale": 0.82,
-     "turn": 270,
-     "z": 0.04
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_wheatStageB",
      "at": [
-      -0.22,
-      -0.22
+      -0.21,
+      -0.12
      ],
-     "scale": 0.78,
-     "z": 0.04,
+     "scale": 0.7,
+     "z": 0.03,
      "materials": {
       "_defaultMat": "#e8c04e",
       "woodInner": "#c99a3c"
-     }
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_wheatStageB",
      "at": [
-      -0.22,
-      0
+      -0.21,
+      0.12
      ],
-     "scale": 0.78,
-     "z": 0.04,
+     "scale": 0.7,
+     "z": 0.03,
      "materials": {
       "_defaultMat": "#e8c04e",
       "woodInner": "#c99a3c"
-     }
-    },
-    {
-     "model": "nature/crops_wheatStageB",
-     "at": [
-      -0.22,
-      0.22
-     ],
-     "scale": 0.78,
-     "z": 0.04,
-     "materials": {
-      "_defaultMat": "#e8c04e",
-      "woodInner": "#c99a3c"
-     }
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_wheatStageB",
      "at": [
       0,
-      -0.22
+      -0.12
      ],
-     "scale": 0.78,
-     "z": 0.04,
+     "scale": 0.7,
+     "z": 0.03,
      "materials": {
       "_defaultMat": "#e8c04e",
       "woodInner": "#c99a3c"
-     }
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_wheatStageB",
      "at": [
       0,
-      0
+      0.12
      ],
-     "scale": 0.78,
-     "z": 0.04,
+     "scale": 0.7,
+     "z": 0.03,
      "materials": {
       "_defaultMat": "#e8c04e",
       "woodInner": "#c99a3c"
-     }
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_wheatStageB",
      "at": [
-      0,
-      0.22
+      0.21,
+      -0.12
      ],
-     "scale": 0.78,
-     "z": 0.04,
+     "scale": 0.7,
+     "z": 0.03,
      "materials": {
       "_defaultMat": "#e8c04e",
       "woodInner": "#c99a3c"
-     }
+     },
+     "snow": false
     },
     {
      "model": "nature/crops_wheatStageB",
      "at": [
-      0.22,
-      -0.22
+      0.21,
+      0.12
      ],
-     "scale": 0.78,
-     "z": 0.04,
+     "scale": 0.7,
+     "z": 0.03,
      "materials": {
       "_defaultMat": "#e8c04e",
       "woodInner": "#c99a3c"
-     }
-    },
-    {
-     "model": "nature/crops_wheatStageB",
-     "at": [
-      0.22,
-      0
-     ],
-     "scale": 0.78,
-     "z": 0.04,
-     "materials": {
-      "_defaultMat": "#e8c04e",
-      "woodInner": "#c99a3c"
-     }
-    },
-    {
-     "model": "nature/crops_wheatStageB",
-     "at": [
-      0.22,
-      0.22
-     ],
-     "scale": 0.78,
-     "z": 0.04,
-     "materials": {
-      "_defaultMat": "#e8c04e",
-      "woodInner": "#c99a3c"
-     }
+     },
+     "snow": false
     }
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "forest-1a",
    "parts": [
     {
-     "model": "nature/tree_palm",
+     "model": "nature/tree_pineDefaultA",
      "at": [
       -0.27,
       0.27
      ],
      "scale": 0.386,
-     "z": 0.0193,
-     "materials": {
-      "leafsGreen": "#62ad4b"
-     }
+     "z": 0.0193
     },
     {
-     "model": "nature/tree_default",
+     "model": "nature/tree_pineTallA",
      "at": [
       0.02,
       0.3
      ],
-     "scale": 0.34,
+     "scale": 0.43,
      "turn": 53,
-     "z": 0.017
+     "z": 0.0215
     },
     {
-     "model": "nature/plant_bushLarge",
+     "model": "nature/tree_pineSmallA",
      "at": [
       -0.3,
       -0.02
      ],
-     "scale": 0.72,
-     "z": 0.036
+     "scale": 0.231,
+     "z": 0.0116
     },
     {
      "model": "nature/stump_round",
@@ -1512,26 +1049,24 @@
      "scale": 0.8,
      "z": 0.04
     }
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "forest-1b",
    "parts": [
     {
-     "model": "nature/tree_palmTall",
+     "model": "nature/tree_pineDefaultB",
      "at": [
       0.02,
       0.3
      ],
-     "scale": 0.44,
+     "scale": 0.42,
      "turn": 31,
-     "z": 0.022,
-     "materials": {
-      "leafsGreen": "#62ad4b"
-     }
+     "z": 0.021
     },
     {
-     "model": "nature/tree_fat",
+     "model": "nature/tree_pineTallC",
      "at": [
       -0.3,
       -0.02
@@ -1541,13 +1076,13 @@
      "z": 0.0216
     },
     {
-     "model": "nature/plant_bushLarge",
+     "model": "nature/tree_pineSmallA",
      "at": [
       0.3,
       0.04
      ],
-     "scale": 0.72,
-     "z": 0.036
+     "scale": 0.231,
+     "z": 0.0116
     },
     {
      "model": "nature/stump_round",
@@ -1558,95 +1093,88 @@
      "scale": 0.8,
      "z": 0.04
     }
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "forest-2a",
    "parts": [
     {
-     "model": "nature/tree_palm",
+     "model": "nature/tree_pineDefaultA",
      "at": [
       -0.27,
       0.27
      ],
      "scale": 0.386,
-     "z": 0.0193,
-     "materials": {
-      "leafsGreen": "#62ad4b"
-     }
+     "z": 0.0193
     },
     {
-     "model": "nature/tree_default",
+     "model": "nature/tree_pineTallA",
      "at": [
       0.02,
       0.3
      ],
-     "scale": 0.34,
+     "scale": 0.43,
      "turn": 53,
-     "z": 0.017
+     "z": 0.0215
     },
     {
-     "model": "nature/tree_oak",
+     "model": "nature/tree_pineRoundC",
      "at": [
       -0.3,
       -0.02
      ],
-     "scale": 0.454,
+     "scale": 0.562,
      "turn": 106,
-     "z": 0.0227
+     "z": 0.0281
     },
     {
-     "model": "nature/tree_palmTall",
+     "model": "nature/tree_pineDefaultB",
      "at": [
       0.3,
       0.04
      ],
-     "scale": 0.405,
+     "scale": 0.386,
      "turn": 159,
-     "z": 0.0203,
-     "materials": {
-      "leafsGreen": "#62ad4b"
-     }
+     "z": 0.0193
     },
     {
-     "model": "nature/plant_bushLarge",
+     "model": "nature/tree_pineSmallA",
      "at": [
       -0.02,
       0.0
      ],
-     "scale": 0.72,
-     "z": 0.036
+     "scale": 0.231,
+     "z": 0.0116
     },
     {
-     "model": "nature/plant_bushLarge",
+     "model": "nature/tree_pineSmallA",
      "at": [
       0.02,
       -0.29
      ],
-     "scale": 0.72,
+     "scale": 0.231,
      "turn": 70,
-     "z": 0.036
+     "z": 0.0116
     }
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "forest-2b",
    "parts": [
     {
-     "model": "nature/tree_palmTall",
+     "model": "nature/tree_pineDefaultB",
      "at": [
       0.02,
       0.3
      ],
-     "scale": 0.44,
+     "scale": 0.42,
      "turn": 31,
-     "z": 0.022,
-     "materials": {
-      "leafsGreen": "#62ad4b"
-     }
+     "z": 0.021
     },
     {
-     "model": "nature/tree_fat",
+     "model": "nature/tree_pineTallC",
      "at": [
       -0.3,
       -0.02
@@ -1656,99 +1184,91 @@
      "z": 0.0216
     },
     {
-     "model": "nature/tree_palmBend",
+     "model": "nature/tree_pineRoundE",
      "at": [
       0.3,
       0.04
      ],
-     "scale": 0.386,
+     "scale": 0.478,
      "turn": 137,
-     "z": 0.0193,
-     "materials": {
-      "leafsGreen": "#62ad4b"
-     }
+     "z": 0.0239
     },
     {
-     "model": "nature/tree_default",
+     "model": "nature/tree_pineDefaultA",
      "at": [
       -0.02,
       0.0
      ],
-     "scale": 0.34,
+     "scale": 0.42,
      "turn": 190,
-     "z": 0.017
+     "z": 0.021
     },
     {
-     "model": "nature/plant_bushLarge",
+     "model": "nature/tree_pineSmallA",
      "at": [
       0.02,
       -0.29
      ],
-     "scale": 0.72,
-     "z": 0.036
+     "scale": 0.231,
+     "z": 0.0116
     },
     {
-     "model": "nature/plant_bushLarge",
+     "model": "nature/tree_pineSmallA",
      "at": [
       -0.28,
       -0.3
      ],
-     "scale": 0.72,
+     "scale": 0.231,
      "turn": 70,
-     "z": 0.036
+     "z": 0.0116
     }
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "forest-3a",
    "parts": [
     {
-     "model": "nature/tree_palm",
+     "model": "nature/tree_pineDefaultA",
      "at": [
       -0.27,
       0.27
      ],
      "scale": 0.386,
-     "z": 0.0193,
-     "materials": {
-      "leafsGreen": "#62ad4b"
-     }
+     "z": 0.0193
     },
     {
-     "model": "nature/tree_default",
+     "model": "nature/tree_pineTallA",
      "at": [
       0.02,
       0.3
      ],
-     "scale": 0.34,
+     "scale": 0.43,
      "turn": 53,
-     "z": 0.017
+     "z": 0.0215
     },
     {
-     "model": "nature/tree_oak",
+     "model": "nature/tree_pineRoundC",
      "at": [
       -0.3,
       -0.02
      ],
-     "scale": 0.454,
+     "scale": 0.562,
      "turn": 106,
-     "z": 0.0227
+     "z": 0.0281
     },
     {
-     "model": "nature/tree_palmTall",
+     "model": "nature/tree_pineDefaultB",
      "at": [
       0.3,
       0.04
      ],
-     "scale": 0.405,
+     "scale": 0.386,
      "turn": 159,
-     "z": 0.0203,
-     "materials": {
-      "leafsGreen": "#62ad4b"
-     }
+     "z": 0.0193
     },
     {
-     "model": "nature/tree_fat",
+     "model": "nature/tree_pineTallC",
      "at": [
       -0.02,
       0.0
@@ -1758,67 +1278,62 @@
      "z": 0.02
     },
     {
-     "model": "nature/tree_palmBend",
+     "model": "nature/tree_pineRoundE",
      "at": [
       0.02,
       -0.29
      ],
-     "scale": 0.454,
+     "scale": 0.562,
      "turn": 265,
-     "z": 0.0227,
-     "materials": {
-      "leafsGreen": "#62ad4b"
-     }
+     "z": 0.0281
     },
     {
-     "model": "nature/tree_default",
+     "model": "nature/tree_pineDefaultA",
      "at": [
       -0.28,
       -0.3
      ],
-     "scale": 0.313,
+     "scale": 0.386,
      "turn": 318,
-     "z": 0.0157
+     "z": 0.0193
     },
     {
-     "model": "nature/plant_bushLarge",
+     "model": "nature/tree_pineSmallA",
      "at": [
       0.28,
       -0.26
      ],
-     "scale": 0.72,
-     "z": 0.036
+     "scale": 0.231,
+     "z": 0.0116
     },
     {
-     "model": "nature/plant_bushLarge",
+     "model": "nature/tree_pineSmallA",
      "at": [
       -0.27,
       0.27
      ],
-     "scale": 0.72,
+     "scale": 0.231,
      "turn": 70,
-     "z": 0.036
+     "z": 0.0116
     }
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "forest-3b",
    "parts": [
     {
-     "model": "nature/tree_palmTall",
+     "model": "nature/tree_pineDefaultB",
      "at": [
       0.02,
       0.3
      ],
-     "scale": 0.44,
+     "scale": 0.42,
      "turn": 31,
-     "z": 0.022,
-     "materials": {
-      "leafsGreen": "#62ad4b"
-     }
+     "z": 0.021
     },
     {
-     "model": "nature/tree_fat",
+     "model": "nature/tree_pineTallC",
      "at": [
       -0.3,
       -0.02
@@ -1828,84 +1343,76 @@
      "z": 0.0216
     },
     {
-     "model": "nature/tree_palmBend",
+     "model": "nature/tree_pineRoundE",
      "at": [
       0.3,
       0.04
      ],
-     "scale": 0.386,
+     "scale": 0.478,
      "turn": 137,
-     "z": 0.0193,
-     "materials": {
-      "leafsGreen": "#62ad4b"
-     }
+     "z": 0.0239
     },
     {
-     "model": "nature/tree_default",
+     "model": "nature/tree_pineDefaultA",
      "at": [
       -0.02,
       0.0
      ],
-     "scale": 0.34,
+     "scale": 0.42,
      "turn": 190,
-     "z": 0.017
+     "z": 0.021
     },
     {
-     "model": "nature/tree_palm",
+     "model": "nature/tree_pineTallA",
      "at": [
       0.02,
       -0.29
      ],
-     "scale": 0.454,
+     "scale": 0.464,
      "turn": 243,
-     "z": 0.0227,
-     "materials": {
-      "leafsGreen": "#62ad4b"
-     }
+     "z": 0.0232
     },
     {
-     "model": "nature/tree_palm",
+     "model": "nature/tree_pineDefaultA",
      "at": [
       -0.28,
       -0.3
      ],
      "scale": 0.386,
      "turn": 296,
-     "z": 0.0193,
-     "materials": {
-      "leafsGreen": "#62ad4b"
-     }
+     "z": 0.0193
     },
     {
-     "model": "nature/tree_default",
+     "model": "nature/tree_pineTallA",
      "at": [
       0.28,
       -0.26
      ],
-     "scale": 0.34,
+     "scale": 0.43,
      "turn": 349,
-     "z": 0.017
+     "z": 0.0215
     },
     {
-     "model": "nature/plant_bushLarge",
+     "model": "nature/tree_pineSmallA",
      "at": [
       -0.27,
       0.27
      ],
-     "scale": 0.72,
-     "z": 0.036
+     "scale": 0.231,
+     "z": 0.0116
     },
     {
-     "model": "nature/plant_bushLarge",
+     "model": "nature/tree_pineSmallA",
      "at": [
       0.02,
       0.3
      ],
-     "scale": 0.72,
+     "scale": 0.231,
      "turn": 70,
-     "z": 0.036
+     "z": 0.0116
     }
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "rock-a",
@@ -1917,7 +1424,11 @@
       0.14
      ],
      "scale": 0.62,
-     "z": 0.031
+     "z": 0.031,
+     "materials": {
+      "stone": "#bfe3f2",
+      "_defaultMat": "#bfe3f2"
+     }
     },
     {
      "model": "nature/stone_largeF",
@@ -1927,7 +1438,11 @@
      ],
      "scale": 0.5,
      "turn": 40,
-     "z": 0.025
+     "z": 0.025,
+     "materials": {
+      "stone": "#bfe3f2",
+      "_defaultMat": "#bfe3f2"
+     }
     },
     {
      "model": "nature/stone_smallG",
@@ -1936,18 +1451,27 @@
       -0.24
      ],
      "scale": 0.9,
-     "z": 0.045
+     "z": 0.045,
+     "materials": {
+      "stone": "#bfe3f2",
+      "_defaultMat": "#bfe3f2"
+     }
     },
     {
-     "model": "nature/grass",
+     "model": "nature/stone_smallA",
      "at": [
       0.28,
       -0.3
      ],
-     "scale": 0.6,
-     "z": 0.03
+     "scale": 0.4,
+     "z": 0.02,
+     "materials": {
+      "stone": "#bfe3f2",
+      "_defaultMat": "#bfe3f2"
+     }
     }
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "rock-b",
@@ -1960,7 +1484,11 @@
      ],
      "scale": 0.6,
      "turn": 120,
-     "z": 0.03
+     "z": 0.03,
+     "materials": {
+      "stone": "#bfe3f2",
+      "_defaultMat": "#bfe3f2"
+     }
     },
     {
      "model": "nature/stone_largeB",
@@ -1970,7 +1498,11 @@
      ],
      "scale": 0.5,
      "turn": 20,
-     "z": 0.025
+     "z": 0.025,
+     "materials": {
+      "stone": "#bfe3f2",
+      "_defaultMat": "#bfe3f2"
+     }
     },
     {
      "model": "nature/stone_smallG",
@@ -1980,156 +1512,166 @@
      ],
      "scale": 0.9,
      "turn": 60,
-     "z": 0.045
+     "z": 0.045,
+     "materials": {
+      "stone": "#bfe3f2",
+      "_defaultMat": "#bfe3f2"
+     }
     },
     {
-     "model": "nature/grass",
+     "model": "nature/stone_smallA",
      "at": [
       -0.28,
       -0.22
      ],
-     "scale": 0.6,
-     "z": 0.03
+     "scale": 0.4,
+     "z": 0.02,
+     "materials": {
+      "stone": "#bfe3f2",
+      "_defaultMat": "#bfe3f2"
+     }
     }
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "meadow-a",
    "parts": [
     {
-     "model": "nature/grass",
+     "model": "survival/resource-wood",
      "at": [
-      -0.25,
-      0.2
+      -0.22,
+      0.16
      ],
-     "scale": 0.55,
-     "z": 0.0275
+     "scale": 1.4,
+     "turn": 20
     },
     {
-     "model": "nature/grass",
+     "model": "survival/resource-wood",
      "at": [
-      0.22,
+      0.2,
+      -0.2
+     ],
+     "scale": 1.4,
+     "turn": 110
+    },
+    {
+     "model": "nature/stone_smallA",
+     "at": [
+      0.16,
       0.12
      ],
-     "scale": 0.55,
-     "turn": 80,
-     "z": 0.0275
+     "scale": 0.38,
+     "z": 0.019
     },
     {
-     "model": "nature/grass",
+     "model": "nature/stone_smallC",
      "at": [
-      -0.05,
-      -0.22
+      -0.12,
+      -0.08
      ],
-     "scale": 0.55,
-     "turn": 160,
-     "z": 0.0275
+     "scale": 0.38,
+     "turn": 70,
+     "z": 0.019
     }
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "meadow-b",
    "parts": [
     {
-     "model": "nature/grass",
+     "model": "survival/resource-wood",
      "at": [
-      -0.25,
+      0.18,
       0.2
      ],
-     "scale": 0.55,
-     "z": 0.0275
+     "scale": 1.4,
+     "turn": 70
     },
     {
-     "model": "nature/grass",
+     "model": "survival/resource-wood",
      "at": [
-      0.22,
-      0.12
-     ],
-     "scale": 0.55,
-     "turn": 80,
-     "z": 0.0275
-    },
-    {
-     "model": "nature/grass",
-     "at": [
-      -0.05,
+      -0.16,
       -0.22
      ],
-     "scale": 0.55,
-     "turn": 160,
-     "z": 0.0275
+     "scale": 1.4,
+     "turn": 150
     },
     {
-     "model": "nature/flower_yellowA",
-     "at": [
-      0.08,
-      0.05
-     ],
-     "scale": 0.9,
-     "z": 0.045
-    },
-    {
-     "model": "nature/flower_yellowB",
+     "model": "nature/stone_smallB",
      "at": [
       -0.2,
-      -0.05
+      0.08
      ],
-     "scale": 0.8,
-     "z": 0.04
+     "scale": 0.38,
+     "z": 0.019
+    },
+    {
+     "model": "nature/stone_smallA",
+     "at": [
+      0.1,
+      -0.06
+     ],
+     "scale": 0.38,
+     "turn": 70,
+     "z": 0.019
+    },
+    {
+     "model": "nature/stone_smallE",
+     "at": [
+      0.26,
+      0.04
+     ],
+     "scale": 0.38,
+     "turn": 140,
+     "z": 0.019
     }
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "meadow-c",
    "parts": [
     {
-     "model": "nature/grass",
-     "at": [
-      -0.25,
-      0.2
-     ],
-     "scale": 0.55,
-     "z": 0.0275
-    },
-    {
-     "model": "nature/grass",
-     "at": [
-      0.22,
-      0.12
-     ],
-     "scale": 0.55,
-     "turn": 80,
-     "z": 0.0275
-    },
-    {
-     "model": "nature/grass",
+     "model": "survival/resource-wood",
      "at": [
       -0.05,
-      -0.22
+      0.24
      ],
-     "scale": 0.55,
-     "turn": 160,
-     "z": 0.0275
+     "scale": 1.4,
+     "turn": 130
     },
     {
-     "model": "nature/flower_purpleA",
+     "model": "survival/resource-wood",
+     "at": [
+      0.24,
+      -0.05
+     ],
+     "scale": 1.4,
+     "turn": 40
+    },
+    {
+     "model": "nature/stone_smallC",
+     "at": [
+      -0.2,
+      -0.12
+     ],
+     "scale": 0.38,
+     "z": 0.019
+    },
+    {
+     "model": "nature/stone_smallB",
      "at": [
       0.1,
-      0.18
+      0.05
      ],
-     "scale": 0.9,
-     "z": 0.045
-    },
-    {
-     "model": "nature/flower_redA",
-     "at": [
-      -0.12,
-      -0.1
-     ],
-     "scale": 0.8,
-     "z": 0.04
+     "scale": 0.38,
+     "turn": 70,
+     "z": 0.019
     }
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "quarry",
@@ -2143,47 +1685,67 @@
      "scale": 0.5,
      "z": 0.025,
      "materials": {
-      "grass": "#5b8e50"
+      "grass": "#bfe3f2",
+      "stone": "#bfe3f2"
      }
     },
     {
-     "model": "nature/stone_smallA",
+     "model": "own/ice-block",
      "at": [
-      0.24,
-      -0.1
+      0.2,
+      0.02
      ],
-     "scale": 0.7,
-     "z": 0.035
+     "scale": 0.9,
+     "turn": 90
     },
     {
-     "model": "nature/stone_smallB",
+     "model": "own/ice-block",
      "at": [
-      0.0,
-      -0.28
+      0.2,
+      0.2
      ],
-     "scale": 0.6,
-     "turn": 60,
-     "z": 0.03
+     "scale": 0.9,
+     "turn": 90
+    },
+    {
+     "model": "own/ice-block",
+     "at": [
+      0.2,
+      0.11
+     ],
+     "scale": 0.9,
+     "turn": 90,
+     "z": 0.108
+    },
+    {
+     "model": "own/ice-block",
+     "at": [
+      0.02,
+      -0.22
+     ],
+     "scale": 0.9,
+     "turn": 25
+    },
+    {
+     "model": "own/ice-block",
+     "at": [
+      0.26,
+      -0.26
+     ],
+     "scale": 0.8,
+     "turn": -20
     },
     {
      "model": "survival/tool-pickaxe",
      "at": [
       -0.3,
-      -0.24
+      -0.2
      ],
      "scale": 1.6,
      "turn": 20
-    },
-    {
-     "model": "pirate/crate",
-     "at": [
-      0.25,
-      0.22
-     ],
-     "scale": 0.12,
-     "turn": 20
     }
-   ]
+   ],
+   "snow": true
   },
   {
    "name": "spring",
@@ -2202,12 +1764,14 @@
      }
     },
     {
-     "model": "nature/lily_large",
+     "model": "pirate/structure-platform-dock-small",
      "at": [
-      0.05,
-      -0.05
+      0.3,
+      -0.3
      ],
-     "scale": 0.8
+     "scale": 0.08,
+     "turn": 45,
+     "z": 0.09
     },
     {
      "model": "nature/stone_smallA",
@@ -2219,18 +1783,164 @@
      "z": 0.03
     },
     {
-     "model": "nature/tree_palmBend",
+     "model": "nature/stone_smallB",
      "at": [
       -0.32,
-      0.3
+      0.26
      ],
-     "scale": 0.336,
-     "z": 0.0168,
-     "materials": {
-      "leafsGreen": "#62ad4b"
-     }
+     "scale": 0.5,
+     "turn": 50,
+     "z": 0.025
+    },
+    {
+     "model": "own/steam",
+     "at": [
+      -0.14,
+      -0.02
+     ],
+     "scale": 0.9,
+     "z": 0.09,
+     "snow": false
+    },
+    {
+     "model": "own/steam",
+     "at": [
+      0.06,
+      0.12
+     ],
+     "scale": 0.65,
+     "turn": 120,
+     "z": 0.09,
+     "snow": false
     }
-   ]
+   ],
+   "snow": true
+  },
+  {
+   "name": "fire",
+   "parts": [
+    {
+     "model": "nature/campfire_stones",
+     "at": [
+      0,
+      0
+     ],
+     "scale": 1.3,
+     "z": 0.065,
+     "snow": false
+    },
+    {
+     "model": "nature/campfire_logs",
+     "at": [
+      0,
+      0
+     ],
+     "scale": 1.8,
+     "z": 0.09,
+     "snow": false
+    },
+    {
+     "model": "nature/log",
+     "at": [
+      0.159,
+      0.042
+     ],
+     "scale": 0.5,
+     "turn": 105.0,
+     "z": 0.146,
+     "tilt": [
+      50,
+      0
+     ],
+     "snow": false
+    },
+    {
+     "model": "nature/log",
+     "at": [
+      0.042,
+      0.159
+     ],
+     "scale": 0.5,
+     "turn": 165.0,
+     "z": 0.146,
+     "tilt": [
+      50,
+      0
+     ],
+     "snow": false
+    },
+    {
+     "model": "nature/log",
+     "at": [
+      -0.116,
+      0.116
+     ],
+     "scale": 0.5,
+     "turn": 225.0,
+     "z": 0.146,
+     "tilt": [
+      50,
+      0
+     ],
+     "snow": false
+    },
+    {
+     "model": "nature/log",
+     "at": [
+      -0.159,
+      -0.042
+     ],
+     "scale": 0.5,
+     "turn": 285.0,
+     "z": 0.146,
+     "tilt": [
+      50,
+      0
+     ],
+     "snow": false
+    },
+    {
+     "model": "nature/log",
+     "at": [
+      -0.042,
+      -0.159
+     ],
+     "scale": 0.5,
+     "turn": 345.0,
+     "z": 0.146,
+     "tilt": [
+      50,
+      0
+     ],
+     "snow": false
+    },
+    {
+     "model": "nature/log",
+     "at": [
+      0.116,
+      -0.116
+     ],
+     "scale": 0.5,
+     "turn": 405.0,
+     "z": 0.146,
+     "tilt": [
+      50,
+      0
+     ],
+     "snow": false
+    },
+    {
+     "model": "own/flames",
+     "at": [
+      0.0,
+      0.0
+     ],
+     "scale": 1.5,
+     "z": 0.03,
+     "snow": false
+    }
+   ],
+   "snow": true
   },
   {
    "name": "boat",

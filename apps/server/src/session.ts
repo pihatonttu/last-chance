@@ -1,5 +1,5 @@
 import { createBot, seatsFor, type Bot } from '@saari/bots';
-import { buildDebrief, pseudonymize, type DebriefData, type DebriefLabel } from '@saari/debrief';
+import { badgesFor, buildDebrief, pseudonymize, type BadgeId, type DebriefData, type DebriefLabel } from '@saari/debrief';
 import { checkNickname, colorFor, randomNickname, type NicknameCheck } from '@saari/names';
 import type {
   ClientMessage,
@@ -62,6 +62,8 @@ export interface Naming {
 export interface Debriefing {
   build(game: Game, labels: readonly DebriefLabel[], now: Date): DebriefData;
   pseudonymize(debrief: DebriefData): DebriefData;
+  /** The player's own badges for their end screen (docs/09 §2.3). */
+  badges(game: Game, playerId: string): BadgeId[];
 }
 
 export const defaultNaming: Naming = {
@@ -70,7 +72,11 @@ export const defaultNaming: Naming = {
   color: colorFor,
 };
 
-export const defaultDebriefing: Debriefing = { build: buildDebrief, pseudonymize };
+export const defaultDebriefing: Debriefing = {
+  build: buildDebrief,
+  pseudonymize,
+  badges: (game, playerId) => badgesFor(game.log, playerId, game.reports.length),
+};
 
 /** Phase lengths in milliseconds of server time (design doc §4). */
 export interface Timing {
@@ -321,6 +327,7 @@ export class GameSession {
       ...(member.token ? { playerToken: member.token } : {}),
       serverTime: this.#now(),
     });
+    if (this.#game.phase === 'ended' && this.#game.month >= 1) this.#sendBadges(member, peer);
     this.#afterChange();
     return null;
   }
@@ -624,12 +631,27 @@ export class GameSession {
     }
     this.#broadcastGame();
     this.#tickers();
-    if (g.phase === 'action') {
-      const missing = g.foodNeed() - g.resources.food;
-      if (missing > 0) this.#broadcast({ t: 'ticker', event: { kind: 'food-short', missing } });
-    }
+    if (g.phase === 'action') this.#warnAtActionStart();
     this.#scheduleBots();
     this.#checkProgress();
+  }
+
+  /**
+   * What the class should know when a month's action phase starts: the food and the fire
+   * for this month, next month's hard frost and the loss limit (docs/10-arktinen.md §4, §4b, §6).
+   */
+  #warnAtActionStart(): void {
+    const g = this.#game;
+    const say = (event: TickerEvent) => this.#broadcast({ t: 'ticker', event });
+    const foodMissing = g.foodNeed() - g.resources.food;
+    if (foodMissing > 0) say({ kind: 'food-short', missing: foodMissing });
+    const forecast = g.forecast();
+    if (forecast !== null && forecast <= g.params.weather.hardAt) {
+      say({ kind: 'hard-frost-coming', temperature: forecast });
+    }
+    const woodMissing = g.heatNeed() - g.resources.wood;
+    if (woodMissing > 0) say({ kind: 'wood-short', missing: woodMissing });
+    if (g.happiness < g.params.lossThreshold[g.length] + g.params.lossWarningMargin) say({ kind: 'giving-up' });
   }
 
   /** Ends the current phase (timer ran out or everyone is done). */
@@ -709,6 +731,9 @@ export class GameSession {
     if (this.#debrief) {
       for (const host of this.#hosts) host.send({ t: 'debrief', debrief: this.#debrief, storedToken: this.#storedToken });
     }
+    if (this.#game.month >= 1) {
+      for (const m of this.#members.values()) if (m.peer && !m.kicked) this.#sendBadges(m, m.peer);
+    }
     this.#logLine(
       `game ${this.code} ended${early ? ' early' : ''} in month ${this.#game.month}, ${this.playerCount} players`,
     );
@@ -729,6 +754,11 @@ export class GameSession {
     } catch (error) {
       this.#logLine(`game ${this.code}: storing the debrief failed: ${errorText(error)}`);
     }
+  }
+
+  /** Badges go to their own player only (docs/09 §2.3). */
+  #sendBadges(member: Member, peer: Peer): void {
+    peer.send({ t: 'badges', badges: this.#debriefing.badges(this.#game, member.id) });
   }
 
   // ---------------------------------------------------------------- timer
@@ -861,7 +891,7 @@ export class GameSession {
       // Students never get the other players' nicknames (P34).
       players: role === 'host' ? this.#playerSummaries() : [],
       playerCount: this.playerCount,
-      result: g.phase === 'ended' ? { happiness: g.happiness, grade: g.grade(), early: this.#early } : null,
+      result: g.phase === 'ended' ? { happiness: g.happiness, grade: g.grade(), early: this.#early, lost: g.lost } : null,
     };
   }
 
@@ -876,6 +906,10 @@ export class GameSession {
       shelterCapacity: g.shelterCapacity(),
       happiness: g.happiness,
       recreationThisMonth: g.recreationThisMonth,
+      temperature: g.temperature(),
+      forecast: g.forecast(),
+      heatNeed: g.heatNeed(),
+      lossThreshold: g.params.lossThreshold[g.length],
     };
   }
 

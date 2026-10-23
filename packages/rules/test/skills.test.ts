@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Game } from '../src/game.ts';
-import { act, buildByVote, freeBuildingParams, setup } from './helpers.ts';
+import { act, buildByVote, freeBuildingParams, setup, withoutLoss } from './helpers.ts';
 
 function findBuilding(game: Game, kind: string) {
   const tile = game.tiles().find((t) => t.building?.kind === kind);
@@ -8,9 +8,9 @@ function findBuilding(game: Game, kind: string) {
   return tile;
 }
 
-/** Month 1: shelter on the landing. Month 2: the given building on the next meadow. */
+/** Month 1: shelter next to the landing. Month 2: the given building on the next meadow. */
 function withBuilding(kind: 'school' | 'workshop', players = 3) {
-  const game = setup({ players, params: freeBuildingParams() });
+  const game = setup({ players, params: withoutLoss(freeBuildingParams()) });
   buildByVote(game, 'shelter-1');
   buildByVote(game, `${kind}-1`);
   return { game, tile: findBuilding(game, kind) };
@@ -94,7 +94,8 @@ describe('workshop', () => {
 describe('shelter', () => {
   it('has no action', () => {
     const game = setup({ params: freeBuildingParams() });
-    buildByVote(game, 'shelter-1');
-    expect(game.act('p1', 3, 5)).toEqual({ ok: false, reason: 'no-action' });
+    buildByVote(game, 'shelter-1'); // (2,4), next to the landing
+    expect(game.tile(2, 4)?.building?.kind).toBe('shelter');
+    expect(game.act('p1', 2, 4)).toEqual({ ok: false, reason: 'no-action' });
   });
 });

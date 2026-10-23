@@ -1,12 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import type { VoteOption } from '@saari/rules';
-import { gainText, optionName, tickerText, yieldGain } from '../src/lib/format.ts';
+import { actionName, gainText, optionName, questionText, tickerText, yieldGain } from '../src/lib/format.ts';
 import { checkNickname } from '../src/lib/names.ts';
 import { parseOptionId, shelterPeople } from '../src/lib/rules-info.ts';
 import { effectText, voteShare } from '../src/lib/vote.ts';
 
 function option(over: Partial<VoteOption>): VoteOption {
-  return { id: 'none', kind: 'none', level: 0, upgrade: false, cost: { wood: 0, stone: 0 }, blocked: [], ...over };
+  return {
+    id: 'none',
+    kind: 'none',
+    level: 0,
+    upgrade: false,
+    cost: { wood: 0, stone: 0 },
+    blocked: [],
+    leavesFireCold: false,
+    ...over,
+  };
 }
 
 describe('game text', () => {
@@ -21,24 +30,53 @@ describe('game text', () => {
   it('names gains, options and ticker events without anyone’s name', () => {
     expect(gainText({ wood: 10 })).toBe('+10 puuta');
     expect(gainText({ food: 5, work: 1 })).toBe('+5 ruokaa, +1 työ');
-    expect(optionName({ id: 'shelter-2' })).toBe('Maja');
-    expect(optionName({ id: 'gathering-3' })).toBe('Amfiteatteri');
-    expect(optionName({ id: 'school-2' })).toBe('Koulu (taso 2)');
+    expect(optionName({ id: 'shelter-2' })).toBe('Iglu');
+    expect(optionName({ id: 'school-2' })).toBe('Koulu');
     expect(optionName({ id: 'none' })).toBe('Ei rakenneta tässä kuussa');
-    expect(tickerText({ kind: 'built', option: 'shelter-1', x: 1, y: 2 })).toBe('Rakennettiin: Teltta');
+    expect(tickerText({ kind: 'built', option: 'shelter-1', x: 1, y: 2 })).toBe('Rakennettiin: Pieni iglu');
     expect(tickerText({ kind: 'food-short', missing: 12 })).toBe('Ruoka ei riitä: puuttuu 12.');
     expect(parseOptionId('workshop-3')).toEqual({ kind: 'workshop', level: 3 });
     expect(parseOptionId('castle-1')).toBeNull();
   });
 });
 
+describe('arctic names (docs/10-arktinen.md §3)', () => {
+  it('names homes igloos and the third gathering place a snow castle', () => {
+    expect(optionName({ id: 'shelter-1' })).toBe('Pieni iglu');
+    expect(optionName({ id: 'shelter-3' })).toBe('Iso iglu');
+    expect(optionName({ id: 'gathering-3' })).toBe('Lumilinna');
+  });
+
+  it('fishing is always ice fishing, and greenhouses and ice replace fields and stone', () => {
+    expect(actionName('fish')).toBe('Pilki');
+    expect(actionName('plow')).toBe('Rakenna kasvihuone');
+    expect(actionName('mine')).toBe('Louhi jäätä');
+    expect(actionName('build-quarry')).toBe('Perusta jäälouhos');
+    expect(actionName('chop')).toBe('Kaada puita');
+  });
+
+  it('names every building level by its own name', () => {
+    expect(optionName({ id: 'school-1' })).toBe('Ulkoluokka');
+    expect(optionName({ id: 'workshop-2' })).toBe('Paja');
+    expect(optionName({ id: 'gathering-1' })).toBe('Laavu');
+  });
+
+  it('writes frost with a real minus sign in the ticker and the questions', () => {
+    expect(tickerText({ kind: 'hard-frost-coming', temperature: -35 })).toBe('Ensi kuussa kova pakkanen: −35°!');
+    expect(tickerText({ kind: 'wood-short', missing: 7 })).toBe('Puu ei riitä nuotiolle: puuttuu 7.');
+    expect(questionText({ id: 'cold', params: { month: 4, people: 3, temperature: -30 } })).toBe(
+      'Kuukautena 4 oli −30° ja nuotion puut loppuivat: 3 paleli. Kuka muisti nuotion?',
+    );
+  });
+});
+
 describe('vote cards', () => {
   it('what an option does', () => {
     const tent = option({ id: 'shelter-1', kind: 'shelter', level: 1, cost: { wood: 120, stone: 0 }, blocked: ['wood', 'space'] });
-    expect(effectText(tent, 30)).toBe(`Suoja noin ${shelterPeople(1, 30)} kyläläiselle`);
+    expect(effectText(tent, 30)).toBe(`Koti noin ${shelterPeople(1, 30)} kyläläiselle`);
     const hut = option({ id: 'shelter-2', kind: 'shelter', level: 2, upgrade: true });
-    expect(effectText(hut, 30)).toMatch(/^Noin \d+ suojapaikkaa lisää$/);
-    expect(effectText(option({}), 30)).toBe('Puut ja kivet säästetään');
+    expect(effectText(hut, 30)).toMatch(/^Noin \d+ kotipaikkaa lisää$/);
+    expect(effectText(option({}), 30)).toBe('Puu ja jää säästetään');
   });
 
   it('live percentages', () => {

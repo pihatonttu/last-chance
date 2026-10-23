@@ -97,6 +97,14 @@ describe('Connection', () => {
     expect(peer.last('refused-join')).toEqual({ t: 'refused-join', reason: 'protocol-mismatch' });
   });
 
+  it('refuses a tab from before the seasons (protocol 1) so it reloads', () => {
+    const { hub, open } = setup();
+    const { code } = hub.createGame(SHORT);
+    const { peer, conn } = open();
+    conn.receive({ t: 'hello-player', protocol: 1, code, nickname: 'Aino' });
+    expect(peer.last('refused-join')).toEqual({ t: 'refused-join', reason: 'protocol-mismatch' });
+  });
+
   it('refuses unknown games and closes after too many wrong codes', () => {
     const { open } = setup();
     const { peer, conn } = open();

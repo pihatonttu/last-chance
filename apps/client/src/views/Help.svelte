@@ -10,5 +10,6 @@
     <li>{t('help.2')}</li>
     <li>{t('help.3')}</li>
     <li>{t('help.4')}</li>
+    <li>{t('help.5')}</li>
   </ol>
 </StaticPage>

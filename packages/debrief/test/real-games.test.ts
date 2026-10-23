@@ -24,7 +24,8 @@ const CASES: Case[] = [
   { seed: 7, villagers: 20, length: 'normal', mix: { lazy: 1 } },
   { seed: 8, villagers: 20, length: 'normal', mix: MIXED },
   { seed: 9, villagers: 5, length: 'short', mix: MIXED },
-  { seed: 10, villagers: 20, length: 'normal', mix: { selfish: 1 } },
+  { seed: 10, villagers: 20, length: 'normal', mix: { skillsOnly: 1 } },
+  { seed: 11, villagers: 5, length: 'normal', mix: { skillsOnly: 1 } },
 ];
 
 const NOW = new Date('2026-10-09T12:00:00.000Z');
@@ -42,9 +43,12 @@ describe.each(CASES)('a real bot game: $seed', (c) => {
   const d = buildDebrief(game, labels, NOW);
   const actionEntries = game.log.filter((e) => e.type === 'action');
 
-  it(`plays every month and ends normally (${name(c)})`, () => {
+  it(`plays every month, or until the village gives up, and ends normally (${name(c)})`, () => {
+    const limit = game.params.lossThreshold[c.length];
+    const lostIn = game.reports.findIndex((r) => r.happiness < limit);
+    expect(d.lost).toBe(lostIn >= 0);
     expect(d.monthsPlayed).toBe(game.reports.length);
-    expect(d.monthsPlayed).toBe(d.totalMonths);
+    expect(d.monthsPlayed).toBe(lostIn >= 0 ? lostIn + 1 : d.totalMonths);
     expect(d.totalMonths).toBe(game.totalMonths);
     expect(d.length).toBe(c.length);
     expect(d.endedEarly).toBe(false);
@@ -101,7 +105,8 @@ describe.each(CASES)('a real bot game: $seed', (c) => {
     for (const crisis of d.crises) {
       const affected = (month: number) => {
         const r = d.months.find((m) => m.month === month)!;
-        return crisis.kind === 'hunger' ? r.food.hungry : r.shelter.unsheltered;
+        if (crisis.kind === 'hunger') return r.food.hungry;
+        return crisis.kind === 'cold' ? r.heat.cold : r.shelter.unsheltered;
       };
       expect(affected(crisis.month)).toBeGreaterThan(0);
       expect(crisis.people).toBeGreaterThan(0);
@@ -110,6 +115,32 @@ describe.each(CASES)('a real bot game: $seed', (c) => {
     }
     const hungry = d.months.filter((m) => m.food.hungry > 0).length;
     expect(hungry > 0).toBe(d.crises.some((x) => x.kind === 'hunger'));
+    const cold = d.months.filter((m) => m.heat.cold > 0).length;
+    expect(cold > 0).toBe(d.crises.some((x) => x.kind === 'cold'));
+  });
+
+  it('asks the loss, cold and warm-all questions as the game calls for', () => {
+    const ids = d.questions.map((q) => q.id);
+    expect(ids.includes('lost')).toBe(d.lost);
+    expect(d.questions[0]?.id === 'lost').toBe(d.lost === true);
+    if (d.lost) expect(d.questions[0]?.params).toEqual({ month: d.monthsPlayed });
+
+    const crisis = d.crises.find((x) => x.kind === 'cold');
+    const month = d.months.find((m) => m.month === crisis?.month);
+    // lost, hunger and cold rank first, so the cold question always makes the four.
+    expect(d.questions.find((q) => q.id === 'cold')?.params).toEqual(
+      crisis ? { month: crisis.month, people: crisis.people, temperature: month?.heat.temperature } : undefined,
+    );
+    // Nobody cold in any month: the village may be asked how it shared the wood, never when someone was.
+    if (crisis) expect(ids).not.toContain('warm-all');
+    // It is a general question: asked only in a quiet game (three questions in all), first among the general ones,
+    // and not in a game ended too early to tell.
+    if (ids.includes('warm-all')) {
+      expect(d.questions.length).toBeLessThanOrEqual(3);
+      expect(ids.indexOf('warm-all')).toBeLessThan(ids.indexOf('decision-making'));
+      if (ids.includes('next-time')) expect(ids.indexOf('warm-all')).toBeLessThan(ids.indexOf('next-time'));
+      expect(d.monthsPlayed).toBeGreaterThanOrEqual(Math.ceil(d.totalMonths / 3));
+    }
   });
 
   it('asks 1-5 valid questions with whole-number params, ending with decision-making', () => {

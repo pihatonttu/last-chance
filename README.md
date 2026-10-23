@@ -1,11 +1,16 @@
-# Saari (työnimi)
+# Last Chance: Arctic
 
-Selainpohjainen yhteistyöpeli koululuokille. Pohjana on suomalaisen *Saarella*-oppimispelin
-(Eduplus Oy 2013, myöhemmin TeacherGaming / *Stranded*) ydinidea: luokka haaksirikkoutuu
-saarelle, resurssit ovat yhteisiä ja rakentamisesta äänestetään. Muuten peli on uusi ja sillä on
-oma nimensä, joka lukitaan ennen julkaisua.
+Selainpohjainen yhteistyöpeli koululuokille (2.–6. luokka). Jäänmurtaja tuo luokan jäiselle
+arktiselle saarelle. Luokka perustaa kylän nuotion ympärille, rakentaa iglut ja kasvihuoneet ja
+valmistautuu revontulijuhlaan. Kaikki kerätty menee yhteiseen varastoon, ja kuun lopussa luokka
+äänestää, mitä rakennetaan. Kylän nuotio polttaa puuta pakkasen mukaan, ja jos kylän onnellisuus
+putoaa liian alas, kylä luovuttaa. Pelin lopussa opettaja saa jälkipuinnin.
 
-Kohde: `https://<nimi>.novanet.fi` (novaservu), avoin kaikille kouluille.
+Pohjana on suomalaisen *Saarella*-oppimispelin (Eduplus Oy 2013, myöhemmin TeacherGaming /
+*Stranded*) ydinidea: yhteiset resurssit ja rakentamisesta äänestäminen. Muuten peli on uusi ja
+sillä on oma nimensä.
+
+Osoite: `https://last-chance.novanet.fi` (novaservu), avoin kaikille kouluille.
 Koodi: <https://github.com/pihatonttu/last-chance> (julkinen, ei vielä lisenssiä).
 
 ## Dokumentit
@@ -17,6 +22,8 @@ Koodi: <https://github.com/pihatonttu/last-chance> (julkinen, ei vielä lisenssi
 - [`docs/04-pelisuunnittelu.md`](docs/04-pelisuunnittelu.md): pelisäännöt
 - [`docs/05-tasapaino.md`](docs/05-tasapaino.md): tasapainon viritys ja simulaatiotulokset
 - [`docs/06-tietosuoja.md`](docs/06-tietosuoja.md), [`docs/07-opettajan-ohje.md`](docs/07-opettajan-ohje.md): luonnokset
+- [`docs/09-uudisasukkaat.md`](docs/09-uudisasukkaat.md): oma tarina, kehystys ja omat merkit
+- [`docs/10-arktinen.md`](docs/10-arktinen.md): napateema (nuotio, pakkanen, iglut, häviö)
 
 ## Kehitys
 

@@ -1,7 +1,9 @@
 /**
- * PixiJS 8 map renderer. Draws the island from MapView data through sprites.ts,
- * handles pan / zoom / pinch / tap for students, fits the whole island on the
- * projector, and floats "+10 puuta" effects. Renders on demand to spare old devices.
+ * PixiJS 8 map renderer. Draws the island from MapView data: the Kenney pictures through
+ * kenney.ts and the arctic coast (shore ice, ice holes, floes, snow) through sprites.ts.
+ * Handles pan / zoom / pinch / tap for students, fits the whole island on the projector, and
+ * floats "+10 puuta" effects. Renders on demand to spare old devices. Without the pictures
+ * there is no map: `create` rejects and MapView shows its "map unavailable" message.
  */
 import { Application, Assets, Container, Graphics, Sprite, Text, TextStyle, type Texture } from 'pixi.js';
 import type { MapView } from '@saari/protocol';
@@ -24,17 +26,14 @@ import {
   PROP_ANCHOR,
   PROP_SCALE,
   WATER_DY,
-  type ArtStyle,
 } from './kenney.ts';
 import {
   drawExploreBox,
-  drawGround,
+  drawFloe,
   drawHighlight,
-  drawObjects,
   drawOverlay,
   drawShallowWater,
   drawShore,
-  drawWreck,
   EFFECT_COLORS,
   EFFECT_STYLE,
   type Pen,
@@ -47,8 +46,6 @@ export type MapMode = 'projector' | 'student';
 export interface MapRendererOptions {
   mode: MapMode;
   reducedMotion: boolean;
-  /** Initial map art: the Kenney tiles (P37) or the vector fallback. Default placeholder. */
-  artStyle?: ArtStyle;
   onTap?: (x: number, y: number) => void;
   /** Called when the user pans or zooms (the "whole island" button appears). */
   onCameraMoved?: (moved: boolean) => void;
@@ -101,7 +98,7 @@ interface PointerInfo {
 const TAP_SLOP = 8;
 const TAP_MS = 650;
 
-/** One map tile in the Kenney style: its block, the explore box on it, what stands on it, and its cloud. */
+/** One map tile: its block, the explore box on it, what stands on it, and its cloud. */
 interface TileSlot {
   block: Sprite;
   detail: Graphics;
@@ -109,20 +106,11 @@ interface TileSlot {
   cloud: Sprite;
 }
 
+/** Rejects if any picture is missing: there is no other way to draw the map. */
 async function loadKenneyTextures(): Promise<Map<string, Texture>> {
   const base = `${import.meta.env.BASE_URL}art/kenney/`;
   const loaded = await Promise.all(KENNEY_TEXTURES.map(async (name) => [name, await Assets.load<Texture>(`${base}${name}.png`)] as const));
   return new Map(loaded);
-}
-
-/** Missing art must not cost the class its map: null means the vector style is used. */
-async function loadKenneyTexturesOrNull(): Promise<Map<string, Texture> | null> {
-  try {
-    return await loadKenneyTextures();
-  } catch (error) {
-    console.warn('Kenney tiles failed to load, using the placeholder map', error);
-    return null;
-  }
 }
 
 export class MapRenderer {
@@ -130,14 +118,12 @@ export class MapRenderer {
   readonly #host: HTMLElement;
   readonly #options: MapRendererOptions;
   readonly #world = new Container();
+  /** Under the tiles: the shore ice, ice holes, floes and the snow under the land. */
   readonly #ground = new Graphics();
-  /** Kenney style: per-tile block, explore box, prop and cloud in painter's order. */
+  /** Per-tile block, explore box, prop and cloud in painter's order. */
   readonly #tiles = new Container();
   #slots: TileSlot[] = [];
-  #textures: Map<string, Texture> | null = null;
-  #style: ArtStyle;
-  #styleRequest = 0;
-  readonly #objects = new Graphics();
+  readonly #textures: Map<string, Texture>;
   readonly #overlay = new Graphics();
   readonly #highlight = new Graphics();
   readonly #effects = new Container();
@@ -158,13 +144,12 @@ export class MapRenderer {
   #resize: ResizeObserver | null = null;
   #destroyed = false;
 
-  private constructor(app: Application, host: HTMLElement, options: MapRendererOptions, textures: Map<string, Texture> | null) {
+  private constructor(app: Application, host: HTMLElement, options: MapRendererOptions, textures: Map<string, Texture>) {
     this.#app = app;
     this.#host = host;
     this.#options = options;
     this.#textures = textures;
-    this.#style = options.artStyle ?? 'placeholder';
-    this.#world.addChild(this.#ground, this.#tiles, this.#objects, this.#highlight, this.#overlay, this.#effects);
+    this.#world.addChild(this.#ground, this.#tiles, this.#highlight, this.#overlay, this.#effects);
     app.stage.addChild(this.#world);
   }
 
@@ -180,8 +165,14 @@ export class MapRenderer {
       autoStart: false,
       preference: 'webgl',
     });
-    // Loaded before the first frame so the class never sees the style change.
-    const textures = (options.artStyle ?? 'placeholder') === 'placeholder' ? null : await loadKenneyTexturesOrNull();
+    // Loaded before the first frame. Without the pictures there is no map, so give the renderer back.
+    let textures: Map<string, Texture>;
+    try {
+      textures = await loadKenneyTextures();
+    } catch (error) {
+      app.destroy({ removeView: true }, { children: true });
+      throw error;
+    }
     const canvas = app.canvas;
     canvas.style.display = 'block';
     canvas.style.width = '100%';
@@ -239,7 +230,7 @@ export class MapRenderer {
     const c = tileCenter(x, y);
     const color = EFFECT_COLORS[first.key];
     // Wood, stone and food float as "+10" and their picture; the rest in words.
-    const icon = first.key === 'wood' || first.key === 'stone' || first.key === 'food' ? this.#textures?.get(`icons/${first.key}`) : undefined;
+    const icon = first.key === 'wood' || first.key === 'stone' || first.key === 'food' ? this.#textures.get(`icons/${first.key}`) : undefined;
     const words = icon ? [`+${formatNumber(gain[first.key] ?? 0)}`, ...parts.slice(1).map((p) => p.text)] : parts.map((p) => p.text);
     const text = new Text({
       text: words.join('  '),
@@ -272,19 +263,6 @@ export class MapRenderer {
     this.#effects.addChild(node);
     this.#floating.push({ node, born: performance.now(), baseY: node.y });
     this.#requestRender();
-  }
-
-  /** Switches the map art; the Kenney tiles load the first time they are needed. */
-  async setArtStyle(style: ArtStyle): Promise<void> {
-    if (style === this.#style) return;
-    const request = ++this.#styleRequest;
-    if (style !== 'placeholder' && !this.#textures) {
-      const textures = await loadKenneyTexturesOrNull();
-      if (this.#destroyed || request !== this.#styleRequest) return;
-      this.#textures = textures;
-    }
-    this.#style = style;
-    this.#draw();
   }
 
   /** Whole island in view (students: the explored part of it). */
@@ -365,75 +343,71 @@ export class MapRenderer {
     const map = this.#map;
     if (!map) return;
     const ground = pixiPen(this.#ground.clear());
-    const objects = pixiPen(this.#objects.clear());
     const overlay = pixiPen(this.#overlay.clear());
     const ordered = [...map.tiles].sort(drawOrder);
-    const wreck = this.#wreckTile(map);
-    const style = this.#textures ? this.#style : 'placeholder';
-    this.#fitSlots(style === 'placeholder' ? 0 : ordered.length);
+    const boat = this.#boatTile(map);
+    this.#fitSlots(ordered.length);
     const at = (x: number, y: number) => this.#tile(map, x, y);
     const contexts = ordered.map((tile) => this.#context(map, tile));
-    if (style !== 'placeholder') {
-      // Under the island, layer by layer so the shapes merge: reef, shallow water, wet sand, sand.
-      const coastal = ordered.flatMap((tile, i) => (kenneyWater(tile, contexts[i]!, style) === 'shallow' ? [i] : []));
-      const land = ordered.flatMap((tile, i) => (tile.fog || tile.terrain !== 'sea' ? [i] : []));
-      for (const layer of ['reef', 'shallow'] as const) {
-        for (const i of coastal) drawShallowWater(ground, ordered[i]!, contexts[i]!.cx, contexts[i]!.cy + WATER_DY, layer);
-      }
-      for (const layer of ['wet', 'dry'] as const) {
-        for (const i of land) drawShore(ground, contexts[i]!.cx, contexts[i]!.cy + WATER_DY, layer);
-      }
+    // Under the island, layer by layer so the shapes merge: the ice's bluish edge, the shore ice
+    // with its holes, then the snow under the land (first the band that melts into the ice).
+    const coastal = ordered.flatMap((tile, i) => (kenneyWater(tile, contexts[i]!) === 'shallow' ? [i] : []));
+    const land = ordered.flatMap((tile, i) => (tile.fog || tile.terrain !== 'sea' ? [i] : []));
+    for (const layer of ['reef', 'shallow'] as const) {
+      for (const i of coastal) drawShallowWater(ground, ordered[i]!, contexts[i]!.cx, contexts[i]!.cy + WATER_DY, layer);
     }
+    for (const layer of ['wet', 'dry'] as const) {
+      for (const i of land) drawShore(ground, contexts[i]!.cx, contexts[i]!.cy + WATER_DY, layer);
+    }
+    // Floes drift on the open sea: explored water with no land next to it.
+    ordered.forEach((tile, i) => {
+      if (tile.fog || tile.terrain !== 'sea' || contexts[i]!.coastal) return;
+      drawFloe(ground, tile, contexts[i]!.cx, contexts[i]!.cy + WATER_DY);
+    });
     ordered.forEach((tile, i) => {
       const ctx = contexts[i]!;
-      const isWreck = wreck !== null && tile.x === wreck.x && tile.y === wreck.y;
-      const slot = this.#slots[i];
-      if (slot) {
-        // Each tile's block, then what stands on it, so nearer tiles cover farther ones.
-        const look = kenneyTile(tile, style);
-        const texture = look && this.#textures?.get(look.texture);
-        slot.block.visible = Boolean(texture);
-        if (look && texture) {
-          slot.block.texture = texture;
-          slot.block.anchor.set(0.5, kenneyAnchorY(texture.height));
-          slot.block.scale.set(KENNEY_SCALE);
-          slot.block.position.set(ctx.cx, ctx.cy);
-          slot.block.tint = look.tint;
-        }
-        const prop = kenneyProp(tile, ctx, style, isWreck);
-        const propTexture = prop && this.#textures?.get(prop.texture);
-        slot.prop.visible = Boolean(propTexture);
-        if (prop && propTexture) {
-          slot.prop.texture = propTexture;
-          slot.prop.anchor.set(PROP_ANCHOR.x, PROP_ANCHOR.y);
-          slot.prop.scale.set(PROP_SCALE);
-          slot.prop.position.set(ctx.cx, ctx.cy + prop.dy);
-        }
-        const detail = pixiPen(slot.detail.clear());
-        if (fogLook(tile, at, style) === 'explorable') drawExploreBox(detail, ctx.cx, ctx.cy);
-        const cloud = kenneyCloud(tile, at, style);
-        const cloudTexture = cloud && this.#textures?.get(cloud.texture);
-        slot.cloud.visible = Boolean(cloudTexture);
-        if (cloud && cloudTexture) {
-          slot.cloud.texture = cloudTexture;
-          slot.cloud.anchor.set(0.5, 0.6);
-          slot.cloud.scale.set(CLOUD_SCALE * (cloud.flipX ? -1 : 1), CLOUD_SCALE);
-          slot.cloud.position.set(ctx.cx + cloud.dx, ctx.cy + cloud.dy);
-        }
-        // Buildings explain themselves by their look and size; only exploration shows a ring.
-        if (tile.fog) drawOverlay(overlay, tile, ctx);
-      } else {
-        drawGround(ground, tile, ctx);
-        drawObjects(objects, tile, ctx);
-        if (isWreck) drawWreck(objects, ctx.cx, ctx.cy);
-        drawOverlay(overlay, tile, ctx);
+      const isBoat = boat !== null && tile.x === boat.x && tile.y === boat.y;
+      const isLanding = tile.x === map.landing.x && tile.y === map.landing.y;
+      const slot = this.#slots[i]!;
+      // Each tile's block, then what stands on it, so nearer tiles cover farther ones.
+      const look = kenneyTile(tile);
+      const texture = look && this.#textures.get(look.texture);
+      slot.block.visible = Boolean(texture);
+      if (look && texture) {
+        slot.block.texture = texture;
+        slot.block.anchor.set(0.5, kenneyAnchorY(texture.height));
+        slot.block.scale.set(KENNEY_SCALE);
+        slot.block.position.set(ctx.cx, ctx.cy);
+        slot.block.tint = look.tint;
       }
+      const prop = kenneyProp(tile, ctx, isBoat, isLanding);
+      const propTexture = prop && this.#textures.get(prop.texture);
+      slot.prop.visible = Boolean(propTexture);
+      if (prop && propTexture) {
+        slot.prop.texture = propTexture;
+        slot.prop.anchor.set(PROP_ANCHOR.x, PROP_ANCHOR.y);
+        slot.prop.scale.set(PROP_SCALE);
+        slot.prop.position.set(ctx.cx, ctx.cy + prop.dy);
+      }
+      const detail = pixiPen(slot.detail.clear());
+      if (fogLook(tile, at) === 'explorable') drawExploreBox(detail, ctx.cx, ctx.cy);
+      const cloud = kenneyCloud(tile, at);
+      const cloudTexture = cloud && this.#textures.get(cloud.texture);
+      slot.cloud.visible = Boolean(cloudTexture);
+      if (cloud && cloudTexture) {
+        slot.cloud.texture = cloudTexture;
+        slot.cloud.anchor.set(0.5, 0.6);
+        slot.cloud.scale.set(CLOUD_SCALE * (cloud.flipX ? -1 : 1), CLOUD_SCALE);
+        slot.cloud.position.set(ctx.cx + cloud.dx, ctx.cy + cloud.dy);
+      }
+      // Buildings explain themselves by their look and size; only exploration shows a ring.
+      drawOverlay(overlay, tile, ctx);
     });
     this.#drawHighlight();
     this.#requestRender();
   }
 
-  /** Grows or shrinks the Kenney slot pool to one per tile (none in the placeholder style). */
+  /** Grows or shrinks the slot pool to one per tile. */
   #fitSlots(count: number): void {
     while (this.#slots.length > count) {
       const slot = this.#slots.pop()!;
@@ -450,17 +424,17 @@ export class MapRenderer {
     }
   }
 
-  /** Where a tile's surface is: the sea lies lower than the land in the Kenney style. */
+  /** Where a tile's surface is: the sea lies lower than the land. */
   #surfaceY(coord: Coord): number {
     const c = tileCenter(coord.x, coord.y);
     const map = this.#map;
     const tile = map ? this.#tile(map, coord.x, coord.y) : undefined;
-    const lowered = this.#textures && this.#style !== 'placeholder' && tile && !tile.fog && tile.terrain === 'sea';
+    const lowered = tile && !tile.fog && tile.terrain === 'sea';
     return lowered ? c.y + WATER_DY : c.y;
   }
 
-  /** The sea tile south of the landing where the wreck lies. */
-  #wreckTile(map: MapView): Coord | null {
+  /** The sea tile south of the landing where the boat the class came ashore in lies. */
+  #boatTile(map: MapView): Coord | null {
     const { x, y } = map.landing;
     const candidates: Coord[] = [
       { x: x + 1, y: y + 1 },

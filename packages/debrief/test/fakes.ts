@@ -3,24 +3,30 @@ import type { ActionKind, LogEntry, LogEvent, MonthReport, Phase, VoteResolution
 export interface ReportOptions {
   villagers?: number;
   hungry?: number;
+  /** Villagers left cold because the fire ran out of wood. */
+  cold?: number;
+  /** That month's frost, default -10. */
+  temperature?: number;
   unsheltered?: number;
   vote?: VoteResolution;
   unused?: number;
 }
 
-/** A month report where everyone is fed and sheltered unless the options say otherwise. */
+/** A month report where everyone is fed, warm and sheltered unless the options say otherwise. */
 export function report(month: number, o: ReportOptions = {}): MonthReport {
   const villagers = o.villagers ?? 10;
   const unsheltered = o.unsheltered ?? 0;
+  const cold = o.cold ?? 0;
   return {
     month,
     villagers,
     vote: o.vote ?? { outcome: 'none', counts: { none: villagers } },
     food: { before: 40, need: 40, eaten: 40, hungry: o.hungry ?? 0, spoiled: 0, after: 0 },
+    heat: { temperature: o.temperature ?? -10, need: villagers, burned: villagers - cold, cold },
     shelter: { share: unsheltered > 0 ? 0.5 : 1, capacity: villagers - unsheltered, unsheltered },
     recreation: 0,
-    mood: { food: 2, shelter: 2, recreation: 0, total: 4 },
-    happiness: 4 * month,
+    mood: { food: 2, heat: 2, shelter: 2, recreation: 0, total: 6 },
+    happiness: 6 * month,
     unusedActions: o.unused ?? 0,
   };
 }
@@ -112,6 +118,6 @@ export class LogBuilder {
 
   end(early: boolean): this {
     this.#phase = 'ended';
-    return this.add({ type: 'game-ended', early, happiness: 0, grade: 1 });
+    return this.add({ type: 'game-ended', early, lost: false, happiness: 0, grade: 1 });
   }
 }

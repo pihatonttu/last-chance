@@ -42,7 +42,7 @@ describe('parseArgs', () => {
 
 describe('scenariosFor', () => {
   it('names the five standard class mixes', () => {
-    expect(STANDARD_SCENARIOS.map((s) => s.name)).toEqual(['cooperative', 'mixed', 'random', 'selfish', 'lazy']);
+    expect(STANDARD_SCENARIOS.map((s) => s.name)).toEqual(['cooperative', 'mixed', 'random', 'skillsOnly', 'lazy']);
     expect(STANDARD_SCENARIOS.find((s) => s.name === 'mixed')!.mix).toEqual({ cooperative: 0.6, random: 0.25, lazy: 0.15 });
   });
 
@@ -55,20 +55,23 @@ describe('scenariosFor', () => {
       'mixed N=15',
       'random N=2',
       'random N=15',
-      'selfish N=2',
-      'selfish N=15',
+      'skillsOnly N=2',
+      'skillsOnly N=15',
       'lazy N=2',
       'lazy N=15',
     ]);
     expect(list.every((s) => s.length === 'normal')).toBe(true);
   });
 
-  it('filters with --only and adds short games for cooperative, mixed and random with --short', () => {
+  it('filters with --only and adds short games for every standard mix with --short', () => {
     const list = scenariosFor(parseArgs(['--villagers', '15', '--only', 'cooperative,lazy', '--short']));
     expect(list.map((s) => [s.label, s.length])).toEqual([
       ['cooperative N=15', 'normal'],
       ['cooperative N=15 short', 'short'],
       ['lazy N=15', 'normal'],
+      ['lazy N=15 short', 'short'],
     ]);
+    // The loss criterion (docs/10-arktinen.md §4b) covers both lengths for every mix.
+    expect(STANDARD_SCENARIOS.every((s) => s.short)).toBe(true);
   });
 });

@@ -138,10 +138,12 @@ saari/
 | V2 ✓ | Sääntömoottori, data ja tapahtumaloki (`packages/rules`, 157 testiä 2026-10-09) | Vitest kattaa jokaisen toiminnon, rakennuksen, kierroksen lopun ja lokin |
 | V3 ✓ | Botit ja simulaattori, tasapainon viritys (`05-tasapaino.md`) | raportti 2/15/30 pelaajalla: hyvä yhteistyö voittaa ja huono häviää |
 | V4 ✓ | Palvelin: huoneet, ajastimet, tauko, paluu, moderointi, kokeilutila, jälkipuinnin tallennus ja poisto | 30 bottia pelaa koko pelin WebSocketin yli testissä (`apps/server`, 101 testiä, 2026-10-09) |
-| V5 ✓ | Grafiikkakokeilu | Samu valitsi 2026-10-10 Kenneyn palikat ja rannat (P37). Maasto on Kenneyn 2D-ruuduista (`tools/art/kenney-assets.py`), rakennukset, pellot (neljä kasvuvaihetta), louhos, lähde ja hylky Blenderillä renderöidyistä Kenneyn 3D-malleista (`tools/art/render-kenney.py` + `kenney-props-post.py`), sumu Kenneyn pilvistä ja tutkittavat ruudut vihreinä laatikkoina. Pelinäkymä uudistettu Samun palautteesta (P38): resurssipalkki, rengaskello, energiasalamat ja ruudun ponnahdusikkuna. Ulkoasu ja selkeys (P39): saari pienoismallina, järkevän kokoiset rakennukset, soutuvene, kuvalliset äänestys, yhteenveto, loppuruutu ja jälkipuinti. Vektorikartta: `?art=placeholder`. |
+| V5 ✓ | Grafiikkakokeilu | Samu valitsi 2026-10-10 Kenneyn palikat ja rannat (P37). Maasto on Kenneyn 2D-ruuduista (`tools/art/kenney-assets.py`), rakennukset, pellot (neljä kasvuvaihetta), louhos, lähde ja hylky Blenderillä renderöidyistä Kenneyn 3D-malleista (`tools/art/render-kenney.py` + `kenney-props-post.py`), sumu Kenneyn pilvistä ja tutkittavat ruudut vihreinä laatikkoina. Pelinäkymä uudistettu Samun palautteesta (P38): resurssipalkki, rengaskello, energiasalamat ja ruudun ponnahdusikkuna. Ulkoasu ja selkeys (P39): saari pienoismallina, järkevän kokoiset rakennukset, soutuvene, kuvalliset äänestys, yhteenveto, loppuruutu ja jälkipuinti. Vektorikartta (`?art=placeholder`) poistettiin 2026-10-23 (P58): kartta on vain Kenneyn kuvia. |
 | V6 (osin) | Asiakas: oppilas-, projektori- ja jälkipuintinäkymät, nimimerkkisuodatin | Playwright-testi: opettaja ja 3 oppilasta pelaavat pelin läpi. **Tehty 2026-10-09:** näkymät ja suodatin, väliaikaisgrafiikka; tarkistettu selaimessa ja `tools/smoke-public.mjs`:llä. **Puuttuu:** Playwright-testi. |
 | V7 | Opettajan ohjesivu, tietosuojaseloste, lopullinen nimi ja domain | tekstit hyväksytty |
 | V8 ✓ | Julkaisu novaservulle ja valvonta | `https://last-chance.novanet.fi` toimii 2026-10-09 (`docs/08-julkaisu.md`) |
+| V9 ✓ | Oma peli: uudisasukkaat, vuodenajat, kehystys, merkit (`docs/09-uudisasukkaat.md`, P40–P47) | testit läpi, simulaattori viritetty, talvi tarkistettu selaimessa |
+| V10 ✓ | Last Chance: Arctic (`docs/10-arktinen.md`, P48–P59): arktinen saari ilman vuodenaikoja, kylän nuotio ja pakkanen (lämmityspuu), iglut ja jää, kasvihuoneet ja pilkkiminen, häviö, revontulijuhla ja omat mallit (iglut, kasvihuone, lumilinna, jäänmurtaja). Vanha vektorikartta poistettiin. | testit läpi ja simulaattorin hyväksymisehdot täyttyvät (`05-tasapaino.md`). |
 
 ## 11. MVP:n valmiin määritelmä
 
@@ -170,7 +172,6 @@ saari/
 
 ## 13. Lykätyt päätökset
 
-- Lopullinen nimi ja domain: ennen V7:ää (P5).
 - Takaraja: ei asetettu (P24).
 - Rekisterinpitäjän nimi ja yhteystiedot tietosuojaselosteeseen ja ohjesivulle: ennen V7:ää.
 - Pelisääntöjen yksityiskohdat: V1-grillaus.

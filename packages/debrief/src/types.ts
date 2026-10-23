@@ -19,7 +19,7 @@ export interface DebriefPlayer {
 }
 
 export interface DebriefCrisis {
-  kind: 'hunger' | 'no-shelter';
+  kind: 'hunger' | 'no-shelter' | 'cold';
   /** First month of the crisis. */
   month: number;
   /** Most people affected in one month of it. */
@@ -32,7 +32,9 @@ export interface DebriefCrisis {
  * Discussion question ids (design doc §13.2). The debrief picks 3-5 by trigger; the
  * client renders each from a translation template with {param} placeholders, so the
  * debrief itself stays language-neutral (P17). Params per id:
+ * - 'lost': month (the month the village gave up, docs/10-arktinen.md §4b)
  * - 'hunger': month (first hungry month), people (most hungry in one month)
+ * - 'cold': month (first month the fire ran out), people (most cold in one month), temperature (that month's frost)
  * - 'no-shelter-long': months (months with someone unsheltered)
  * - 'ties': count
  * - 'empty-months': count (months that built nothing)
@@ -43,11 +45,15 @@ export interface DebriefCrisis {
  * - 'unused-actions': percent (share of actions left unused)
  * - 'low-participation': percent (share of possible votes cast)
  * - 'good-result': grade (grade 5 or 6)
- * - 'next-time', 'roles': (no params) general questions that fill a quiet game up to three
+ * - 'warm-all', 'next-time', 'roles': (no params) general questions that fill a quiet game up to
+ *   three, in this order. 'warm-all' (the fire burned the whole game) only where nobody was cold
+ *   and at least a third of the planned months were played.
  * - 'decision-making': (no params) always included last
  */
 export type QuestionId =
+  | 'lost'
   | 'hunger'
+  | 'cold'
   | 'no-shelter-long'
   | 'ties'
   | 'empty-months'
@@ -58,6 +64,7 @@ export type QuestionId =
   | 'unused-actions'
   | 'low-participation'
   | 'good-result'
+  | 'warm-all'
   | 'next-time'
   | 'roles'
   | 'decision-making';
@@ -77,6 +84,11 @@ export interface DebriefData {
   totalMonths: number;
   monthsPlayed: number;
   endedEarly: boolean;
+  /**
+   * The village gave up (docs/10-arktinen.md §4b). Missing in debriefs stored before the
+   * arctic rules, which were never lost.
+   */
+  lost?: boolean;
   happiness: number;
   grade: number;
   /** Villagers in the last month played. */

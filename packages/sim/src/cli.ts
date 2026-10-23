@@ -16,7 +16,7 @@ export interface CliOptions {
   json: string | null;
   /** Scenario names to run; null runs all. */
   only: string[] | null;
-  /** Also run short games for cooperative, mixed and random. */
+  /** Also run short games (every standard mix). */
   short: boolean;
 }
 
@@ -31,8 +31,8 @@ export const STANDARD_SCENARIOS: readonly StandardScenario[] = [
   { name: 'cooperative', mix: { cooperative: 1 }, short: true },
   { name: 'mixed', mix: { cooperative: 0.6, random: 0.25, lazy: 0.15 }, short: true },
   { name: 'random', mix: { random: 1 }, short: true },
-  { name: 'selfish', mix: { selfish: 1 }, short: false },
-  { name: 'lazy', mix: { lazy: 1 }, short: false },
+  { name: 'skillsOnly', mix: { skillsOnly: 1 }, short: true },
+  { name: 'lazy', mix: { lazy: 1 }, short: true },
 ];
 
 export interface Scenario {

@@ -8,6 +8,7 @@ import {
   type Level,
 } from './params.ts';
 import type { MapGenParams, Terrain, TerrainMap } from './types.ts';
+import { generateTemperatures, woodPerVillager } from './weather.ts';
 
 export type Phase = 'lobby' | 'action' | 'vote' | 'summary' | 'ended';
 export type TerrainGenerator = (seed: number, villagers: number, params: MapGenParams) => TerrainMap;
@@ -118,6 +119,12 @@ export interface VoteOption {
   upgrade: boolean;
   cost: Cost;
   blocked: VoteBlock[];
+  /**
+   * Its wood would leave the fire short this month: cost.wood > 0 and cost.wood > wood - heatNeed()
+   * (docs/10-arktinen.md §4). An option that costs no wood takes nothing from the fire, so it never
+   * warns, even when the store is already short. A warning only; the vote is still accepted.
+   */
+  leavesFireCold: boolean;
 }
 
 export type VoteRefusal = 'wrong-phase' | 'unknown-player' | 'removed' | 'unknown-option' | 'blocked';
@@ -136,10 +143,12 @@ export interface MonthReport {
   villagers: number;
   vote: VoteResolution;
   food: { before: number; need: number; eaten: number; hungry: number; spoiled: number; after: number };
+  /** The village fire: this month's frost, the wood it needed and burned, and the people left cold. */
+  heat: { temperature: number; need: number; burned: number; cold: number };
   /** share = sum of 1 / divisor over the shelters; capacity and unsheltered are whole people. */
   shelter: { share: number; capacity: number; unsheltered: number };
   recreation: number;
-  mood: { food: number; shelter: number; recreation: number; total: number };
+  mood: { food: number; heat: number; shelter: number; recreation: number; total: number };
   /** Running total after this month. */
   happiness: number;
   unusedActions: number;
@@ -164,7 +173,8 @@ export type LogEvent =
   | { type: 'vote'; player: string; option: string; previous: string | null }
   | { type: 'vote-result'; result: VoteResolution }
   | { type: 'month-end'; report: MonthReport }
-  | { type: 'game-ended'; early: boolean; happiness: number; grade: number }
+  /** lost: the village gave up, its happiness fell below the loss limit (docs/10-arktinen.md §4b). */
+  | { type: 'game-ended'; early: boolean; lost: boolean; happiness: number; grade: number }
   | { type: 'teacher'; action: TeacherAction };
 
 export type LogEntry = LogEvent & { seq: number; t: number; month: number; phase: Phase };
@@ -224,6 +234,7 @@ export class Game {
   #month = 0;
   #villagers = 0;
   #happiness = 0;
+  #lost = false;
   #resources: Resources = { food: 0, wood: 0, stone: 0 };
   #recreation = 0;
   #unused = 0;
@@ -235,6 +246,8 @@ export class Game {
   #votes = new Map<string, string>();
   #log: LogEntry[] = [];
   #reports: MonthReport[] = [];
+  /** Frost per month, index 0 = month 1; drawn once from the seed. */
+  #temperatures: number[];
   #terrain: TerrainMap | undefined;
   #generate: TerrainGenerator | undefined;
   #clock: () => number;
@@ -246,6 +259,8 @@ export class Game {
     this.#terrain = options.terrain;
     this.#generate = options.generate;
     this.#clock = options.clock ?? (() => 0);
+    // Drawn here rather than at start() so the lobby can already show month 1.
+    this.#temperatures = generateTemperatures(this.seed, this.totalMonths, this.params);
   }
 
   // ---------------------------------------------------------------- state
@@ -269,6 +284,11 @@ export class Game {
 
   get happiness(): number {
     return this.#happiness;
+  }
+
+  /** The village gave up: the happiness fell below the loss limit at a month end (docs/10 §4b). */
+  get lost(): boolean {
+    return this.#lost;
   }
 
   get resources(): Resources {
@@ -354,6 +374,23 @@ export class Game {
   /** Most food the storage keeps over a month end; the rest spoils. */
   foodStorage(): number {
     return this.params.foodStorageMonths * this.foodNeed();
+  }
+
+  /** Frost of a month (default: this one); the lobby (month 0) counts as month 1. */
+  temperature(month: number = this.#month): number {
+    const m = Math.min(Math.max(1, month), this.totalMonths);
+    return this.#temperatures[m - 1]!;
+  }
+
+  /** Next month's frost; null in the last month. */
+  forecast(): number | null {
+    const m = Math.max(1, this.#month);
+    return m < this.totalMonths ? this.temperature(m + 1) : null;
+  }
+
+  /** Wood the village fire burns at the end of this month. */
+  heatNeed(): number {
+    return woodPerVillager(this.temperature(), this.params) * this.#n();
   }
 
   /** Share of the village the shelters cover: a level-k shelter covers 1 / shelterDivisors[k-1]. */
@@ -442,7 +479,7 @@ export class Game {
     this.#resources = {
       food: this.params.startFoodPerVillager * n,
       wood: this.#roundPrice(this.params.startWoodPerVillager * n),
-      stone: this.params.startStone,
+      stone: this.#roundPrice(this.params.startStonePerVillager * n),
     };
     this.#emit({
       type: 'game-started',
@@ -469,11 +506,15 @@ export class Game {
     this.#setPhase('vote');
   }
 
-  /** Resolves the vote and the month end (food, shelter, mood, nature). */
+  /**
+   * Resolves the vote and the month end (food, fire, shelter, mood, nature). Happiness below
+   * the loss limit makes the village give up: the summary still shows, then nextMonth() ends.
+   */
   endVotePhase(): MonthReport {
     this.#expectPhase('vote');
     const vote = this.#resolveVote();
     const report = this.#endOfMonth(vote);
+    if (this.#happiness < this.params.lossThreshold[this.length]) this.#lost = true;
     this.#reports.push(report);
     this.#emit({ type: 'month-end', report });
     this.#setPhase('summary');
@@ -482,7 +523,7 @@ export class Game {
 
   nextMonth(): void {
     this.#expectPhase('summary');
-    if (this.#month >= this.totalMonths) {
+    if (this.#lost || this.#month >= this.totalMonths) {
       this.#end(false);
       return;
     }
@@ -548,6 +589,8 @@ export class Game {
   }
 
   #plan(p: Player, tile: Tile): Plan {
+    // The landing is the village fire (docs/10-arktinen.md §3): nothing to do there.
+    if (this.#isLanding(tile)) return { kind: null, yield: { type: 'none' }, refusal: 'no-action' };
     const m = this.#toolsMultiplier(p);
     if (tile.fog) return this.#planExplore(tile, m);
     if (tile.building) return this.#planBuilding(p, tile);
@@ -748,7 +791,9 @@ export class Game {
   // ---------------------------------------------------------------- votes
 
   voteOptions(): VoteOption[] {
-    const options: VoteOption[] = [{ id: 'none', kind: 'none', level: 0, upgrade: false, cost: { wood: 0, stone: 0 }, blocked: [] }];
+    const options: VoteOption[] = [
+      { id: 'none', kind: 'none', level: 0, upgrade: false, cost: { wood: 0, stone: 0 }, blocked: [], leavesFireCold: false },
+    ];
     const built = this.#tiles.filter((t) => t.building !== null);
     const shelters = built.filter((t) => t.building!.kind === 'shelter');
     options.push(this.#option('shelter', 1, false));
@@ -800,7 +845,8 @@ export class Game {
     if (this.#resources.wood < cost.wood) blocked.push('wood');
     if (this.#resources.stone < cost.stone) blocked.push('stone');
     if (!upgrade && !this.#freeMeadow()) blocked.push('space');
-    return { id: `${kind}-${level}`, kind, level, upgrade, cost, blocked };
+    const leavesFireCold = cost.wood > 0 && cost.wood > this.#resources.wood - this.heatNeed();
+    return { id: `${kind}-${level}`, kind, level, upgrade, cost, blocked, leavesFireCold };
   }
 
   #resolveVote(): VoteResolution {
@@ -828,9 +874,12 @@ export class Game {
     return result;
   }
 
-  /** Nearest revealed meadow without a building; unplowed first, then by row and column. */
+  /** Nearest revealed meadow without a building, never the landing (the fire); unplowed first, then by row and column. */
   #freeMeadow(): Tile | undefined {
-    return this.#nearest(this.#tiles.filter((t) => !t.fog && t.terrain === 'meadow' && !t.building), true);
+    return this.#nearest(
+      this.#tiles.filter((t) => !t.fog && t.terrain === 'meadow' && !t.building && !this.#isLanding(t)),
+      true,
+    );
   }
 
   #upgradeTarget(kind: BuildingKind, level: number): Tile | undefined {
@@ -872,6 +921,14 @@ export class Game {
     food -= spoiled;
     this.#resources.food = food;
 
+    // The fire burns what it needs, or the whole store; whoever it cannot warm is cold.
+    const temperature = this.temperature();
+    const perVillager = woodPerVillager(temperature, P);
+    const heatNeed = perVillager * n;
+    const burned = Math.min(this.#resources.wood, heatNeed);
+    const cold = burned >= heatNeed ? 0 : Math.ceil((heatNeed - burned) / perVillager);
+    this.#resources.wood -= burned;
+
     const share = this.shelterShare();
     const capacity = this.shelterCapacity();
     const unsheltered = this.#unsheltered(share);
@@ -879,13 +936,14 @@ export class Game {
     // Penalties use shares of the village and symmetric rounding, so 15 and 30 villagers
     // in the same situation get the same mood.
     const moodFood = hungry === 0 ? P.moodFed : -Math.max(1, Math.round((P.moodHungerPenalty * hungry) / n));
+    const moodHeat = cold === 0 ? P.moodWarm : -Math.max(1, Math.round((P.moodColdPenalty * cold) / n));
     const moodShelter =
       unsheltered === 0
         ? P.moodSheltered + (share + EPSILON >= P.spareShelterRatio ? P.moodSpareShelter : 0)
         : -Math.max(1, Math.round(P.moodShelterPenalty * (1 - share)));
     const recreation = this.#recreation;
     const moodRecreation = Math.round((P.moodRecreation * recreation) / n);
-    const total = moodFood + moodShelter + moodRecreation;
+    const total = moodFood + moodHeat + moodShelter + moodRecreation;
     this.#happiness += total;
 
     for (const t of this.#tiles) {
@@ -900,9 +958,10 @@ export class Game {
       villagers: this.#villagers,
       vote,
       food: { before, need, eaten, hungry, spoiled, after: food },
+      heat: { temperature, need: heatNeed, burned, cold },
       shelter: { share, capacity, unsheltered },
       recreation,
-      mood: { food: moodFood, shelter: moodShelter, recreation: moodRecreation, total },
+      mood: { food: moodFood, heat: moodHeat, shelter: moodShelter, recreation: moodRecreation, total },
       happiness: this.#happiness,
       unusedActions: this.#unused,
     };
@@ -910,7 +969,7 @@ export class Game {
 
   #end(early: boolean): void {
     this.#phase = 'ended';
-    this.#emit({ type: 'game-ended', early, happiness: this.#happiness, grade: this.grade() });
+    this.#emit({ type: 'game-ended', early, lost: this.#lost, happiness: this.#happiness, grade: this.grade() });
   }
 
   // ---------------------------------------------------------------- helpers
@@ -935,6 +994,10 @@ export class Game {
         building: null,
       };
     });
+  }
+
+  #isLanding(tile: Tile): boolean {
+    return tile.x === this.#landing.x && tile.y === this.#landing.y;
   }
 
   #tileAt(c: Coord): Tile | undefined {

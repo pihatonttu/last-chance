@@ -2,7 +2,7 @@
  * Runtime lists of the string unions the client renders. Each list is built from a
  * Record over the union, so the compiler fails here when a package adds a member.
  */
-import type { ActionGroup, QuestionId } from '@saari/debrief';
+import type { ActionGroup, BadgeId, QuestionId } from '@saari/debrief';
 import type { NicknameRefusal } from '@saari/names';
 import type { ErrorCode, JoinRefusal, TickerEvent } from '@saari/protocol';
 import type {
@@ -122,10 +122,15 @@ export const TICKER_KINDS = keys<TickerEvent['kind']>({
   tie: true,
   'player-joined': true,
   'food-short': true,
+  'hard-frost-coming': true,
+  'wood-short': true,
+  'giving-up': true,
 });
 
 export const QUESTION_IDS = keys<QuestionId>({
+  lost: true,
   hunger: true,
+  cold: true,
   'no-shelter-long': true,
   ties: true,
   'empty-months': true,
@@ -136,6 +141,7 @@ export const QUESTION_IDS = keys<QuestionId>({
   'unused-actions': true,
   'low-participation': true,
   'good-result': true,
+  'warm-all': true,
   'next-time': true,
   roles: true,
   'decision-making': true,
@@ -152,3 +158,16 @@ export const ACTION_GROUPS = keys<ActionGroup>({
 
 export const GRADES = [1, 2, 3, 4, 5, 6] as const;
 export type Grade = (typeof GRADES)[number];
+
+export const BADGE_IDS = keys<BadgeId>({
+  explorer: true,
+  fisher: true,
+  lumberjack: true,
+  farmer: true,
+  stonecutter: true,
+  learner: true,
+  smith: true,
+  cheerer: true,
+  voter: true,
+  settler: true,
+});

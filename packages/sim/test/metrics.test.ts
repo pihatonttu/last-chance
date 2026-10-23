@@ -1,5 +1,5 @@
 import { playGame } from '@saari/bots';
-import type { Game, LogEntry, MonthReport } from '@saari/rules';
+import { DEFAULT_PARAMS, type Game, type LogEntry, type MonthReport } from '@saari/rules';
 import { describe, expect, it } from 'vitest';
 import { ACTION_GROUPS, measureGame, type MeasurableGame } from '../src/metrics.ts';
 
@@ -21,6 +21,12 @@ describe('measureGame on a real bot game', () => {
   it('has one mood per month that sums to the happiness', () => {
     expect(m.moodByMonth).toHaveLength(10);
     expect(sum(m.moodByMonth)).toBe(m.happiness);
+  });
+
+  it('counts the cold months from the reports and copies the loss', () => {
+    expect(m.coldMonths).toBe(game.reports.filter((r) => r.heat.cold > 0).length);
+    expect(m.coldTotal).toBe(sum(game.reports.map((r) => r.heat.cold)));
+    expect(m.lost).toBe(game.lost);
   });
 
   it('counts hunger, shelter and spoilage within the month count', () => {
@@ -84,9 +90,10 @@ describe('measureGame on a hand-made game', () => {
     villagers: 2,
     vote: { outcome: 'none', counts: {} },
     food: { before: 8, need: 8, eaten: 8, hungry: 0, spoiled: 0, after: 0 },
+    heat: { temperature: -10, need: 2, burned: 2, cold: 0 },
     shelter: { share: 0, capacity: 0, unsheltered: 2 },
     recreation: 0,
-    mood: { food: 2, shelter: -10, recreation: 0, total: -8 },
+    mood: { food: 2, heat: 0, shelter: -10, recreation: 0, total: -8 },
     happiness: 0,
     unusedActions: 0,
     ...over,
@@ -94,8 +101,10 @@ describe('measureGame on a hand-made game', () => {
 
   const fake: MeasurableGame = {
     seed: 7,
+    params: DEFAULT_PARAMS,
     villagers: 2,
     happiness: -1,
+    lost: false,
     resources: { food: 1, wood: 2, stone: 3 },
     grade: () => 2,
     playerIds: () => ['a', 'b'],
@@ -105,20 +114,20 @@ describe('measureGame on a hand-made game', () => {
       report(1, {
         vote: { outcome: 'built', counts: { 'shelter-1': 2 }, option: 'shelter-1' },
         food: { before: 4, need: 8, eaten: 4, hungry: 1, spoiled: 0, after: 0 },
-        mood: { food: -5, shelter: -10, recreation: 0, total: -15 },
+        mood: { food: -5, heat: 0, shelter: -10, recreation: 0, total: -15 },
         unusedActions: 1,
       }),
       report(2, {
         vote: { outcome: 'tie', counts: {} },
         shelter: { share: 1, capacity: 2, unsheltered: 0 },
         food: { before: 30, need: 8, eaten: 8, hungry: 0, spoiled: 6, after: 16 },
-        mood: { food: 2, shelter: 2, recreation: 0, total: 4 },
+        mood: { food: 2, heat: 0, shelter: 2, recreation: 0, total: 4 },
         unusedActions: 2,
       }),
       report(3, {
         vote: { outcome: 'no-votes', counts: {} },
         shelter: { share: 1, capacity: 2, unsheltered: 0 },
-        mood: { food: 2, shelter: 2, recreation: 6, total: 10 },
+        mood: { food: 2, heat: 0, shelter: 2, recreation: 6, total: 10 },
       }),
     ],
     log: [
@@ -147,6 +156,20 @@ describe('measureGame on a hand-made game', () => {
     expect(m.actionShare.explore).toBeCloseTo(1 / 11, 12);
     expect(m.actionShare.skills).toBeCloseTo(2 / 11, 12);
     expect(m.actionShare.recreation).toBeCloseTo(2 / 11, 12);
+  });
+
+  it('counts cold months and whether the game was lost', () => {
+    const cold = { temperature: -35, need: 6, burned: 2, cold: 2 };
+    const frozen = measureGame({
+      ...fake,
+      lost: true,
+      reports: [report(1), report(2, { heat: cold }), report(3), report(4, { heat: { ...cold, burned: 0 } })],
+    });
+    expect(frozen.coldMonths).toBe(2);
+    expect(frozen.coldTotal).toBe(4);
+    expect(frozen.lost).toBe(true);
+    expect(m.coldMonths).toBe(0);
+    expect(m.lost).toBe(false);
   });
 
   it('reads votes, hunger, shelter and the first spring', () => {

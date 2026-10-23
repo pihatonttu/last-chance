@@ -120,10 +120,11 @@ describe('rock and quarry', () => {
     const game = setup({ map: ROCK_MAP, players: 4 });
     for (let i = 0; i < 3; i++) act(game, 'p1', 2, 2);
     act(game, 'p2', 2, 2);
+    const start = game.resources.stone; // 4 x 4 = 16 -> 20 ice at the start
     act(game, 'p2', 2, 2); // full: round(8 * 60/60) = 8
-    expect(game.resources.stone).toBe(8);
+    expect(game.resources.stone).toBe(start + 8);
     act(game, 'p2', 2, 2); // round(8 * 52/60) = 7
-    expect(game.resources.stone).toBe(15);
+    expect(game.resources.stone).toBe(start + 15);
     expect(tileAt(game, 2, 2).stock).toBe(45);
   });
 });
@@ -178,7 +179,7 @@ describe('preview', () => {
       yield: { type: 'work', amount: 1, done: 0, needed: 2 },
     });
     expect(game.preview('p1', 3, 1)).toMatchObject({ kind: 'explore', available: false, reason: 'not-explorable' });
-    expect(game.resources.wood).toBe(15);
+    expect(game.resources.wood).toBe(10);
   });
 
   it('caps the previewed yield at what is left', () => {

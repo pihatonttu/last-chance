@@ -4,56 +4,17 @@
  *
  * Every land tile is a Kenney "Tower Defense" grass block (public/art/kenney, copied by
  * tools/art/kenney-assets.py). What stands on it (forest, rocks, meadow flowers, fields, the
- * quarry, the spring, buildings, the boat at the landing) is rendered from Kenney 3D kits in
- * the same view (public/art/kenney/props, tools/art/kenney-props-spec.py). The sea is the
- * background with a shallow-water ring round the island; hidden land is under Kenney clouds,
- * and the places to explore now show a green box (both inspired by the original game).
+ * quarry, the spring, buildings, the boat by the landing) is rendered from Kenney 3D kits in
+ * the same view (public/art/kenney/props, tools/art/kenney-props-spec.py); the landing tile
+ * always carries the village fire, whatever the terrain says. The sea is the
+ * background with a ring of shore ice round the island (sprites.ts draws it, with the ice
+ * holes and the floes); hidden land is under Kenney clouds, and the places to explore show a
+ * green box (both inspired by the original game).
  */
 import type { PublicTile } from '@saari/rules';
 import { TILE_W } from './iso.ts';
 import { PROP_CANVAS, PROP_TOPS } from './kenney-props.ts';
 import { tileHash } from './sprites.ts';
-
-/** `placeholder` = the vector map, kept as the fallback when the art fails to load. */
-export type ArtStyle = 'placeholder' | 'kenney';
-export const ART_STYLES: readonly ArtStyle[] = ['placeholder', 'kenney'];
-const DEFAULT_STYLE: ArtStyle = 'kenney';
-
-export function parseArtStyle(value: string | null): ArtStyle {
-  return ART_STYLES.find((s) => s === value) ?? DEFAULT_STYLE;
-}
-
-const ART_STYLE_KEY = 'saari.art';
-
-type StyleStorage = Pick<Storage, 'getItem' | 'setItem'>;
-
-/** Remembers the style for this browser's next page loads, if storage allows. */
-export function rememberArtStyle(style: ArtStyle, storage: StyleStorage | null): void {
-  try {
-    storage?.setItem(ART_STYLE_KEY, style);
-  } catch {
-    // Not remembered; the choice lasts for this page load.
-  }
-}
-
-/**
- * The map style for this browser: `?art=` in the address wins and is remembered, otherwise
- * the remembered choice, otherwise the Kenney art. Storage may be missing or throw
- * (private mode, blocked site data); the choice then lasts only for this page load.
- */
-export function resolveArtStyle(search: string, storage: StyleStorage | null): ArtStyle {
-  const asked = new URLSearchParams(search).get('art');
-  if (asked !== null) {
-    const style = parseArtStyle(asked);
-    rememberArtStyle(style, storage);
-    return style;
-  }
-  try {
-    return parseArtStyle(storage?.getItem(ART_STYLE_KEY) ?? null);
-  } catch {
-    return DEFAULT_STYLE;
-  }
-}
 
 export interface TileSprite {
   texture: string;
@@ -86,24 +47,26 @@ export const WATER_DY = Math.round(33 * KENNEY_SCALE * 0.75);
 
 /** Grey for land under the fog: the shape is known, the contents are not. */
 export const FOG_TINT = 0xb9c3cb;
-/** Slightly different greens so the island does not look like a chessboard. */
-const GRASS_TINTS = [0xffffff, 0xf3f8ee, 0xfafff2, 0xeef5ec] as const;
+/**
+ * Faint blue-greys so the island does not look like a chessboard. Never greener than blue:
+ * a green cast turns the snow-topped, ice-blue block green (the test keeps this true).
+ */
+const GRASS_TINTS = [0xffffff, 0xf4f7fb, 0xf8fafd, 0xeef2f8] as const;
 
 function pick<T>(list: readonly T[], x: number, y: number, salt = 0): T {
   return list[(tileHash(x, y) >>> salt) % list.length]!;
 }
 
 /** The block a land tile stands on; the sea has none (it is the background). */
-export function kenneyTile(tile: PublicTile, style: ArtStyle): TileSprite | null {
-  if (style === 'placeholder') return null;
+export function kenneyTile(tile: PublicTile): TileSprite | null {
   if (tile.fog || tile.terrain === null) return { texture: 'grass', tint: FOG_TINT };
   if (tile.terrain === 'sea') return null;
   return { texture: 'grass', tint: pick(GRASS_TINTS, tile.x, tile.y, 3) };
 }
 
-/** Shallow water round the island (the fishing water); the open sea is the background. */
-export function kenneyWater(tile: PublicTile, ctx: { coastal: boolean }, style: ArtStyle): 'shallow' | null {
-  if (style === 'placeholder' || tile.fog || tile.terrain !== 'sea') return null;
+/** Shallow water round the island (the fishing water, shore ice on the map); the open sea is the background. */
+export function kenneyWater(tile: PublicTile, ctx: { coastal: boolean }): 'shallow' | null {
+  if (tile.fog || tile.terrain !== 'sea') return null;
   return ctx.coastal ? 'shallow' : null;
 }
 
@@ -129,17 +92,20 @@ function stage(stock: number, max: number): number {
 }
 
 /**
- * What stands on a tile, drawn on top of its block: a building, a forest by the wood left,
+ * What stands on a tile, drawn on top of its block: the village fire on the landing (always,
+ * whatever the terrain or a building there says), a building, a forest by the wood left,
  * rocks, meadow grass, a field's crop, the quarry, the spring, or (on the sea next to the
- * landing) the boat the class came ashore in.
+ * landing) the boat the class came ashore in. The renderer says which tile is the landing
+ * (`isLanding`) and which sea tile holds the boat (`landingBoat`).
  */
 export function kenneyProp(
   tile: PublicTile,
   ctx: { stockMax: number | null },
-  style: ArtStyle,
   landingBoat = false,
+  isLanding = false,
 ): PropSprite | null {
-  if (style === 'placeholder' || tile.fog) return null;
+  if (tile.fog) return null;
+  if (isLanding) return prop('fire');
   if (tile.building) return prop(`${tile.building.kind}-${tile.building.level}`);
   const stock = tile.stock ?? 0;
   const max = ctx.stockMax ?? 1;
@@ -168,12 +134,8 @@ export function kenneyProp(
  * can be explored now) or `hidden` (under a cloud). Mirrors the engine's rule: any of the
  * eight neighbours is explored land, never the sea.
  */
-export function fogLook(
-  tile: PublicTile,
-  at: (x: number, y: number) => PublicTile | undefined,
-  style: ArtStyle,
-): 'explorable' | 'hidden' | null {
-  if (style === 'placeholder' || !tile.fog) return null;
+export function fogLook(tile: PublicTile, at: (x: number, y: number) => PublicTile | undefined): 'explorable' | 'hidden' | null {
+  if (!tile.fog) return null;
   for (let dy = -1; dy <= 1; dy++) {
     for (let dx = -1; dx <= 1; dx++) {
       if (dx === 0 && dy === 0) continue;
@@ -196,12 +158,8 @@ export interface CloudSprite {
 }
 
 /** The cloud over hidden fog; the places to explore stay uncovered so their green box shows. */
-export function kenneyCloud(
-  tile: PublicTile,
-  at: (x: number, y: number) => PublicTile | undefined,
-  style: ArtStyle,
-): CloudSprite | null {
-  if (fogLook(tile, at, style) !== 'hidden') return null;
+export function kenneyCloud(tile: PublicTile, at: (x: number, y: number) => PublicTile | undefined): CloudSprite | null {
+  if (fogLook(tile, at) !== 'hidden') return null;
   const h = tileHash(tile.x, tile.y);
   return {
     texture: CLOUDS[h % CLOUDS.length]!,

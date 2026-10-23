@@ -4,6 +4,8 @@
   import { tickerText } from '../lib/format.ts';
   import type { TickerItem } from '../state/reducer.ts';
   import ArtIcon from './ArtIcon.svelte';
+  import Icon from './Icon.svelte';
+  import MoodFace from './MoodFace.svelte';
   import PropPicture from './PropPicture.svelte';
 
   /** Newest first. Never names anyone (P34). */
@@ -36,7 +38,17 @@
     {#each shown as item (item.id)}
       {@const art = picture(item.event)}
       <li class={item.event.kind}>
-        {#if art}<PropPicture texture={art} size={34} />{:else if item.event.kind === 'food-short'}<ArtIcon name="food" size={30} />{/if}
+        {#if art}
+          <PropPicture texture={art} size={34} />
+        {:else if item.event.kind === 'food-short'}
+          <ArtIcon name="food" size={30} />
+        {:else if item.event.kind === 'wood-short'}
+          <ArtIcon name="wood" size={30} />
+        {:else if item.event.kind === 'hard-frost-coming'}
+          <Icon name="thermometer" size={28} />
+        {:else if item.event.kind === 'giving-up'}
+          <span class="face" aria-hidden="true"><MoodFace mood={-10} size={28} /></span>
+        {/if}
         <span>{tickerText(item.event)}</span>
       </li>
     {:else}
@@ -78,8 +90,19 @@
     border-color: var(--ok);
   }
   .tie,
-  .food-short {
+  .food-short,
+  .wood-short,
+  .giving-up {
     border-color: var(--danger);
+  }
+  .face {
+    display: inline-flex;
+  }
+  .hard-frost-coming {
+    border-color: #4a90c2;
+  }
+  .giving-up {
+    color: var(--danger);
   }
   .empty {
     color: var(--muted);

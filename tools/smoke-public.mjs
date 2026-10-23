@@ -29,7 +29,7 @@ let sawPhaseMs = false;
 const debrief = await new Promise((resolve, reject) => {
   const timeout = setTimeout(() => reject(new Error(`timeout; messages ${JSON.stringify(seen)}`)), 60_000);
   ws.onerror = () => reject(new Error('websocket error'));
-  ws.onopen = () => ws.send(JSON.stringify({ t: 'hello-host', protocol: 1, code, hostToken }));
+  ws.onopen = () => ws.send(JSON.stringify({ t: 'hello-host', protocol: 2, code, hostToken }));
   ws.onmessage = (event) => {
     const m = JSON.parse(event.data);
     seen[m.t] = (seen[m.t] ?? 0) + 1;
