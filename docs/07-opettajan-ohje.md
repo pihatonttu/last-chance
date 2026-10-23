@@ -1,17 +1,17 @@
 # Opettajan ohje (luonnos)
 
-**Tila: luonnos 2026-10-09, päivitetty 2026-10-23 (napateema: nuotio, pakkanen ja häviö).** Teksti näytetään pelissä sivulla `/ohje`.
+**Tila: luonnos 2026-10-09, päivitetty 2026-10-23 (napateema: nuotio, pakkanen ja häviö).** Pelissä sivulla `/ohje` on tämän ohjeen lyhyt versio.
 
 ---
 
 ## Last Chance: Arctic – opettajan ohje
 
-Last Chance: Arctic on yhteistyöpeli koko luokalle. Jäänmurtaja tuo luokan jäiselle
-arktiselle saarelle, ja luokka perustaa sinne napakylän talkoilla. Kylän keskellä palaa nuotio,
-joka pitää kaikki lämpimänä, kunhan sille riittää puuta. Kaikki kerätty menee kylän yhteiseen
-varastoon. Jokainen oppilas tekee muutaman toiminnon kuukaudessa, ja kuun lopussa kyläkokous
-äänestää, mitä rakennetaan. Peli päättyy revontulijuhlaan, johon jäänmurtaja tuo vieraat. Pelin
-lopussa luokka saa arvosanan ja te saatte jälkipuinnin, josta näkee, miten yhteistyö sujui.
+Last Chance: Arctic on yhteistyöpeli koko luokalle. Jäänmurtaja tuo luokan jäiselle saarelle,
+ja luokka perustaa sinne kylän talkoilla. Kylän keskellä palaa nuotio, joka pitää kaikki
+lämpimänä, kunhan sille riittää puuta. Kaikki kerätty menee kylän yhteiseen varastoon. Jokainen
+oppilas tekee muutaman toiminnon kuukaudessa, ja kuun lopussa kyläkokous äänestää, mitä
+rakennetaan. Peli päättyy revontulijuhlaan, johon jäänmurtaja tuo vieraat. Pelin lopussa luokka
+saa arvosanan ja te saatte jälkipuinnin, josta näkee, miten yhteistyö sujui.
 
 ### Mitä tarvitaan
 
@@ -58,8 +58,8 @@ lopussa luokka saa arvosanan ja te saatte jälkipuinnin, josta näkee, miten yht
   "Kaada puita" -toiminto antaa 10 puuta.
 - Pakkanen vaihtelee kuukaudesta toiseen. Ensimmäinen kuukausi on leuto, ja pelissä on aina
   vähintään kaksi kovan pakkasen kuukautta. Lämpömittari ylärivillä näyttää tämän kuun
-  pakkasen ja ennusteen ensi kuulle, esimerkiksi "−25° → −35°".
-- Ylärivin puun luku on muotoa "120 / 60": varastossa on 120 puuta ja nuotio polttaa tässä
+  pakkasen ja sen alla ennusteen ensi kuulle, esimerkiksi "−25°" ja "→ −35°".
+- Ylärivin puun luku on muotoa "120/60": varastossa on 120 puuta ja nuotio polttaa tässä
   kuussa 60. Jos luku on punainen, puuta ei riitä.
 - Jos puuta ei riitä, nuotio polttaa kaiken, mitä varastossa on, ja osa kyläläisistä palelee.
   Palelu laskee vain kylän mielialaa, kuten nälkä. Kukaan ei sairastu eikä kuole.

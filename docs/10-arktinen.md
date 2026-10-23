@@ -352,7 +352,8 @@ Muut merkit pysyvät ennallaan.
   - satunnainen palelee usein.
   - häviöt §4b:n taulukon mukaan.
 
-Tulokset ovat dokumentissa `05-tasapaino.md` (osio Napa). Vain taidot ja laiska häviävät lähes
+Yhteistyön palelukriteeri tiukennettiin toteutuksessa: yhteistyö palelee enintään 20 %:ssa
+peleistä (`05-tasapaino.md`). Tulokset ovat samassa dokumentissa (osio Napa). Vain taidot ja laiska häviävät lähes
 aina (§4b), joten arvosanaehto 1–2 jää niillä tyhjäksi: niille ei näytetä arvosanaa.
 
 ## 9. Kuvat

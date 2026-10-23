@@ -143,7 +143,7 @@ saari/
 | V7 | Opettajan ohjesivu, tietosuojaseloste, lopullinen nimi ja domain | tekstit hyväksytty |
 | V8 ✓ | Julkaisu novaservulle ja valvonta | `https://last-chance.novanet.fi` toimii 2026-10-09 (`docs/08-julkaisu.md`) |
 | V9 ✓ | Oma peli: uudisasukkaat, vuodenajat, kehystys, merkit (`docs/09-uudisasukkaat.md`, P40–P47) | testit läpi, simulaattori viritetty, talvi tarkistettu selaimessa |
-| V10 ✓ | Last Chance: Arctic (`docs/10-arktinen.md`, P48–P59): arktinen saari ilman vuodenaikoja, kylän nuotio ja pakkanen (lämmityspuu), iglut ja jää, kasvihuoneet ja pilkkiminen, häviö, revontulijuhla ja omat mallit (iglut, kasvihuone, lumilinna, jäänmurtaja). Vanha vektorikartta poistettiin. | testit läpi ja simulaattorin hyväksymisehdot täyttyvät (`05-tasapaino.md`). Tuotantoon vasta selaintarkistuksen ja katselmoinnin jälkeen (`10-arktinen.md` §11). |
+| V10 ✓ | Last Chance: Arctic (`docs/10-arktinen.md`, P48–P59): arktinen saari ilman vuodenaikoja, kylän nuotio ja pakkanen (lämmityspuu), iglut ja jää, kasvihuoneet ja pilkkiminen, häviö, revontulijuhla ja omat mallit (iglut, kasvihuone, lumilinna, jäänmurtaja). Vanha vektorikartta poistettiin. | testit läpi ja simulaattorin hyväksymisehdot täyttyvät (`05-tasapaino.md`). |
 
 ## 11. MVP:n valmiin määritelmä
 

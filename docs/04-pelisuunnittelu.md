@@ -6,8 +6,10 @@ ja niiden numerot ovat suluissa. Napateema (aina talvi, nuotio, iglut ja jää, 
 vanhat nimet (P44) on korvattu (P49, P54). V3:n tasapainotyön sääntömuutokset (sumu, kodit,
 pyöristys, arvosanarajat) on merkitty **(V3)**; perustelut ovat dokumentissa `05-tasapaino.md`.
 
-- Luvut ovat **alkuarvoja**. Ne viritetään simulaattorilla vaiheessa V3, ja lopulliset arvot ovat
-  datatiedostossa eivätkä tässä dokumentissa.
+- Luvut ovat pelin **nykyiset oletusarvot** (`DEFAULT_PARAMS` tiedostossa
+  `packages/rules/src/params.ts`). Ne on viritetty simulaattorilla, ja muutosten perustelut sekä
+  suunnittelun alkuarvot ovat dokumentissa `05-tasapaino.md`. Jos luku tässä ja `params.ts` eroavat,
+  `params.ts` on oikea.
 
 Reunaehdot tulevat tiedostosta `03-paatokset.md` (P1–P59). Tärkeimmät: ydin (P7), isometriset
 neliöt (P10), kartta skaalautuu (P8), 15–30 pelaajaa (P15), enintään 45 minuuttia ja
@@ -23,8 +25,8 @@ kaikki lämpimänä, jos luokka muistaa ruokkia sitä. Kaikki tehdään talkoill
 päästä** (Lyhyessä pelissä 10) pidetään **revontulijuhla**, ja jäänmurtaja tuo vieraat. Tulos
 kertoo, millaisen kylän vieraat näkevät.
 
-- Jokainen kierros on yksi kuukausi. Kuukaudet ovat numeroita ("Kuukausi 3 / 15"), eikä
-  vuodenaikoja ole: aina on talvi (P49). Pakkanen vaihtelee kuukaudesta toiseen (§9.1).
+- Jokainen kierros on yksi kuukausi. Kuukaudet ovat numeroita (yläpalkissa kalenterikuvake ja
+  "3 / 15"), eikä vuodenaikoja ole: aina on talvi (P49). Pakkanen vaihtelee kuukaudesta toiseen (§9.1).
 - Peli päättyy revontulijuhlaan. Loppuruudulla ovat revontulet ja jäänmurtaja ("Vieraat
   saapuivat revontulijuhlaan!").
 - Jos kylä luovuttaa ennen juhlaa (§9.2), jäänmurtaja tulee ilman juhlaa.
@@ -49,15 +51,15 @@ asukasta.
 - Jokainen toiminto tuottaa **saman verran** pelaajamäärästä riippumatta: kaataminen antaa aina
   +10 puuta.
 - Tarpeet ja hinnat lasketaan **per kyläläinen** ja kerrotaan pelaajamäärällä *N*:
-  - jokainen syö 4 ruokaa kuukaudessa, joten 30 hengen kylä tarvitsee 120;
+  - jokainen syö 6 ruokaa kuukaudessa, joten 30 hengen kylä tarvitsee 180;
   - iglu (koti, taso 1) maksaa 4 jäätä kyläläistä kohden, joten 30 hengen kylässä 120 jäätä.
 - Kartta kasvaa pelaajamäärän mukaan (P8).
 
 **Miksi näin**
 - Luvut ovat ymmärrettäviä ja samoja jokaisessa luokassa.
-- Ne opettavat samalla: "Meitä on 24 ja jokainen syö 4, joten ruokaa tarvitaan 96. Varastossa on
-  60. Montako kasvihuonetta pitää korjata?" Tämä on sopiva päässälaskutehtävä vanhemmille oppilaille (kohderyhmä 2.–6. luokka, P46), ja
-  laskemalla oppilaat ehtivät keskustella.
+- Ne opettavat samalla: "Meitä on 24 ja jokainen syö 6, joten ruokaa tarvitaan 144. Varastossa on
+  90. Montako kasvihuonetta pitää korjata?" Tämä on sopiva päässälaskutehtävä vanhemmille
+  oppilaille (kohderyhmä 2.–6. luokka, P46), ja laskemalla oppilaat ehtivät keskustella.
 - Pelin kulku pysyy samanlaisena 15 ja 30 pelaajan luokassa. Simulaattori tarkistaa tämän.
 
 ## 3. Oppitunnin kulku
@@ -135,12 +137,12 @@ Kaikki resurssit ovat **koko kylän yhteisiä** (ydin a).
 |---|---|---|
 | Puu | lumimetsän kaataminen | kylän nuotio (joka kuukausi, §9.1) ja rakennukset |
 | Jää | jäälouhos | iglut ja paremmat rakennukset (tasot 2–3) |
-| Ruoka | kasvihuone, pilkkiminen | jokainen syö 4 joka kuukausi |
+| Ruoka | kasvihuone, pilkkiminen | jokainen syö 6 joka kuukausi |
 | Onnellisuus | kuukauden mieliala (§9) | pisteet, arvosana ja häviöraja (§9.2) |
 
-**Ruokavarasto (P27):** varastoon mahtuu enintään kahden kuukauden tarve (`8N`), ja ylimenevä
-osa pilaantuu kuukauden vaihteessa. Pilaantunut määrä näkyy yhteenvedossa ("varasto oli täynnä,
-14 ruokaa pilaantui"). Puulla ja jäällä ei ole ylärajaa.
+**Ruokavarasto (P27):** varastoon mahtuu enintään kahden kuukauden tarve (`2 × 6N = 12N`), ja
+ylimenevä osa pilaantuu kuukauden vaihteessa, kun kylä on syönyt (§9). Pilaantunut määrä näkyy
+yhteenvedossa ("Varasto oli täynnä: 14 ruokaa pilaantui."). Puulla ja jäällä ei ole ylärajaa.
 
 ## 7. Toiminnot
 
@@ -153,12 +155,12 @@ työkalutasolla 1. Työkalukerroin on kuvattu kohdassa §8.
 | Sumu | **Tutki** | +1 työ (× työkalut); paljastuu, kun työ ≥ `1 + ⌊d/2⌋` |
 | Lumikenttä | **Rakenna kasvihuone** | +1 työ (× työkalut); 3 työtä → kasvihuone |
 | Kasvihuone | **Korjaa sato** | +10 ruokaa (× työkalut), enintään kasvihuoneen jäljellä oleva sato. Kasvihuone kasvaa joka kuukausi täyteen 30 ruokaan. Tyhjästä kasvihuoneesta ei saa mitään. |
-| Rantajää | **Pilki** | +5 ruokaa (× työkalut), rajaton mutta puolet kasvihuoneen tuotosta. (V3) Vain rantajää, jonka vieressä on tutkittua maata. |
+| Rantajää | **Pilki** | +4 ruokaa (× työkalut), rajaton mutta selvästi vähemmän kuin kasvihuoneesta (+10). (V3) Vain rantajää, jonka vieressä on tutkittua maata. |
 | Lumimetsä | **Kaada puita** | +10 puuta (× työkalut), enintään metsän puumäärä (täysi metsä 40). Metsä kasvaa kuukaudessa ×1,25 kohti täyttä. Tyhjästä metsästä tulee lumikenttä. |
-| Jäätikkö | **Perusta jäälouhos** | +1 työ (× työkalut); 4 työtä → jäälouhos |
-| Jäälouhos | **Louhi jäätä** | jäätä `8 × jäljellä/60` (× työkalut), vähintään 2. Louhoksessa on 60 jäätä, joten uusi louhos tuottaa hyvin ja vanha huonosti. |
-| Kuuma lähde | **Ui** | +1 virkistyskerta (§9). Käyttökertoja on ⌈N/6⌉ kuukaudessa. |
-| Kylätalo | **Vietä aikaa yhdessä** | +1 virkistyskerta (§9). Käyttökertoja on tason mukaan ⌈N/5⌉ / ⌈N/4⌉ / ⌈N/3⌉. |
+| Jäätikkö | **Perusta jäälouhos** | +1 työ (× työkalut); 2 työtä → jäälouhos |
+| Jäälouhos | **Louhi jäätä** | jäätä `12 × jäljellä/120` (× työkalut), vähintään 2. Louhoksessa on 120 jäätä, joten uusi louhos tuottaa hyvin ja vanha huonosti. |
+| Kuuma lähde | **Ui** | +1 virkistyskerta (§9). Käyttökertoja on `N/4` kuukaudessa, pyöristettynä lähimpään kokonaislukuun ja vähintään 1. |
+| Kylätalo | **Vietä aikaa yhdessä** | +1 virkistyskerta (§9). Käyttökertoja on tason mukaan `N/3`, `N/2` tai `N` kuukaudessa, pyöristettynä lähimpään kokonaislukuun ja vähintään 1. |
 | Koulu | **Opiskele** | oma koulutus (§8) |
 | Paja | **Tee työkaluja** | omat työkalut (§8) |
 | Koti (iglu) | ei toimintoa | tarjoaa kotipaikkoja (§9) |
@@ -167,10 +169,9 @@ työkalutasolla 1. Työkalukerroin on kuvattu kohdassa §8.
 Tuotot pyöristetään kokonaisluvuiksi. Paneelissa näytetään aina tarkka tuotto ennen napautusta,
 esim. "Kaada puita +13".
 
-**Viritetyt arvot (napa):** jäälouhoksessa on 120 jäätä, täydestä louhoksesta irtoaa 12 jäätä
-(`12 × jäljellä/120`, vähintään 2) ja louhoksen perustaminen vie 2 työtä. Taulukon luvut 60, 8
-ja 4 ovat alkuarvoja. Muut viritetyt arvot ovat tiedostossa `packages/rules/src/params.ts` ja
-perustelut dokumentissa `05-tasapaino.md`.
+Taulukon luvut ovat `params.ts`:n oletusarvot (`harvestYield`, `fishYield`, `chopYield`,
+`mineYield`, `quarryCapacity`, `plowWork`, `quarryWork`, `springDivisor`, `gatheringDivisors`).
+Suunnittelun alkuarvot ja viritysten perustelut ovat dokumentissa `05-tasapaino.md`.
 
 ## 8. Oma kehitys: koulu ja paja
 
@@ -181,11 +182,11 @@ autan myöhemmin enemmän? Etu on aina **henkilökohtainen**.
 |---|---|---|
 | Taso alussa | 1 | 1 |
 | Tasolla *k* saa | `2 + k` toimintoa kuukaudessa | tuottokerroin `1 + 0,25 × (k − 1)` |
-| Enimmäistaso | 4 (6 toimintoa) | 4 (×1,75) |
-| Seuraavaan tasoon tarvitaan | `3 × k` edistystä | `3 × k` edistystä |
+| Enimmäistaso | 3 (5 toimintoa) | 3 (×1,5) |
+| Seuraavaan tasoon tarvitaan | `4 × k` edistystä | `4 × k` edistystä |
 | Edistystä per toiminto | rakennuksen taso (1 / 2 / 3) | rakennuksen taso (1 / 2 / 3) |
 
-Esimerkki: tason 1 koulussa kolme opiskelutoimintoa nostaa koulutuksen tasolle 2, mikä antaa
+Esimerkki: tason 1 koulussa neljä opiskelutoimintoa nostaa koulutuksen tasolle 2, mikä antaa
 +1 toiminnon jokaiseen jäljellä olevaan kuukauteen. Kannattaa aikaisin, ei enää lopussa. Juuri
 tällaisesta oppilaat voivat keskustella.
 
@@ -194,9 +195,11 @@ tällaisesta oppilaat voivat keskustella.
 Kuukauden lopussa tapahtuu järjestyksessä:
 
 1. **Äänestys:** voittaneen vaihtoehdon hinta maksetaan (§10.2).
-2. **Ruoka:** kylä syö `4 × N`.
+2. **Ruoka:** kylä syö `6 × N`.
    - Jos ruoka riittää, kaikki ovat ravittuja.
-   - Jos ei, varasto tyhjenee ja `nälkäiset = ⌈puuttuva / 4⌉` henkeä.
+   - Jos ei, varasto tyhjenee ja `nälkäiset = ⌈puuttuva / 6⌉` henkeä.
+   - **Pilaantuminen (P27):** syömisen jälkeen ruoka, joka ylittää varaston ylärajan `12N`,
+     pilaantuu.
 3. **Nuotio (P55):** kylän nuotio polttaa puuta pakkasen mukaan (§9.1).
    - Jos puuta riittää, kaikki ovat lämpimiä.
    - Jos ei, varasto tyhjenee ja `palelevat = ⌈puuttuva / puuta per kyläläinen⌉` henkeä.
@@ -204,15 +207,14 @@ Kuukauden lopussa tapahtuu järjestyksessä:
    1/2 kylästä**, ja osuudet lasketaan yhteen. Ilman kotia on `round(N × (1 − osuus))` henkeä,
    kuitenkin vähintään yksi, jos osuus on alle 1. Osuuksina laskettuna 15 ja 30 hengen kylä
    saa samasta tilanteesta saman mielialan.
-5. **Mieliala** lasketaan kokonaislukuna. Arvot ovat alkuarvoja, paitsi palelun vähennys, jossa
-   on viritetty arvo:
+5. **Mieliala** lasketaan kokonaislukuna. Arvot ovat nykyiset oletusarvot:
 
    | Osa | Ehto | Vaikutus |
    |---|---|---|
    | Ruoka | kaikki ravittuja | +2 |
    | Ruoka | osa nälässä | −round(10 × nälkäiset / N), vähintään −1 |
    | Lämpö | nuotio sai kaiken puun | +2 |
-   | Lämpö | puu ei riittänyt | −round(6 × palelevat / N), vähintään −1 (viritetty, alkuarvo 10) |
+   | Lämpö | puu ei riittänyt | −round(6 × palelevat / N), vähintään −1 |
    | Koti | kaikilla koti | +2 |
    | Koti | osuus ≥ 1,25 | +1 lisää |
    | Koti | osa ilman | −round(10 × (1 − osuus)), vähintään −1 |
@@ -225,9 +227,8 @@ Kuukauden lopussa tapahtuu järjestyksessä:
    mielialojen summa.
 6. **Luonto:** metsät kasvavat, kasvihuoneet kasvavat täyteen, ja kuuman lähteen ja kylätalon
    käyttökerrat nollautuvat. Mikään ei pidä taukoa talven vuoksi (P49).
-7. **Pilaantuminen:** ruoka, joka ylittää varaston ylärajan `8N`, pilaantuu (P27).
-8. **Häviö (P56):** jos onnellisuus on nyt alle häviörajan, kylä luovuttaa (§9.2).
-9. Jokaisen toiminnot palautuvat.
+7. **Häviö (P56):** jos onnellisuus on nyt alle häviörajan, kylä luovuttaa (§9.2).
+8. Jokaisen toiminnot palautuvat.
 
 Pisteitä ei jaeta per pelaaja. Kylä onnistuu tai epäonnistuu yhdessä (ydin a).
 
@@ -256,7 +257,7 @@ toiseen, ja vastapainona palaa kylän yksi nuotio.
   | −20° … −25° (kylmä) | 4 | 120 |
   | −30° … −35° (kova pakkanen) | 10 | 300 |
 
-  Luvut ovat viritetyt arvot (`heatWoodPerVillager` tiedostossa `params.ts`, perustelut
+  Luvut ovat nykyiset oletusarvot (`heatWoodPerVillager` tiedostossa `params.ts`, perustelut
   `05-tasapaino.md`). Suunnittelun alkuarvot olivat 1 / 2 / 3 (`10-arktinen.md` §4).
 - Kova pakkanen on jyrkkä: 10 puuta kyläläistä kohden on noin yksi kaato jokaiselta. Siksi
   ennuste kannattaa lukea ja varautua edellisenä kuukautena.
@@ -265,8 +266,7 @@ toiseen, ja vastapainona palaa kylän yksi nuotio.
   −round(6 × palelevat / N), vähintään −1). Palelu laskee vain mielialaa kuten nälkä: kukaan ei
   kuole eikä sairastu.
 - Kodit (iglut) eivät tarvitse lämmitystä. Vain yhteinen nuotio lämmittää.
-- Viritetty aloituspuu (3 per kyläläinen) riittää ensimmäisen kuun nuotioon (leuto 2) ja
-  vähän yli.
+- Aloituspuu (3 per kyläläinen) riittää ensimmäisen kuun nuotioon (leuto 2) ja vähän yli.
 - Tapahtumanauha ilmoittaa kuun alussa, jos puu ei riitä tämän kuun nuotiolle: "Puu ei riitä
   nuotiolle: puuttuu N". Äänestyskortin varoitus on kohdassa §10.2.
 
@@ -315,7 +315,7 @@ tarkoittaa entistä kiveä. Hinnat ovat tiedostossa `params.ts` (`costs`).
 
 **Esiehdot (P30): koti ensin.** Alussa voi äänestää vain kodista (pieni iglu) tai olla
 rakentamatta. Kun ensimmäinen koti on valmis, koulu, paja ja kylätalo avautuvat kerralla.
-Aloitusvarat (viritetty: 9 jäätä ja 3 puuta per kyläläinen) riittävät kahteen ensimmäiseen
+Aloitusvarat (6 ruokaa, 3 puuta ja 9 jäätä per kyläläinen) riittävät kahteen ensimmäiseen
 pieneen igluun ja ensimmäisen kuun nuotioon.
 
 Nimet ovat P54:n mukaiset. Sisäiset tunnisteet (`shelter`, `school`, `workshop`, `gathering`)
@@ -458,11 +458,12 @@ Tarkka käyttöliittymä suunnitellaan vaiheessa V6, ja napateeman näkymät on 
   ei ole, koska se peittää kartan tabletilla. Rantautumisruudun napautus näyttää **kylän
   nuotion** tilan (pakkanen, ennuste, puuntarve ja varastossa oleva puu) ilman toimintonappia.
 - **Yläpalkki (P55, P56):** kuvakkeet ja luvut, sanat vain ruudunlukijalle ja vihjeenä (P38).
-  - Vasemmalla: puu muodossa "120 / 60" (varasto / nuotion tarve tässä kuussa, punaisena, jos
-    puu ei riitä), jää, ruoka (varasto / tarve) ja kodit (kotipaikat / *N*).
+  - Vasemmalla: puu muodossa "120/60" (varasto / nuotion tarve tässä kuussa, punaisena, jos
+    puu ei riitä), jää, ruoka (varasto/tarve) ja kodit (kotipaikat / *N*).
   - Keskellä: kello, joka näyttää vaiheen ja ajan.
-  - Oikealla: lämpömittari, esim. "−25°", ja pieni ennuste "→ −35°", sekä "Kuukausi 3 / 15" ja
-    onnellisuus häviörajoineen ("raja −52"). Onnellisuus on punaisena, kun se on lähellä rajaa.
+  - Oikealla: lämpömittari, esim. "−25°", ja sen alla pieni ennuste "→ −35°"; kalenterikuvake ja
+    kuukausi muodossa "3 / 15"; sekä onnellisuus häviörajoineen ("raja −52"). Onnellisuus on
+    punaisena, kun se on lähellä rajaa.
   - Projektorilla lisäksi "Juhlaan N kuukautta".
 - **Oma tila:** energiaa jäljellä (esim. 2 / 4), koulutus- ja työkalutaso sekä edistyminen.
 - **Äänestys:** kortit, jakauma ja oma valinta. Jos vaihtoehto veisi nuotion puun, kortissa on
@@ -511,14 +512,15 @@ kokeilutilassa (P19).
 900 puuta, kun rakennus maksaa ~180. Puu voi siis olla liian helppoa, ellei toimintoja kulu
 muualle. Koko pelin kysyntä (~2000 toimintoa: ruoka ~225, rakennusaineet ~500, tutkiminen ~200,
 oma kehitys jopa ~1000) ylittää tarjonnan (~1350), joten niukkuutta on, mutta jakauma pitää
-tarkistaa simulaattorilla.
+tarkistaa simulaattorilla. Luvut ovat päivätty päässälasku suunnitteluvaiheesta; simulaattorin
+tulokset ovat dokumentissa `05-tasapaino.md`.
 
-## 16. Parametrit (alkuarvot)
+## 16. Parametrit (oletusarvot)
 
-Nämä ovat suunnittelun alkuarvot, jotka on jäädytetty sääntötesteihin
-(`packages/rules/test/params.ts`). **Pelissä käytetyt viritetyt arvot ovat tiedostossa
-`packages/rules/src/params.ts`, ja muutosten syyt ovat dokumentissa `05-tasapaino.md`.**
-Napateeman alkuarvot ovat kohdassa `10-arktinen.md` §4–§5.
+Nämä ovat pelin nykyiset oletusarvot (`DEFAULT_PARAMS` tiedostossa
+`packages/rules/src/params.ts`). Suluissa on suunnittelun alkuarvo, jos se poikkeaa; alkuarvot on
+jäädytetty sääntötesteihin (`packages/rules/test/params.ts`), ja muutosten syyt ovat
+dokumentissa `05-tasapaino.md`.
 
 | Parametri | Arvo | Kohta |
 |---|---|---|
@@ -528,27 +530,28 @@ Napateeman alkuarvot ovat kohdassa `10-arktinen.md` §4–§5.
 | lumimetsä / lumikenttä / jäätikkö | 50 / 30 / 20 % | §5 |
 | tutkimistyö | 1 + ⌊d/2⌋ | §5 |
 | aloitustoiminnot | 3 | §7 |
-| ruoan tarve | 4 / hlö / kk | §9 |
+| ruoan tarve | 6 / hlö / kk (alkuarvo 4) | §9 |
 | kasvihuoneen sato | 30 / kk, +10 / toiminto | §7 |
-| pilkkiminen | +5 / toiminto | §7 |
+| pilkkiminen | +4 / toiminto (alkuarvo 5) | §7 |
 | metsä | 40 puuta, kasvu ×1,25 / kk, +10 / toiminto | §7 |
-| jäälouhos | 60 jäätä, `8 × jäljellä/60`, väh. 2 | §7 |
-| kasvihuoneen rakennus / jäälouhoksen perustus | 3 / 4 työtä | §7 |
-| koulutus / työkalut | +1 toiminto / +25 % per taso, max 4, tarve 3k | §8 |
-| kotipaikat per iglu | ⌈N/6⌉ / ⌈N/3⌉ / ⌈N/2⌉ | §9 |
-| virkistyskerrat | kuuma lähde ⌈N/6⌉, kylätalo ⌈N/5⌉ / ⌈N/4⌉ / ⌈N/3⌉ | §7 |
+| jäälouhos | 120 jäätä, `12 × jäljellä/120`, väh. 2 (alkuarvot 60 ja `8 × jäljellä/60`) | §7 |
+| kasvihuoneen rakennus / jäälouhoksen perustus | 3 / 2 työtä (alkuarvo 3 / 4) | §7 |
+| koulutus / työkalut | +1 toiminto / +25 % per taso, max 3, tarve 4k (alkuarvot max 4, tarve 3k) | §8 |
+| kotipaikat per iglu | 1/6, 1/3 ja 1/2 kylästä | §9 |
+| virkistyskerrat | kuuma lähde N/4, kylätalo N/3 / N/2 / N, pyöristettynä, väh. 1 (alkuarvot N/6 ja N/5 / N/4 / N/3) | §7 |
 | pakkanen | −10° … −35° viiden asteen askelin | §9.1 |
-| nuotion puu per kyläläinen | leuto 1, kylmä 2, kova pakkanen 3 | §9.1 |
-| lämmön mieliala | +2 / −round(10 × palelevat / N) | §9 |
+| nuotion puu per kyläläinen | leuto 2, kylmä 4, kova pakkanen 10 (alkuarvot 1 / 2 / 3) | §9.1 |
+| lämmön mieliala | +2 / −round(6 × palelevat / N) (alkuarvo 10) | §9 |
 | iglujen hinta per kyläläinen | 4 jäätä / 6 jäätä / 6 jäätä + 3 puuta | §10.1 |
-| häviöraja | −60 (varoitus rajan + 20) | §9.2 |
-| aloitusvarat | ruokaa 4N (yksi kuukausi), puuta 2N (nuotio), jäätä 4N (yksi iglu) | — |
-| ruokavaraston yläraja | 8N (kaksi kuukautta) | §6 |
+| häviöraja | −52 Normaali, −45 Lyhyt, varoitus rajan + 20 (alkuarvo −60) | §9.2 |
+| aloitusvarat | ruokaa 6N (yksi kuukausi), puuta 3N (nuotio), jäätä 9N (kaksi pientä iglua) (alkuarvot 4N, 2N ja 4N) | — |
+| ruokavaraston yläraja | 12N (kaksi kuukautta, alkuarvo 8N) | §6 |
 | liittyminen sulkeutuu | kuukauden 4 alussa | §11 |
 
 ## 17. Grillauksen tulos
 
-Kaikki kymmenen kohtaa on lukittu 2026-10-09 (P25–P34):
+Kaikki kymmenen kohtaa on lukittu 2026-10-09 (P25–P34). Niiden luvut ovat päätöksen hetken
+alkuarvoja (esimerkiksi varaston yläraja 8N, kun jokainen söi 4); nykyiset arvot ovat kohdassa §16.
 
 1. Mitoitus per kyläläinen: **kyllä** (P25)
 2. Pelin pituus: **Normaali 15 tai Lyhyt 10** (P26)

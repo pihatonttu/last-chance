@@ -3,6 +3,7 @@
 **Tila: toteutettu 2026-10-13.** Samu hyväksyi suunnitelman 2026-10-13. Päätökset ovat
 päätöslokissa (P40–P47), ja ne on viety pelisuunnitteluun (`04-pelisuunnittelu.md`).
 Toteutussuunnitelma: `superpowers/plans/2026-10-13-uudisasukkaat.md`.
+
 **Osin korvattu 2026-10-23:** vuodenajat, tarina ja nimet ks. `10-arktinen.md` (P49, P52, P54).
 Kehystys, omat merkit ja `skillsOnly` säilyvät.
 
