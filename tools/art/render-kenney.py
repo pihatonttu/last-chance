@@ -203,6 +203,8 @@ def recolor(kit_images, swaps):
 
 
 SNOW = spec.get('snowColor', '#f1f6fa')
+# Open water stays blue in winter (the pond reads as a hole in the ice, an avanto).
+SNOWLESS_MATERIALS = {'water'}
 
 
 def socket(sockets, identifier):
@@ -222,6 +224,8 @@ def add_snow(objects):
             if not mat or not mat.use_nodes or mat.name in done:
                 continue
             done.add(mat.name)
+            if mat.name.split('.')[0] in SNOWLESS_MATERIALS:
+                continue
             nodes, links = mat.node_tree.nodes, mat.node_tree.links
             for bsdf in [n for n in nodes if n.type == 'BSDF_PRINCIPLED']:
                 base = bsdf.inputs['Base Color']
