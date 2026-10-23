@@ -125,6 +125,11 @@ describe('translations', () => {
     expect(t('vote.fireCold')).toBe('Nuotiolle ei jää puuta');
   });
 
+  it('the page title before the app starts is the app name', () => {
+    const html = readFileSync(fileURLToPath(new URL('../index.html', import.meta.url)), 'utf8');
+    expect(html).toContain(`<title>${t('app.name')}</title>`);
+  });
+
   it('has no summer, calendar or old-island words left anywhere', () => {
     const all = allMessageKeys().map((k) => t(k as never)).join(' | ');
     // Words that start with these, so "tekevät" (do) is not "kevät" (spring).

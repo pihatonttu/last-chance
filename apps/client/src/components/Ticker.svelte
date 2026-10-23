@@ -47,7 +47,7 @@
         {:else if item.event.kind === 'hard-frost-coming'}
           <Icon name="thermometer" size={28} />
         {:else if item.event.kind === 'giving-up'}
-          <MoodFace mood={-10} size={28} />
+          <span class="face" aria-hidden="true"><MoodFace mood={-10} size={28} /></span>
         {/if}
         <span>{tickerText(item.event)}</span>
       </li>
@@ -94,6 +94,9 @@
   .wood-short,
   .giving-up {
     border-color: var(--danger);
+  }
+  .face {
+    display: inline-flex;
   }
   .hard-frost-coming {
     border-color: #4a90c2;

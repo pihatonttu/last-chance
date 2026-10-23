@@ -27,6 +27,14 @@ export function fireShort(village: Pick<VillageView, 'resources' | 'heatNeed'>):
   return village.resources.wood < village.heatNeed;
 }
 
+/**
+ * The village gave up: the happiness after the month end fell below the limit. Same test as
+ * the rules engine, which shows that month's summary and then ends the game.
+ */
+export function gaveUp(happiness: number, lossThreshold: number): boolean {
+  return happiness < lossThreshold;
+}
+
 /** The happiness is close to (or below) the limit where the village gives up. */
 export function givingUpSoon(happiness: number, lossThreshold: number): boolean {
   return happiness < lossThreshold + PARAMS.lossWarningMargin;

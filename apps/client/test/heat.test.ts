@@ -1,32 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { MonthReport } from '@saari/rules';
-import { fireShort, givingUpSoon, hardFrost, heatOf, temperatureText } from '../src/lib/heat.ts';
+import { fireShort, gaveUp, givingUpSoon, hardFrost, heatOf, temperatureText } from '../src/lib/heat.ts';
 import { PARAMS } from '../src/lib/rules-info.ts';
-import { village } from './fixtures.ts';
-
-function report(over: Partial<MonthReport> = {}): MonthReport {
-  return {
-    month: 3,
-    villagers: 10,
-    vote: { outcome: 'none', counts: {} },
-    food: { before: 40, need: 40, eaten: 40, hungry: 0, spoiled: 0, after: 0 },
-    heat: { temperature: -25, need: 20, burned: 12, cold: 4 },
-    shelter: { share: 1, capacity: 10, unsheltered: 0 },
-    recreation: 0,
-    mood: { food: 2, heat: -4, shelter: 2, recreation: 0, total: 0 },
-    happiness: 0,
-    unusedActions: 0,
-    ...over,
-  };
-}
+import { monthReport, village } from './fixtures.ts';
 
 describe('heatOf (docs/10-arktinen.md §6)', () => {
   it('gives the fire part of a month report', () => {
-    expect(heatOf(report())).toEqual({ temperature: -25, need: 20, burned: 12, cold: 4 });
+    expect(heatOf(monthReport())).toEqual({ temperature: -30, need: 30, burned: 18, cold: 4 });
   });
 
   it('is null for a report stored before the arctic rules, which has no heat', () => {
-    const { heat: _heat, ...old } = report();
+    const { heat: _heat, ...old } = monthReport();
     expect(heatOf(old as MonthReport)).toBeNull();
   });
 });
@@ -49,6 +33,12 @@ describe('fire and loss warnings', () => {
     expect(hardFrost(PARAMS.weather.hardAt)).toBe(true);
     expect(hardFrost(-35)).toBe(true);
     expect(hardFrost(PARAMS.weather.hardAt + PARAMS.weather.step)).toBe(false);
+  });
+
+  it('the village gave up when the happiness fell below the limit, as the rules decide', () => {
+    expect(gaveUp(-61, -60)).toBe(true);
+    expect(gaveUp(-60, -60)).toBe(false);
+    expect(gaveUp(0, -60)).toBe(false);
   });
 
   it('warns that the village is giving up within the warning margin above the limit', () => {

@@ -2,7 +2,7 @@
   import type { MonthReport } from '@saari/rules';
   import { formatNumber, t, tp } from '../i18n/index.ts';
   import { optionName } from '../lib/format.ts';
-  import { givingUpSoon, heatOf, temperatureText } from '../lib/heat.ts';
+  import { gaveUp, givingUpSoon, heatOf, temperatureText } from '../lib/heat.ts';
   import { parseOptionId } from '../lib/rules-info.ts';
   import ArtIcon from './ArtIcon.svelte';
   import Icon from './Icon.svelte';
@@ -12,10 +12,18 @@
   /**
    * The end of a month in five pictures (docs/10-arktinen.md §6): what was built, whether
    * everyone ate, whether the fire kept everyone warm, whether everyone had a home, and
-   * how the mood changed. A red line warns when the village is close to giving up (§4b).
+   * how the mood changed. A red line warns when the village is close to giving up (§4b),
+   * except in the last month, when the party comes next. In the month the village gives up
+   * the rules show this summary and then end the game, so it says so instead of "next month".
    * The numbers behind the pictures wait under "More info" (P38).
    */
-  let { report, lossThreshold }: { report: MonthReport; lossThreshold: number } = $props();
+  interface Props {
+    report: MonthReport;
+    lossThreshold: number;
+    /** The game's last month: the party (or the end) comes next, not another month. */
+    lastMonth: boolean;
+  }
+  let { report, lossThreshold, lastMonth }: Props = $props();
 
   const built = $derived(report.vote.outcome === 'built' ? parseOptionId(report.vote.option ?? '') : null);
   const voteLine = $derived.by(() => {
@@ -34,7 +42,8 @@
   const heat = $derived(heatOf(report));
   const warm = $derived(heat === null || heat.cold === 0);
   const sheltered = $derived(report.shelter.unsheltered === 0);
-  const givingUp = $derived(givingUpSoon(report.happiness, lossThreshold));
+  const lost = $derived(gaveUp(report.happiness, lossThreshold));
+  const givingUp = $derived(!lost && !lastMonth && givingUpSoon(report.happiness, lossThreshold));
 
   function signed(n: number): string {
     return n > 0 ? `+${formatNumber(n)}` : formatNumber(n);
@@ -74,10 +83,15 @@
     </div>
   </div>
 
-  {#if givingUp}
+  {#if lost}
+    <p class="giving-up gave-up" role="alert">
+      <span class="ship"><ArtIcon name="ship" size={56} /></span>
+      <strong>{t('summary.gaveUp')}</strong>
+    </p>
+  {:else if givingUp}
     <p class="giving-up" role="alert">
       <strong>{t('summary.givingUp')}</strong>
-      <span>{t('summary.givingUpLimit', { happiness: report.happiness, limit: lossThreshold })}</span>
+      <span>{t('bar.lossLimitHint', { n: lossThreshold })}</span>
     </p>
   {/if}
 
@@ -100,7 +114,7 @@
       {#if report.vote.outcome === 'tie'}<li>{t('summary.tieHint')}</li>{/if}
     </ul>
   </details>
-  <p class="next">{t('summary.next')}</p>
+  {#if !lost}<p class="next">{t('summary.next')}</p>{/if}
 </section>
 
 <style>
@@ -200,6 +214,14 @@
   }
   .giving-up strong {
     font-size: 1.15em;
+  }
+  .gave-up {
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.6em;
+  }
+  .gave-up .ship {
+    display: inline-flex;
   }
   .more {
     margin-top: 0.8em;

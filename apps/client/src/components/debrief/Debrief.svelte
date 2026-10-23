@@ -146,7 +146,7 @@
               <td>
                 {#if heat === null}
                   <!-- Stored before the arctic rules: no fire that month. -->
-                  <span class="nothing" title={t('debrief.story.noHeat')}>–</span>
+                  <span class="nothing" aria-hidden="true">–</span><span class="visually-hidden">{t('debrief.story.noHeat')}</span>
                 {:else}
                   <span class="temp">{temperatureText(heat.temperature)}</span>
                   {#if heat.cold > 0}<span class="bad" title={tp('debrief.story.cold', heat.cold)}>✗ {heat.cold}</span>
