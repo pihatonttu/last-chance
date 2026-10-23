@@ -109,12 +109,15 @@ describe('month summary', () => {
     const shown = summary(monthReport({ month: 10, happiness: -45 }), true);
     expect(shown).not.toContain('luovuttamassa');
     expect(shown).not.toContain('luovutti');
+    expect(shown).toContain('Revontulijuhla alkaa pian!');
+    expect(shown).not.toContain('Seuraava kuukausi alkaa pian.');
   });
 
   it('the last month can still be lost', () => {
     const shown = summary(monthReport({ month: 10, happiness: -61 }), true);
     expect(shown).toContain('Kylä luovutti. Jäänmurtaja tulee hakemaan kaikki kotiin.');
     expect(shown).not.toContain('Seuraava kuukausi alkaa pian.');
+    expect(shown).not.toContain('Revontulijuhla alkaa pian!');
   });
 });
 
@@ -263,6 +266,7 @@ describe('debrief', () => {
       crises: [
         { kind: 'cold', month: 1, people: 4, resolvedMonth: null },
         { kind: 'hunger', month: 2, people: 1, resolvedMonth: null },
+        { kind: 'no-shelter', month: 1, people: 6, resolvedMonth: 2 },
       ],
       votes: { participation: 1, ties: 0, emptyMonths: 2, averageWinningShare: 0 },
       springFoundMonth: null,
@@ -283,6 +287,7 @@ describe('debrief', () => {
     const shown = text(render(Debrief, { props: { debrief: debrief() } }).body);
     expect(shown).toContain('Kuukaudesta 1 alkaen nuotion puut eivät riittäneet. Pahimmillaan 4 kyläläistä paleli.');
     expect(shown).toContain('Kuukaudesta 2 alkaen ruoka ei riittänyt. Pahimmillaan 1 kyläläinen jäi nälkään.');
+    expect(shown).toContain('Kuukaudesta 1 alkaen kodit eivät riittäneet. Pahimmillaan 6 kyläläistä jäi ilman kotia.');
   });
 
   it('a debrief stored before the arctic rules (no heat, no lost) still renders, with "–" for warmth', () => {

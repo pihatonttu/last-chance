@@ -114,7 +114,7 @@
       {#if report.vote.outcome === 'tie'}<li>{t('summary.tieHint')}</li>{/if}
     </ul>
   </details>
-  {#if !lost}<p class="next">{t('summary.next')}</p>{/if}
+  {#if !lost}<p class="next">{lastMonth ? t('summary.partyNext') : t('summary.next')}</p>{/if}
 </section>
 
 <style>

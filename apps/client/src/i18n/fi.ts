@@ -389,6 +389,7 @@ export const fi = {
   'summary.givingUp': 'Kylä on luovuttamassa! Pitäkää nuotio ja ruoka kunnossa.',
   'summary.gaveUp': 'Kylä luovutti. Jäänmurtaja tulee hakemaan kaikki kotiin.',
   'summary.next': 'Seuraava kuukausi alkaa pian.',
+  'summary.partyNext': 'Revontulijuhla alkaa pian!',
 
   // ---------------------------------------------------------------- end
   'end.arrived': 'Vieraat saapuivat revontulijuhlaan!',
@@ -487,8 +488,8 @@ export const fi = {
   'debrief.crises.none': 'Ei kriisejä. Hienoa!',
   'debrief.crisis.hunger.one': 'Kuukaudesta {month} alkaen ruoka ei riittänyt. Pahimmillaan {people} kyläläinen jäi nälkään.',
   'debrief.crisis.hunger.other': 'Kuukaudesta {month} alkaen ruoka ei riittänyt. Pahimmillaan {people} kyläläistä jäi nälkään.',
-  'debrief.crisis.no-shelter.one': 'Kuukausi {month}: {people} kyläläinen jäi ilman kotia.',
-  'debrief.crisis.no-shelter.other': 'Kuukausi {month}: {people} kyläläistä jäi ilman kotia.',
+  'debrief.crisis.no-shelter.one': 'Kuukaudesta {month} alkaen kodit eivät riittäneet. Pahimmillaan {people} kyläläinen jäi ilman kotia.',
+  'debrief.crisis.no-shelter.other': 'Kuukaudesta {month} alkaen kodit eivät riittäneet. Pahimmillaan {people} kyläläistä jäi ilman kotia.',
   'debrief.crisis.cold.one': 'Kuukaudesta {month} alkaen nuotion puut eivät riittäneet. Pahimmillaan {people} kyläläinen paleli.',
   'debrief.crisis.cold.other': 'Kuukaudesta {month} alkaen nuotion puut eivät riittäneet. Pahimmillaan {people} kyläläistä paleli.',
   'debrief.crisis.resolved': 'Korjaantui kuukaudessa {month}.',
