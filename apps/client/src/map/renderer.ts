@@ -367,6 +367,7 @@ export class MapRenderer {
     ordered.forEach((tile, i) => {
       const ctx = contexts[i]!;
       const isBoat = boat !== null && tile.x === boat.x && tile.y === boat.y;
+      const isLanding = tile.x === map.landing.x && tile.y === map.landing.y;
       const slot = this.#slots[i]!;
       // Each tile's block, then what stands on it, so nearer tiles cover farther ones.
       const look = kenneyTile(tile);
@@ -379,7 +380,7 @@ export class MapRenderer {
         slot.block.position.set(ctx.cx, ctx.cy);
         slot.block.tint = look.tint;
       }
-      const prop = kenneyProp(tile, ctx, isBoat);
+      const prop = kenneyProp(tile, ctx, isBoat, isLanding);
       const propTexture = prop && this.#textures.get(prop.texture);
       slot.prop.visible = Boolean(propTexture);
       if (prop && propTexture) {

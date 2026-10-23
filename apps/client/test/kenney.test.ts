@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import type { PublicTile, Terrain } from '@saari/rules';
 import { describe, expect, it } from 'vitest';
 import { BUILDING_KINDS, LEVELS } from '../src/lib/enums.ts';
@@ -13,6 +15,7 @@ import {
   PROP_SCALE,
   WATER_DY,
 } from '../src/map/kenney.ts';
+import { PROP_TOPS } from '../src/map/kenney-props.ts';
 
 function tile(over: Partial<PublicTile> = {}): PublicTile {
   return {
@@ -44,6 +47,20 @@ describe('kenneyTile', () => {
     const seen = new Set(Array.from({ length: 30 }, (_, i) => tint(i, i * 3)));
     expect(seen.size).toBeGreaterThan(1);
     for (const t of seen) for (const shift of [16, 8, 0]) expect((t >> shift) & 255).toBeGreaterThanOrEqual(0xe8);
+  });
+
+  it('keeps the ice-blue block ice-blue: no land tint is greener than it is blue', () => {
+    const seen = new Set<number>();
+    for (let x = 0; x < 40; x++) {
+      for (let y = 0; y < 40; y++) {
+        for (const terrain of LAND) {
+          const s = kenneyTile(tile({ x, y, terrain }));
+          seen.add(s!.tint);
+        }
+      }
+    }
+    expect(seen.size).toBeGreaterThan(1);
+    for (const t of seen) expect(t & 255, `tint ${t.toString(16)}`).toBeGreaterThanOrEqual((t >> 8) & 255);
   });
 
   it('greys a block under the fog and never shows the hidden terrain', () => {
@@ -116,6 +133,23 @@ describe('kenneyProp', () => {
     const boat = prop({ terrain: 'sea' }, null, true);
     expect(boat?.texture).toBe('props/boat');
     expect(boat?.dy).toBe(WATER_DY);
+  });
+
+  it('shows the village fire on the landing whatever the terrain says', () => {
+    const fire = (over: Partial<PublicTile>) => kenneyProp(tile(over), ctx(30), false, true);
+    for (const terrain of LAND) {
+      const p = fire({ terrain, stock: 30 });
+      expect(p?.texture, terrain).toBe('props/fire');
+      expect(p?.dy, terrain).toBe(0);
+    }
+    for (const kind of BUILDING_KINDS) expect(fire({ building: { kind, level: 1 } })?.texture, kind).toBe('props/fire');
+    expect(KENNEY_TEXTURES).toContain('props/fire');
+  });
+
+  it('keeps the boat on its sea tile and the fire only on the landing', () => {
+    expect(kenneyProp(tile({ terrain: 'sea' }), ctx(), true, false)?.texture).toBe('props/boat');
+    expect(kenneyProp(tile({ terrain: 'meadow' }), ctx(), false, false)?.texture).toMatch(/^props\/meadow-/);
+    expect(kenneyProp(tile({ terrain: 'meadow' }), ctx())?.texture).not.toBe('props/fire');
   });
 
   it('only returns preloaded textures', () => {
@@ -193,5 +227,38 @@ describe('kenneyCloud', () => {
 
   it('draws nothing over explored tiles', () => {
     expect(kenneyCloud(tile(), nothingKnown)).toBeNull();
+  });
+});
+
+describe('the map pictures', () => {
+  const ART = new URL('../public/art/kenney/', import.meta.url);
+  const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+
+  it('has a file for every preloaded texture', () => {
+    // The renderer loads `<BASE_URL>art/kenney/<name>.png`, so the name is the path under public/art/kenney.
+    for (const name of KENNEY_TEXTURES) {
+      const file = fileURLToPath(new URL(`${name}.png`, ART));
+      let bytes: Buffer | null = null;
+      try {
+        bytes = readFileSync(file);
+      } catch {
+        bytes = null;
+      }
+      expect(bytes, `${name}: no file at ${file}`).not.toBeNull();
+      expect([...bytes!.subarray(0, 8)], `${name} is not a PNG`).toEqual(PNG_SIGNATURE);
+    }
+  });
+
+  it('preloads a sprite for every prop top the badges measure', () => {
+    for (const name of Object.keys(PROP_TOPS)) expect(KENNEY_TEXTURES, name).toContain(`props/${name}`);
+  });
+
+  it('never shows summer art', () => {
+    const names = [...Object.keys(PROP_TOPS), ...KENNEY_TEXTURES];
+    for (const name of names) {
+      expect(name, name).not.toMatch(/palm/i);
+      expect(name, name).not.toMatch(/-snow$/);
+      expect(name, name).not.toBe('grass-snow');
+    }
   });
 });

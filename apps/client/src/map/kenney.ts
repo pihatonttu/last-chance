@@ -4,8 +4,9 @@
  *
  * Every land tile is a Kenney "Tower Defense" grass block (public/art/kenney, copied by
  * tools/art/kenney-assets.py). What stands on it (forest, rocks, meadow flowers, fields, the
- * quarry, the spring, buildings, the boat at the landing) is rendered from Kenney 3D kits in
- * the same view (public/art/kenney/props, tools/art/kenney-props-spec.py). The sea is the
+ * quarry, the spring, buildings, the boat by the landing) is rendered from Kenney 3D kits in
+ * the same view (public/art/kenney/props, tools/art/kenney-props-spec.py); the landing tile
+ * always carries the village fire, whatever the terrain says. The sea is the
  * background with a ring of shore ice round the island (sprites.ts draws it, with the ice
  * holes and the floes); hidden land is under Kenney clouds, and the places to explore show a
  * green box (both inspired by the original game).
@@ -46,8 +47,11 @@ export const WATER_DY = Math.round(33 * KENNEY_SCALE * 0.75);
 
 /** Grey for land under the fog: the shape is known, the contents are not. */
 export const FOG_TINT = 0xb9c3cb;
-/** Slightly different greens so the island does not look like a chessboard. */
-const GRASS_TINTS = [0xffffff, 0xf3f8ee, 0xfafff2, 0xeef5ec] as const;
+/**
+ * Faint blue-greys so the island does not look like a chessboard. Never greener than blue:
+ * a green cast turns the snow-topped, ice-blue block green (the test keeps this true).
+ */
+const GRASS_TINTS = [0xffffff, 0xf4f7fb, 0xf8fafd, 0xeef2f8] as const;
 
 function pick<T>(list: readonly T[], x: number, y: number, salt = 0): T {
   return list[(tileHash(x, y) >>> salt) % list.length]!;
@@ -88,12 +92,20 @@ function stage(stock: number, max: number): number {
 }
 
 /**
- * What stands on a tile, drawn on top of its block: a building, a forest by the wood left,
+ * What stands on a tile, drawn on top of its block: the village fire on the landing (always,
+ * whatever the terrain or a building there says), a building, a forest by the wood left,
  * rocks, meadow grass, a field's crop, the quarry, the spring, or (on the sea next to the
- * landing) the boat the class came ashore in.
+ * landing) the boat the class came ashore in. The renderer says which tile is the landing
+ * (`isLanding`) and which sea tile holds the boat (`landingBoat`).
  */
-export function kenneyProp(tile: PublicTile, ctx: { stockMax: number | null }, landingBoat = false): PropSprite | null {
+export function kenneyProp(
+  tile: PublicTile,
+  ctx: { stockMax: number | null },
+  landingBoat = false,
+  isLanding = false,
+): PropSprite | null {
   if (tile.fog) return null;
+  if (isLanding) return prop('fire');
   if (tile.building) return prop(`${tile.building.kind}-${tile.building.level}`);
   const stock = tile.stock ?? 0;
   const max = ctx.stockMax ?? 1;
