@@ -38,6 +38,7 @@ describe('parseClientMessage', () => {
       { t: 'hello-player', protocol: 1, code: '123456', nickname: 'Aino', playerToken: 'tok' },
       { t: 'inspect', x: 1, y: 2 },
       { t: 'act', x: 0, y: 0 },
+      { t: 'act', x: 0, y: 0, intent: 'demolish' },
       { t: 'vote', option: 'shelter-1' },
       { t: 'ping' },
       { t: 'host', command: { type: 'start' } },
@@ -54,6 +55,11 @@ describe('parseClientMessage', () => {
 
   it('drops unknown fields', () => {
     expect(parseClientMessage({ t: 'act', x: 1, y: 2, evil: true })).toEqual({ t: 'act', x: 1, y: 2 });
+    expect(parseClientMessage({ t: 'inspect', x: 1, y: 2, intent: 'demolish' })).toEqual({ t: 'inspect', x: 1, y: 2 });
+  });
+
+  it('leaves `intent` out of an act that has none', () => {
+    expect(parseClientMessage({ t: 'act', x: 1, y: 2 })).not.toHaveProperty('intent');
   });
 
   it('rejects malformed messages', () => {
@@ -68,6 +74,11 @@ describe('parseClientMessage', () => {
       { t: 'hello-player', protocol: 1, code: '123456', nickname: 'x'.repeat(500) },
       { t: 'act', x: 1.5, y: 2 },
       { t: 'act', x: '1', y: 2 },
+      { t: 'act', x: 1, y: 2, intent: 'main' },
+      { t: 'act', x: 1, y: 2, intent: 'burn-it-down' },
+      { t: 'act', x: 1, y: 2, intent: 1 },
+      { t: 'act', x: 1, y: 2, intent: null },
+      { t: 'act', x: 1, y: 2, intent: ['demolish'] },
       { t: 'inspect', x: 1 },
       { t: 'vote', option: 3 },
       { t: 'host', command: { type: 'explode' } },

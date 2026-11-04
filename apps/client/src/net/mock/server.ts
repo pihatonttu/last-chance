@@ -29,6 +29,7 @@ import {
 import {
   createGame,
   createRng,
+  type ActionIntent,
   type Game,
   type GameLength,
   type GameParams,
@@ -309,7 +310,7 @@ export class MockServer {
       case 'inspect':
         return this.#inspect(room, conn, message.x, message.y);
       case 'act':
-        return this.#act(room, conn, message.x, message.y);
+        return this.#act(room, conn, message.x, message.y, message.intent);
       case 'vote':
         return this.#vote(room, conn, message.option);
       case 'host':
@@ -406,9 +407,9 @@ export class MockServer {
     this.#send(conn, { t: 'preview', x, y, preview: room.game.preview(conn.playerId, x, y) });
   }
 
-  #act(room: Room, conn: Conn, x: number, y: number): void {
+  #act(room: Room, conn: Conn, x: number, y: number, intent?: ActionIntent): void {
     if (!conn.playerId) return;
-    this.#perform(room, conn.playerId, x, y, conn);
+    this.#perform(room, conn.playerId, x, y, conn, intent);
   }
 
   #vote(room: Room, conn: Conn, option: string): void {
@@ -650,8 +651,8 @@ export class MockServer {
 
   // ---------------------------------------------------------------- actions
 
-  #perform(room: Room, playerId: string, x: number, y: number, conn: Conn | null): boolean {
-    const result = room.game.act(playerId, x, y);
+  #perform(room: Room, playerId: string, x: number, y: number, conn: Conn | null, intent?: ActionIntent): boolean {
+    const result = room.game.act(playerId, x, y, intent);
     if (!result.ok) {
       if (conn) this.#send(conn, { t: 'act-result', x, y, ok: false, reason: result.reason });
       return false;
@@ -678,7 +679,12 @@ export class MockServer {
     if (seat) this.#sendYou(room, seat);
     for (const event of result.events) {
       if (event.type === 'spring-found') this.#broadcastTicker(room, { kind: 'spring-found' });
-      else if (event.type === 'field-ready' || event.type === 'quarry-ready' || event.type === 'forest-cleared') {
+      else if (
+        event.type === 'field-ready' ||
+        event.type === 'field-removed' ||
+        event.type === 'quarry-ready' ||
+        event.type === 'forest-cleared'
+      ) {
         this.#broadcastTicker(room, { kind: event.type, x: event.x, y: event.y });
       }
     }

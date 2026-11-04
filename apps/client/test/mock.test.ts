@@ -45,6 +45,7 @@ const ALWAYS_LOSE: GameParams = { ...DEFAULT_PARAMS, lossThreshold: { short: 1_0
 const TICKER_KINDS: Record<TickerEvent['kind'], true> = {
   'spring-found': true,
   'field-ready': true,
+  'field-removed': true,
   'quarry-ready': true,
   'forest-cleared': true,
   built: true,
@@ -197,6 +198,47 @@ describe('MockServer', () => {
     }
     transport.close();
   }, 30_000);
+
+  it('passes the demolish intent to the game, like the real server', async () => {
+    const server = newServer();
+    const { code, hostToken } = server.createGame({ length: 'short', trial: false });
+    const host = connect(server);
+    host.send({ t: 'hello-host', protocol: PROTOCOL_VERSION, code, hostToken });
+    const aino = connect(server);
+    aino.send({ t: 'hello-player', protocol: PROTOCOL_VERSION, code, nickname: 'Aino' });
+    const eero = connect(server);
+    eero.send({ t: 'hello-player', protocol: PROTOCOL_VERSION, code, nickname: 'Eero' });
+    await flush();
+    host.send({ t: 'host', command: { type: 'start' } });
+    await flush();
+
+    const map = aino.state.game!.map!;
+    const meadow = map.tiles.find(
+      (t) => !t.fog && t.terrain === 'meadow' && (t.x !== map.landing.x || t.y !== map.landing.y),
+    )!;
+    const { x, y } = meadow;
+    const tile = () => eero.state.game!.map!.tiles.find((t) => t.x === x && t.y === y)!;
+    for (let i = 0; i < 3; i++) aino.send({ t: 'act', x, y });
+    await flush();
+    expect(tile().terrain).toBe('field');
+
+    eero.send({ t: 'inspect', x, y });
+    await flush();
+    expect(eero.state.preview?.preview).toMatchObject({ kind: 'harvest', alternative: { kind: 'demolish', available: true } });
+
+    eero.send({ t: 'act', x, y, intent: 'demolish' });
+    await flush();
+    expect(eero.of('act-result').at(-1)).toMatchObject({ ok: true, x, y, gain: { work: 1 } });
+    expect(tile()).toMatchObject({ terrain: 'field', work: 1 });
+
+    eero.send({ t: 'act', x, y, intent: 'demolish' });
+    eero.send({ t: 'act', x, y, intent: 'demolish' });
+    await flush();
+    expect(tile()).toMatchObject({ terrain: 'meadow', stock: 0, work: 0 });
+    // Everyone sees the ticker; it never names who did it (P34).
+    expect(aino.of('ticker').at(-1)?.event).toEqual({ kind: 'field-removed', x, y });
+    expect(host.of('ticker').at(-1)?.event).toEqual({ kind: 'field-removed', x, y });
+  });
 
   it('stores a pseudonymised copy of a normal game and can delete it', async () => {
     const server = newServer();

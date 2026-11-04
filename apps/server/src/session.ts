@@ -20,6 +20,7 @@ import type {
 import {
   createGame,
   createRng,
+  type ActionIntent,
   type Game,
   type GameLength,
   type GameParams,
@@ -360,7 +361,7 @@ export class GameSession {
       }
       case 'act': {
         const member = this.#memberOf(peer);
-        if (member) this.#act(member, message.x, message.y);
+        if (member) this.#act(member, message.x, message.y, message.intent);
         return;
       }
       case 'vote': {
@@ -479,13 +480,13 @@ export class GameSession {
 
   // ---------------------------------------------------------------- actions and votes
 
-  #act(member: Member, x: number, y: number): void {
+  #act(member: Member, x: number, y: number, intent?: ActionIntent): void {
     // The engine checks the tile before the phase; outside the action phase say so plainly.
     if (this.#paused || this.#game.phase !== 'action') {
       member.peer?.send({ t: 'act-result', x, y, ok: false, reason: 'wrong-phase' });
       return;
     }
-    const result = this.#game.act(member.id, x, y);
+    const result = this.#game.act(member.id, x, y, intent);
     if (!result.ok) {
       member.peer?.send({ t: 'act-result', x, y, ok: false, reason: result.reason });
       return;
@@ -1069,6 +1070,8 @@ function tickerFor(entry: LogEntry): TickerEvent | null {
       return { kind: 'spring-found' };
     case 'field-ready':
       return { kind: 'field-ready', x: entry.x, y: entry.y };
+    case 'field-removed':
+      return { kind: 'field-removed', x: entry.x, y: entry.y };
     case 'quarry-ready':
       return { kind: 'quarry-ready', x: entry.x, y: entry.y };
     case 'forest-cleared':

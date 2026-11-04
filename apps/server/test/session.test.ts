@@ -721,6 +721,60 @@ describe('actions, votes and views', () => {
     expect(aino.peer.last('act-result')).toMatchObject({ ok: false, reason: 'out-of-bounds' });
   });
 
+  /** A started game with one finished greenhouse, plowed by Aino. */
+  function withGreenhouse() {
+    const context = setup();
+    const aino = context.join('Aino');
+    const eero = context.join('Eero');
+    context.command({ type: 'start' });
+    const { x, y } = availableMoves(context.session.game, aino.id).find((m) => m.preview.kind === 'plow')!;
+    for (let i = 0; i < 3; i++) context.session.handle(aino.peer, { t: 'act', x, y });
+    expect(context.session.game.tile(x, y)?.terrain).toBe('field');
+    return { ...context, aino, eero, x, y };
+  }
+
+  it('act: the demolish intent reaches the game; without it the same tile is harvested', () => {
+    const { session, eero, x, y } = withGreenhouse();
+    session.handle(eero.peer, { t: 'act', x, y, intent: 'demolish' });
+    expect(eero.peer.last('act-result')).toMatchObject({ ok: true, x, y, gain: { work: 1 } });
+    expect(session.game.tile(x, y)).toMatchObject({ terrain: 'field', work: 1, stock: DEFAULT_PARAMS.fieldCapacity });
+    expect(session.game.log.at(-1)).toMatchObject({ type: 'action', kind: 'demolish', player: eero.id });
+
+    session.handle(eero.peer, { t: 'act', x, y });
+    expect(eero.peer.last('act-result')).toMatchObject({ ok: true, x, y, gain: { food: DEFAULT_PARAMS.harvestYield } });
+    expect(session.game.tile(x, y)).toMatchObject({ terrain: 'field', work: 1 });
+  });
+
+  it('act: a finished demolish patches the tile and goes on the ticker without a name', () => {
+    const { session, host, aino, eero, x, y } = withGreenhouse();
+    aino.peer.clear();
+    host.clear();
+    for (let i = 0; i < 3; i++) session.handle(eero.peer, { t: 'act', x, y, intent: 'demolish' });
+    expect(session.game.tile(x, y)).toMatchObject({ terrain: 'meadow', stock: 0, work: 0 });
+    const ticker = { t: 'ticker', event: { kind: 'field-removed', x, y } };
+    expect(aino.peer.last('ticker')).toEqual(ticker);
+    expect(host.last('ticker')).toEqual(ticker);
+    expect(aino.peer.all('patch').at(-1)?.tiles).toContainEqual(expect.objectContaining({ x, y, terrain: 'meadow' }));
+  });
+
+  it('act: refuses a demolish on anything but a greenhouse with the engine reason', () => {
+    const { session, eero, x, y } = withGreenhouse();
+    const other = availableMoves(session.game, eero.id).find((m) => m.preview.kind !== 'harvest')!;
+    session.handle(eero.peer, { t: 'act', x: other.x, y: other.y, intent: 'demolish' });
+    expect(eero.peer.last('act-result')).toEqual({ t: 'act-result', x: other.x, y: other.y, ok: false, reason: 'no-action' });
+    expect(session.game.player(eero.id)?.actionsLeft).toBe(3);
+    expect(session.game.tile(x, y)?.work).toBe(0);
+  });
+
+  it('inspect shows the demolish alternative of a greenhouse', () => {
+    const { session, eero, x, y } = withGreenhouse();
+    session.handle(eero.peer, { t: 'inspect', x, y });
+    expect(eero.peer.last('preview')?.preview).toMatchObject({
+      kind: 'harvest',
+      alternative: { kind: 'demolish', available: true, yield: { type: 'work', amount: 1, done: 0, needed: 3 } },
+    });
+  });
+
   it('inspect answers with a preview', () => {
     const { session, join, command } = setup();
     const aino = join('Aino');

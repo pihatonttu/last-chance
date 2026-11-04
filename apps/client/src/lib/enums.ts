@@ -117,6 +117,7 @@ export const NICKNAME_REFUSALS = keys<NicknameRefusal>({
 export const TICKER_KINDS = keys<TickerEvent['kind']>({
   'spring-found': true,
   'field-ready': true,
+  'field-removed': true,
   'quarry-ready': true,
   'forest-cleared': true,
   built: true,

@@ -1,3 +1,4 @@
+import { availableMoves } from '@saari/bots';
 import type { DebriefData } from '@saari/debrief';
 import { PROTOCOL_VERSION } from '@saari/protocol';
 import { describe, expect, it } from 'vitest';
@@ -103,6 +104,39 @@ describe('Connection', () => {
     const { peer, conn } = open();
     conn.receive({ t: 'hello-player', protocol: 1, code, nickname: 'Aino' });
     expect(peer.last('refused-join')).toEqual({ t: 'refused-join', reason: 'protocol-mismatch' });
+  });
+
+  it('refuses a tab from before demolishing (protocol 2) so it reloads', () => {
+    const { hub, open } = setup();
+    const { code } = hub.createGame(SHORT);
+    const { peer, conn } = open();
+    conn.receive({ t: 'hello-player', protocol: 2, code, nickname: 'Aino' });
+    expect(peer.last('refused-join')).toEqual({ t: 'refused-join', reason: 'protocol-mismatch' });
+  });
+
+  it('carries the demolish intent from a raw frame to the game and rejects any other intent', () => {
+    const { hub, open } = setup();
+    const { code, hostToken } = hub.createGame(SHORT);
+    const host = open();
+    host.conn.receive({ t: 'hello-host', protocol: PROTOCOL_VERSION, code, hostToken });
+    const aino = open();
+    aino.conn.receive({ t: 'hello-player', protocol: PROTOCOL_VERSION, code, nickname: 'Aino' });
+    const eero = open();
+    eero.conn.receive({ t: 'hello-player', protocol: PROTOCOL_VERSION, code, nickname: 'Eero' });
+    host.conn.receive({ t: 'host', command: { type: 'start' } });
+    const game = hub.session(code)!.game;
+    const ainoId = aino.peer.last('welcome')!.you!.id;
+    const eeroId = eero.peer.last('welcome')!.you!.id;
+    const { x, y } = availableMoves(game, ainoId).find((m) => m.preview.kind === 'plow')!;
+    for (let i = 0; i < 3; i++) aino.conn.receive({ t: 'act', x, y });
+
+    eero.conn.receive({ t: 'act', x, y, intent: 'burn-it-down' });
+    expect(eero.peer.last('error')?.code).toBe('bad-message');
+    expect(game.player(eeroId)?.actionsLeft).toBe(3);
+
+    eero.conn.receive({ t: 'act', x, y, intent: 'demolish' });
+    expect(eero.peer.last('act-result')).toMatchObject({ ok: true, x, y, gain: { work: 1 } });
+    expect(game.tile(x, y)).toMatchObject({ terrain: 'field', work: 1 });
   });
 
   it('refuses unknown games and closes after too many wrong codes', () => {

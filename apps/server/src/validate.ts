@@ -47,9 +47,14 @@ export function parseClientMessage(value: unknown): ClientMessage | null {
       };
     }
     case 'inspect':
-    case 'act':
       if (!isCoord(value.x) || !isCoord(value.y)) return null;
-      return { t: value.t, x: value.x, y: value.y };
+      return { t: 'inspect', x: value.x, y: value.y };
+    case 'act': {
+      const { x, y, intent } = value;
+      if (!isCoord(x) || !isCoord(y)) return null;
+      if (intent !== undefined && intent !== 'demolish') return null;
+      return { t: 'act', x, y, ...(intent !== undefined ? { intent } : {}) };
+    }
     case 'vote':
       return isText(value.option, 64) ? { t: 'vote', option: value.option } : null;
     case 'host': {

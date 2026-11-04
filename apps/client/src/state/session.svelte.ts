@@ -73,8 +73,8 @@ export class GameSession {
     this.send({ t: 'inspect', x, y });
   }
 
-  act(x: number, y: number): void {
-    this.send({ t: 'act', x, y });
+  act(x: number, y: number, intent?: 'demolish'): void {
+    this.send(intent ? { t: 'act', x, y, intent } : { t: 'act', x, y });
   }
 
   vote(option: string): void {

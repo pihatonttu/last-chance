@@ -438,6 +438,7 @@ export const fi = {
   'ticker.empty': 'Ei vielä tapahtumia.',
   'ticker.spring-found': 'Kylä löysi kuuman lähteen!',
   'ticker.field-ready': 'Uusi kasvihuone valmistui.',
+  'ticker.field-removed': 'Kasvihuone purettiin lumikentäksi.',
   'ticker.quarry-ready': 'Jäälouhos valmistui.',
   'ticker.forest-cleared': 'Metsä kaadettiin lumikentäksi.',
   'ticker.built': 'Rakennettiin: {name}',

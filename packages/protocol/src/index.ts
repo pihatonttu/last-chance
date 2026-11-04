@@ -22,13 +22,16 @@ import type {
 import type { BadgeId, DebriefData } from '@saari/debrief';
 
 /**
+ * 3: demolishing a greenhouse (docs/12-selkeys.md §1): `intent` on `act`, the new action
+ * kind, `alternative` and `freeMeadowsAfter` in action previews and the `field-removed`
+ * ticker event; tabs from before could not offer it or show it, so they must reload.
+ *
  * 2: the settlers' badges (`badges` message) and the arctic fields: the frost
  * (`temperature`, `forecast`), the village fire's wood (`heatNeed`), the loss limit
  * (`lossThreshold`), `GameResult.lost` and the `hard-frost-coming`, `wood-short` and
- * `giving-up` ticker events (docs/09-uudisasukkaat.md, docs/10-arktinen.md); tabs from
- * before must reload.
+ * `giving-up` ticker events (docs/09-uudisasukkaat.md, docs/10-arktinen.md).
  */
-export const PROTOCOL_VERSION = 2;
+export const PROTOCOL_VERSION = 3;
 
 // ------------------------------------------------------------------ HTTP
 
@@ -175,6 +178,7 @@ export interface YouView extends PlayerView {
 export type TickerEvent =
   | { kind: 'spring-found' }
   | { kind: 'field-ready'; x: number; y: number }
+  | { kind: 'field-removed'; x: number; y: number }
   | { kind: 'quarry-ready'; x: number; y: number }
   | { kind: 'forest-cleared'; x: number; y: number }
   | { kind: 'built'; option: string; x: number; y: number }
@@ -212,7 +216,8 @@ export type ClientMessage =
    */
   | { t: 'hello-player'; protocol: number; code: string; nickname?: string; playerToken?: string }
   | { t: 'inspect'; x: number; y: number }
-  | { t: 'act'; x: number; y: number }
+  /** Without `intent`: the tile's main action. */
+  | { t: 'act'; x: number; y: number; intent?: 'demolish' }
   | { t: 'vote'; option: string }
   | { t: 'host'; command: HostCommand }
   | { t: 'ping' };
