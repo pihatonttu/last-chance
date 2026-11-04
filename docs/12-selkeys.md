@@ -75,8 +75,8 @@ parannuksessa näkyvät vanha ja uusi kuva nuolella.
 
 | Kortti | Iso rivi | Pieni rivi |
 |---|---|---|
-| Pieni iglu | Koti 4 kyläläiselle | Rakennetaan vapaalle lumikentälle. |
-| Iglu, Iso iglu | Koti 4 → 7 kyläläiselle | Pieni iglu kasvaa samalla paikalla. |
+| Pieni iglu | Kotipaikkoja 8 → 11 | Rakennetaan vapaalle lumikentälle. |
+| Iglu, Iso iglu | Kotipaikkoja 8 → 11 | Pieni iglu kasvaa samalla paikalla. |
 | Laavu | Tyytyväisyyttä jopa +4 kuussa | Kun vietätte täällä aikaa yhdessä. |
 | Kylätalo, Lumilinna | Tyytyväisyyttä jopa +4 → +5 kuussa | Kun vietätte täällä aikaa yhdessä. |
 | Ulkoluokka | Energiaa 3 → 4 joka kuukausi | Kun opiskelet täällä 4 kertaa. |
@@ -85,7 +85,8 @@ parannuksessa näkyvät vanha ja uusi kuva nuolella.
 | Paja, Iso paja | Työkalut valmistuvat 2 kertaa nopeammin | Kun teet täällä työkaluja. |
 | Ei rakenneta | Puu ja jää säästyvät | Kylä ei saa tässä kuussa mitään uutta. |
 
-Luvut ovat esimerkkejä 20 hengen luokasta ja lasketaan säännöistä, ei kirjoiteta tekstiin. Kartalla
+Luvut ovat esimerkkejä 20 hengen luokasta ja lasketaan säännöistä, ei kirjoiteta tekstiin. Kotipaikat
+ovat koko kylän luvut (`shelterAfter`), samat kuin yläpalkissa, koska peli pyöristää koko kylän kerralla. Kartalla
 rakennuksen ponnahdusikkuna kertoo saman. Otsikon `vote.title` korvaa ylärivin KYLÄKOKOUS.
 
 ## 4. Tavoite ja Näin pelataan
