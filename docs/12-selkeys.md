@@ -47,7 +47,7 @@ Ylärivi kaikissa pelin vaiheissa, projektorilla sama isompana:
 
 - **Vasemmalla iso otsikko ja alaotsikko:**
   - toimintavuoro: **HOMMIIN!** / Keskustelkaa ja toimikaa yhdessä
-  - äänestys: **KYLÄKOKOUS!** / Puhukaa ensin, äänestäkää sitten
+  - äänestys: **KYLÄKOKOUS** / Puhukaa ensin, äänestäkää sitten
   - kuukauden vaihde: **KUUKAUSI PÄÄTTYI** / Katsokaa, miten kylällä menee
   - tauko: **TAUKO**
 - **Keskellä sääkello:** iso rengas, jonka sisällä on tämän kuun lämpötila ja sekunnit. Rengas on
@@ -69,19 +69,24 @@ oikealla ovat edistymispallot `●○○`, opiskelussa ja työkaluissa samoin, j
 
 ## 3. Äänestys ja rakennukset
 
-Kortti kertoo hyödyn heti ilman "Mitä nämä tekevät?" -nappia. Yksi iso rivi kuvakkeella:
+Kortti kertoo hyödyn heti ilman "Mitä nämä tekevät?" -nappia. Iso rivi kertoo mitä saatte, ja pieni
+rivi mitä teidän pitää tehdä. Isolla rivillä ei ole kuvaketta. Rakennus näkyy isona kuvana, ja
+parannuksessa näkyvät vanha ja uusi kuva nuolella.
 
-| Kortti | Hyöty | Selitys |
+| Kortti | Iso rivi | Pieni rivi |
 |---|---|---|
-| Pieni iglu | +N kotipaikkaa | (uusi koti, vie lumikentän) |
-| Iglu, Iso iglu | +N kotipaikkaa, kuvat vanha → uusi | Ei vie uutta lumikenttää. |
-| Laavu ja seuraajat | Tyytyväisyys kasvaa | Täällä vietetään aikaa yhdessä. |
-| Ulkoluokka ja seuraajat | Lisää energiaa | Opiskelemalla saat N energiaa kuussa. |
-| Työpenkki ja seuraajat | Enemmän joka työstä | Työkaluilla +10 muuttuu +13:ksi. |
-| Ei rakenneta | Puu ja jää säästyvät | |
+| Pieni iglu | Koti 4 kyläläiselle | Rakennetaan vapaalle lumikentälle. |
+| Iglu, Iso iglu | Koti 4 → 7 kyläläiselle | Pieni iglu kasvaa samalla paikalla. |
+| Laavu | Tyytyväisyyttä jopa +4 kuussa | Kun vietätte täällä aikaa yhdessä. |
+| Kylätalo, Lumilinna | Tyytyväisyyttä jopa +4 → +5 kuussa | Kun vietätte täällä aikaa yhdessä. |
+| Ulkoluokka | Energiaa 3 → 4 joka kuukausi | Kun opiskelet täällä 4 kertaa. |
+| Koulu, Iso koulu | Opiskelu käy 2 kertaa nopeammin | Kun opiskelet täällä. |
+| Työpenkki | Työstä +10 → +13 | Kun teet täällä työkaluja 4 kertaa. |
+| Paja, Iso paja | Työkalut valmistuvat 2 kertaa nopeammin | Kun teet täällä työkaluja. |
+| Ei rakenneta | Puu ja jää säästyvät | Kylä ei saa tässä kuussa mitään uutta. |
 
-Numerot lasketaan säännöistä, ei kirjoiteta tekstiin. Kartalla rakennuksen ponnahdusikkuna kertoo
-saman yhdellä lauseella. Otsikon `vote.title` korvaa ylärivin KYLÄKOKOUS!.
+Luvut ovat esimerkkejä 20 hengen luokasta ja lasketaan säännöistä, ei kirjoiteta tekstiin. Kartalla
+rakennuksen ponnahdusikkuna kertoo saman. Otsikon `vote.title` korvaa ylärivin KYLÄKOKOUS.
 
 ## 4. Tavoite ja Näin pelataan
 
