@@ -191,6 +191,41 @@ describe('the action button pill: what one energy buys', () => {
     expect(text(html)).toContain('Kasvihuone on korjattu tyhjäksi.');
   });
 
+  it('a field with four left promises exactly +4', () => {
+    const [act] = buttons(renderPanel({ terrain: 'field', stock: 4 }, ready('harvest', resource('food', 4))));
+    expect(text(act!.inner)).toMatch(/→\s+\+4/);
+    expect(labelOf(act!)).toBe('Korjaa sato, 1 energia, saat 4 ruokaa');
+  });
+
+  it('at the top skill level the refused action promises no progress', () => {
+    // The rules give done 0 and needed 12 here; "1 / 12" would be a lie.
+    const maxed: Yield = { type: 'progress', skill: 'education', amount: 1, done: 0, needed: 12, level: 3 };
+    const html = renderPanel(
+      { building: { kind: 'school', level: 1 } },
+      { kind: 'study', available: false, reason: 'max-level', yield: maxed },
+    );
+    const [act] = buttons(html);
+    expect(act!.disabled).toBe(true);
+    expect(act!.inner).not.toContain('→');
+    expect(pips(act!.inner)).toEqual([]);
+    expect(text(act!.inner)).toMatch(/−1/);
+    expect(labelOf(act!)).toBe('Opiskele, 1 energia');
+    expect(text(html)).toContain('Olet jo enimmäistasolla.');
+    expect(text(html)).not.toContain('/ 12');
+  });
+
+  it('keeps the pill while the action is on its way and swaps only the name', () => {
+    const html = renderPanel({ terrain: 'forest', stock: 40 }, ready('chop', resource('wood', 10)), { pending: true });
+    const [act] = buttons(html);
+    expect(act!.disabled).toBe(true);
+    expect(text(act!.inner)).toContain('Tehdään…');
+    expect(text(act!.inner)).not.toContain('Kaada puita');
+    expect(text(act!.inner)).toMatch(/−1\s+→\s+\+10/);
+    expect(act!.inner).toContain('art/kenney/icons/wood.png');
+    // The name still says the action, and starts with what is shown.
+    expect(labelOf(act!)).toBe('Tehdään… Kaada puita, 1 energia, saat 10 puuta');
+  });
+
   it('keeps the old progress bar out of the popup: the pips are the progress', () => {
     const html = renderPanel({ terrain: 'meadow', work: 1 }, ready('plow', work(1, 3)));
     expect(html).not.toMatch(/class="work\b/);
@@ -303,23 +338,38 @@ describe('the snow field warning', () => {
   }
 
   it('says how many free snow fields are left when there are two', () => {
-    expect(text(plow(2))).toContain('Iglut tarvitsevat lumikenttiä: tämän jälkeen vapaita on 2.');
+    expect(text(plow(2))).toContain('Iglut tarvitsevat lumikenttiä: tämän jälkeen vapaana on enää 2 lumikenttää.');
   });
 
-  it('says it when only one is left', () => {
-    expect(text(plow(1))).toContain('Iglut tarvitsevat lumikenttiä: tämän jälkeen vapaita on 1.');
+  it('says it in the singular when only one is left', () => {
+    expect(text(plow(1))).toContain('Iglut tarvitsevat lumikenttiä: tämän jälkeen vapaana on enää 1 lumikenttä.');
   });
 
-  it('has its own words when none are left', () => {
+  it('has its own words when none are left, and still says igloos need them', () => {
     const shown = text(plow(0));
-    expect(shown).toContain('Tämän jälkeen vapaita lumikenttiä ei ole.');
-    expect(shown).not.toContain('vapaita on');
+    expect(shown).toContain('Iglut tarvitsevat lumikenttiä, mutta tämän jälkeen vapaita ei ole.');
+    expect(shown).not.toContain('vapaana on enää');
   });
 
   it('is silent when the rules say nothing', () => {
     const shown = text(plow());
     expect(shown).not.toContain('Iglut tarvitsevat');
+    expect(shown).not.toContain('vapaana');
     expect(shown).not.toContain('vapaita');
+  });
+
+  it('is linked to the plow button, so a screen reader reads it with the button', () => {
+    const html = plow(1);
+    const [act] = buttons(html);
+    const note = /<p[^>]*class="note[^"]*"[^>]*id="([^"]+)"|<p[^>]*id="([^"]+)"[^>]*class="note/.exec(html);
+    const id = note?.[1] ?? note?.[2];
+    expect(id).toBeTruthy();
+    expect(act!.attrs).toMatch(new RegExp(`aria-describedby="[^"]*\\b${id}\\b`));
+  });
+
+  it('is described together with the reason when the button is refused', () => {
+    const [act] = buttons(plow(1, { available: false, reason: 'no-actions-left' }));
+    expect(/aria-describedby="([^"]*)"/.exec(act!.attrs)?.[1]?.split(' ')).toHaveLength(2);
   });
 
   it('never blocks: the plow button stays usable', () => {
@@ -329,7 +379,7 @@ describe('the snow field warning', () => {
 
   it('shows even when the plow action is unavailable, as long as its button is shown', () => {
     const html = plow(1, { available: false, reason: 'no-actions-left' });
-    expect(text(html)).toContain('tämän jälkeen vapaita on 1.');
+    expect(text(html)).toContain('tämän jälkeen vapaana on enää 1 lumikenttä.');
     expect(buttons(html)[0]!.disabled).toBe(true);
   });
 
@@ -372,15 +422,15 @@ describe('what a building gives, above the button', () => {
       { kind: null, available: false, reason: 'no-action', yield: { type: 'none' } },
       { village: v },
     );
-    expect(text(html)).toContain(`Koti ${people} kyläläiselle`);
-    expectLineFirst(html, `Koti ${people} kyläläiselle`);
+    expect(text(html)).toContain(`Koti noin ${people} kyläläiselle`);
+    expectLineFirst(html, `Koti noin ${people} kyläläiselle`);
     // Bigger homes shelter more.
     const big = renderPanel(
       { terrain: 'meadow', building: { kind: 'shelter', level: 3 } },
       { kind: null, available: false, reason: 'no-action', yield: { type: 'none' } },
       { village: v },
     );
-    expect(text(big)).toContain(`Koti ${shelterPeople(3, 10)} kyläläiselle`);
+    expect(text(big)).toContain(`Koti noin ${shelterPeople(3, 10)} kyläläiselle`);
   });
 
   it('the school says studying gives more energy', () => {

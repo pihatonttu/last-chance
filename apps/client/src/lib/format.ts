@@ -1,7 +1,7 @@
 /** Text for game values. Everything goes through the translation file. */
 import type { DebriefQuestion } from '@saari/debrief';
 import type { TickerEvent } from '@saari/protocol';
-import type { ActionKind, BuildingKind, Gain, Level, PublicTile, Terrain, VoteOption, Yield } from '@saari/rules';
+import type { ActionKind, BuildingKind, Gain, Level, PublicTile, Terrain, VoteOption } from '@saari/rules';
 import { formatNumber, t, tp, type MessageKey } from '../i18n/index.ts';
 import { temperatureText } from './heat.ts';
 import { parseOptionId } from './rules-info.ts';
@@ -55,22 +55,6 @@ export function gainText(gain: Gain): string {
   return gainParts(gain)
     .map((p) => p.text)
     .join(', ');
-}
-
-/** The gain an action preview promises, e.g. "+10 puuta"; empty for 'none'. */
-export function yieldGain(y: Yield): string {
-  switch (y.type) {
-    case 'resource':
-      return tp(`gain.${y.resource}`, y.amount);
-    case 'work':
-      return tp('gain.work', y.amount);
-    case 'recreation':
-      return tp('gain.recreation', 1);
-    case 'progress':
-      return tp(`gain.${y.skill}`, y.amount);
-    case 'none':
-      return '';
-  }
 }
 
 export function tickerText(event: TickerEvent): string {

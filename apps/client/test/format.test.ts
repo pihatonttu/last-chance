@@ -1,18 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { actionName, gainText, optionName, questionText, tickerText, yieldGain } from '../src/lib/format.ts';
+import { actionName, gainText, optionName, questionText, tickerText } from '../src/lib/format.ts';
 import { checkNickname } from '../src/lib/names.ts';
 import { parseOptionId } from '../src/lib/rules-info.ts';
 import { voteShare } from '../src/lib/vote.ts';
 
 describe('game text', () => {
-  it('shows the exact previewed yield of every yield type', () => {
-    expect(yieldGain({ type: 'resource', resource: 'wood', amount: 13 })).toBe('+13 puuta');
-    expect(yieldGain({ type: 'work', amount: 1.25, done: 0, needed: 3 })).toBe('+1,25 työtä');
-    expect(yieldGain({ type: 'recreation', usesLeft: 2, capacity: 5 })).toBe('+1 virkistyskerta');
-    expect(yieldGain({ type: 'progress', skill: 'education', amount: 2, done: 0, needed: 3, level: 1 })).toBe('+2 koulutukseen');
-    expect(yieldGain({ type: 'none' })).toBe('');
-  });
-
   it('names gains, options and ticker events without anyone’s name', () => {
     expect(gainText({ wood: 10 })).toBe('+10 puuta');
     expect(gainText({ food: 5, work: 1 })).toBe('+5 ruokaa, +1 työ');

@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { VillageView } from '@saari/protocol';
   import type { ActionKind, ActionPreview, Coord, Phase, PublicTile, Yield } from '@saari/rules';
-  import { t } from '../i18n/index.ts';
-  import { actionLabel } from '../lib/action-pill.ts';
+  import { t, tp } from '../i18n/index.ts';
+  import { actionLabel, pendingLabel, skillMaxed } from '../lib/action-pill.ts';
   import { actionName, buildingName, gainText, terrainDescription, terrainName } from '../lib/format.ts';
   import { fireShort, temperatureText } from '../lib/heat.ts';
   import { exploreNeeded, shelterPeople, stockMax, tileUseCapacity, workNeeded } from '../lib/rules-info.ts';
@@ -111,6 +111,8 @@
       case 'recreation':
         return [t('yield.recreation', { left: y.usesLeft, capacity: y.capacity })];
       case 'progress': {
+        // At the top level there is nothing to progress towards.
+        if (skillMaxed(y)) return [];
         const after = y.done + y.amount;
         const lines = [t('yield.skill', { done: y.done, after: Math.min(after, y.needed), needed: y.needed })];
         if (after >= y.needed) lines.push(t('yield.levelUp', { level: y.level + 1 }));
@@ -133,8 +135,13 @@
   const meadowNote = $derived.by((): string | null => {
     if (!preview || preview.kind !== 'plow' || preview.freeMeadowsAfter === undefined) return null;
     const n = preview.freeMeadowsAfter;
-    return n > 0 ? t('tile.meadowsLeft', { n }) : t('tile.meadowsNone');
+    return n > 0 ? tp('tile.meadowsLeft', n) : t('tile.meadowsNone');
   });
+  /** What describes the main button: the snow field note and, when it is refused, the reason. */
+  const mainDescribedBy = $derived(
+    [meadowNote ? 'act-note' : '', preview && !preview.available && preview.reason ? 'act-reason' : ''].filter(Boolean).join(' ') ||
+      undefined,
+  );
   /** Both buttons often fail for the same reason (no energy): say it once. */
   const alternativeReason = $derived.by(() => {
     if (!alternative || alternative.available || !alternative.reason) return null;
@@ -194,26 +201,25 @@
       {:else if preview.kind === null}
         <p class="muted">{preview.reason && preview.reason !== 'no-action' ? t(`refusal.${preview.reason}`) : t('action.none')}</p>
       {:else}
+        {@const label = actionLabel(actionName(preview.kind), preview.yield)}
+        {@const busy = pending && pressed === 'main'}
+        <!-- While the server answers only the name changes; the pill stays, so nothing jumps under the finger. -->
         <button
           type="button"
           class="btn btn-primary btn-big act"
           disabled={!preview.available || pending}
-          aria-label={actionLabel(actionName(preview.kind), preview.yield)}
-          aria-describedby={!preview.available && preview.reason ? 'act-reason' : undefined}
+          aria-label={busy ? pendingLabel(label) : label}
+          aria-describedby={mainDescribedBy}
           onclick={() => press()}
         >
-          {#if pending && pressed === 'main'}
-            {t('action.pending')}
-          {:else}
-            <span class="name">
-              {#if preview.kind === 'fish'}<Icon name="ice-hole" size={28} />{/if}
-              <span>{actionName(preview.kind)}</span>
-            </span>
-            <GainChip gain={preview.yield} />
-          {/if}
+          <span class="name">
+            {#if preview.kind === 'fish'}<Icon name="ice-hole" size={28} />{/if}
+            <span>{busy ? t('action.pending') : actionName(preview.kind)}</span>
+          </span>
+          <GainChip gain={preview.yield} />
         </button>
         {#if meadowNote}
-          <p class="note">{meadowNote}</p>
+          <p class="note" id="act-note">{meadowNote}</p>
         {/if}
         {#if !preview.available && preview.reason}
           <p class="reason" id="act-reason" role="status">{t(`refusal.${preview.reason}`)}</p>
@@ -221,20 +227,18 @@
       {/if}
 
       {#if phase === 'action' && alternative}
+        {@const altLabel = actionLabel(actionName(alternative.kind), alternative.yield)}
+        {@const altBusy = pending && pressed === 'demolish'}
         <button
           type="button"
           class="btn btn-secondary alt"
           disabled={!alternative.available || pending}
-          aria-label={actionLabel(actionName(alternative.kind), alternative.yield)}
+          aria-label={altBusy ? pendingLabel(altLabel) : altLabel}
           aria-describedby={alternativeReason ? 'demolish-reason' : sharedReason}
           onclick={() => press('demolish')}
         >
-          {#if pending && pressed === 'demolish'}
-            {t('action.pending')}
-          {:else}
-            <span class="name">{actionName(alternative.kind)}</span>
-            <GainChip gain={alternative.yield} />
-          {/if}
+          <span class="name">{altBusy ? t('action.pending') : actionName(alternative.kind)}</span>
+          <GainChip gain={alternative.yield} />
         </button>
         <p class="hint">{t('yield.workDone.demolish')}</p>
         {#if alternativeReason}

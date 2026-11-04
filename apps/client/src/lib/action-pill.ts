@@ -4,6 +4,7 @@
  */
 import type { Resources, Yield } from '@saari/rules';
 import { t, tp } from '../i18n/index.ts';
+import { maxSkillLevel } from './rules-info.ts';
 
 /** One action always costs one energy. */
 export const ENERGY_COST = 1;
@@ -44,14 +45,23 @@ function steps(done: number, amount: number, needed: number): PillResult {
   return { type: 'pips', pips };
 }
 
+/**
+ * A skill action at the top level is refused, and the rules give it done 0 of a needed number
+ * that is no longer a goal. Showing "1 / 12" there would promise progress that cannot happen.
+ */
+export function skillMaxed(y: Yield): boolean {
+  return y.type === 'progress' && y.level >= maxSkillLevel();
+}
+
 export function pillResult(y: Yield): PillResult {
   switch (y.type) {
     case 'resource':
       // A field with nothing left promises nothing; its reason is said under the button.
       return y.amount > 0 ? { type: 'resource', resource: y.resource, amount: y.amount } : { type: 'none' };
     case 'work':
-    case 'progress':
       return steps(y.done, y.amount, y.needed);
+    case 'progress':
+      return skillMaxed(y) ? { type: 'none' } : steps(y.done, y.amount, y.needed);
     case 'recreation':
       return { type: 'face' };
     case 'none':
@@ -84,6 +94,7 @@ export function actionLabel(action: string, y: Yield): string {
       return t('action.label.work', { action, cost, after, needed: y.needed });
     }
     case 'progress': {
+      if (skillMaxed(y)) return t('action.label', { action, cost });
       const after = Math.min(y.needed, y.done + y.amount);
       return t('action.label.progress', { action, cost, after, needed: y.needed });
     }
@@ -92,4 +103,9 @@ export function actionLabel(action: string, y: Yield): string {
     case 'none':
       return t('action.label', { action, cost });
   }
+}
+
+/** The button's name while the server answers: what the button shows, then the full label. */
+export function pendingLabel(label: string): string {
+  return t('action.pendingLabel', { pending: t('action.pending'), label });
 }
