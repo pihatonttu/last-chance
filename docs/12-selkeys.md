@@ -54,7 +54,7 @@ Ylärivi kaikissa pelin vaiheissa, projektorilla sama isompana:
   aika. Sääkello korvaa erillisen kellon ja lämpötilapillerin.
 - **Oikealla ennuste:** "Ensi kuussa −30°" ja kevyt vinkki, joka kertoo mitä tapahtuu eikä määrää:
   - kova pakkanen (≤ −30°): Kova pakkanen: nuotio vie paljon puuta
-  - kylmä (−20°, −25°): Kylmenee: nuotio vie enemmän puuta
+  - kylmä (−20°, −25°): Kylmä sää: nuotio vie enemmän puuta
   - leuto (≥ −15°): Leuto sää: puuta voi jäädä rakentamiseen
   - viimeinen kuukausi: Juhla tämän kuun lopussa!
 
