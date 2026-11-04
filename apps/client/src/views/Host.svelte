@@ -195,6 +195,7 @@
                 vote={game.vote}
                 {voters}
                 villagers={game.village.villagers}
+                shelterCapacity={game.village.shelterCapacity}
                 resources={game.village.resources}
                 compact={game.phase === 'action'}
               />

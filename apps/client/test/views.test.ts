@@ -133,6 +133,7 @@ describe('vote cards', () => {
     myVote: null,
     pending: null,
     villagers: 10,
+    shelterCapacity: 0,
     resources: { food: 0, wood: 30, stone: 40 },
     lastVote: null,
     onvote: () => {},

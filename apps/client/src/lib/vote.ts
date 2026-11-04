@@ -8,10 +8,17 @@ import {
   actionsToNextSkill,
   gatheringMood,
   PARAMS,
-  shelterPeople,
   skillGainPerAction,
   toolsExample,
 } from './rules-info.ts';
+
+/** The village numbers a card is counted from. */
+export interface VoteVillage {
+  /** N: how many villagers there are. */
+  villagers: number;
+  /** Homes now: the number the top bar shows (`village.shelterCapacity`). */
+  shelterCapacity: number;
+}
 
 /** Everything a vote card says about an option, apart from its price and tally. */
 export interface OptionCard {
@@ -27,8 +34,12 @@ export interface OptionCard {
   reason: string;
 }
 
-/** The option's text. Numbers come from the same rules the server plays by (`rules-info.ts`). */
-export function optionCard(option: VoteOption, villagers: number, params: GameParams = PARAMS): OptionCard {
+/**
+ * The option's text. Homes come from the server (`shelterAfter`, counted like the top bar's
+ * number); the rest from the same rules the server plays by (`rules-info.ts`).
+ */
+export function optionCard(option: VoteOption, village: VoteVillage, params: GameParams = PARAMS): OptionCard {
+  const { villagers } = village;
   if (option.kind === 'none' || option.level === 0) {
     return { name: t('vote.noneShort'), art: null, fromArt: null, benefit: t('vote.gain.none'), reason: t('vote.why.none') };
   }
@@ -37,21 +48,16 @@ export function optionCard(option: VoteOption, villagers: number, params: GamePa
   const before = (level - 1) as Level;
   const base = {
     name: buildingName(kind, level),
-    art: `props/${kind}-${level}`,
-    fromArt: grows ? `props/${kind}-${before}` : null,
+    art: optionArt(option),
+    fromArt: grows ? optionArt({ ...option, level: before }) : null,
   };
   switch (kind) {
     case 'shelter':
-      return grows
-        ? {
-            ...base,
-            benefit: t('vote.gain.homesGrow', {
-              from: shelterPeople(before, villagers, params),
-              to: shelterPeople(level, villagers, params),
-            }),
-            reason: t('vote.why.shelterGrows', { name: buildingName(kind, before) }),
-          }
-        : { ...base, benefit: t('vote.gain.homes', { n: shelterPeople(level, villagers, params) }), reason: t('vote.why.shelterNew') };
+      return {
+        ...base,
+        benefit: t('vote.gain.homes', { from: village.shelterCapacity, to: option.shelterAfter ?? village.shelterCapacity }),
+        reason: grows ? t('vote.why.shelterGrows', { name: buildingName(kind, before) }) : t('vote.why.shelterNew'),
+      };
     case 'school':
       return grows
         ? {

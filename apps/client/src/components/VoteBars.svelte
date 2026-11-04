@@ -17,11 +17,13 @@
     voters: number;
     /** The village's size N, which the numbers on the cards are counted from. */
     villagers: number;
+    /** Homes now: the number the top bar shows, the "before" of every home row. */
+    shelterCapacity: number;
     resources: Resources;
     /** Action phase: the options the class can plan for, without bars. */
     compact?: boolean;
   }
-  let { vote, voters, villagers, resources, compact = false }: Props = $props();
+  let { vote, voters, villagers, shelterCapacity, resources, compact = false }: Props = $props();
 </script>
 
 <section class="vote-bars" aria-labelledby="vote-bars-title">
@@ -29,7 +31,7 @@
   <p class="cast">{compact ? t('vote.upcoming') : t('vote.cast', { cast: vote.votesCast, total: voters })}</p>
   <ol>
     {#each vote.options as option (option.id)}
-      {@const card = optionCard(option, villagers)}
+      {@const card = optionCard(option, { villagers, shelterCapacity })}
       {@const count = vote.counts[option.id] ?? 0}
       {@const missing = missingFor(option, resources)}
       {@const building = option.kind !== 'none' && option.level > 0}

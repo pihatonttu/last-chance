@@ -219,7 +219,7 @@ export const fi = {
   'building.gathering.3': 'Lumilinna',
   'building.shelter.description': 'Iglu on koti noin {people} kyläläiselle.',
   'building.school.description': 'Opiskelemalla saat lisää energiaa joka kuukausi.',
-  'building.workshop.description': 'Työkaluilla saat enemmän joka työstä.',
+  'building.workshop.description': 'Työkaluilla saat jokaisesta työstä enemmän.',
   'building.gathering.description': 'Yhdessä vietetty aika tekee kylästä tyytyväisemmän.',
   'building.none': 'Ei rakenneta tässä kuussa',
 
@@ -345,8 +345,7 @@ export const fi = {
   'vote.freeShort': 'Ilmainen',
   'vote.missing': 'Ei vielä varaa',
   // The big line of a card: what the village gets, before → after. The small line: what to do then.
-  'vote.gain.homes': 'Koti {n} kyläläiselle',
-  'vote.gain.homesGrow': 'Koti {from} → {to} kyläläiselle',
+  'vote.gain.homes': 'Kotipaikkoja {from} → {to}',
   'vote.gain.mood': 'Tyytyväisyyttä jopa +{n} kuussa',
   'vote.gain.moodGrow': 'Tyytyväisyyttä jopa +{from} → +{to} kuussa',
   'vote.gain.energy': 'Energiaa {from} → {to} joka kuukausi',

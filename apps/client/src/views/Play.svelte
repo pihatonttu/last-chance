@@ -298,6 +298,7 @@
               myVote={you?.vote ?? null}
               pending={client.pendingVote}
               villagers={game.village.villagers}
+              shelterCapacity={game.village.shelterCapacity}
               resources={game.village.resources}
               lastVote={client.lastVote}
               onvote={(option) => session.vote(option)}
@@ -489,7 +490,8 @@
   }
   .popup-tall {
     top: var(--under-hud);
-    width: min(26rem, calc(100% - 1.5rem));
+    /* Wide enough for the vote cards to sit in two or three columns. */
+    width: min(56rem, calc(100% - 1.5rem));
   }
   .popup-top {
     top: calc(var(--under-hud) + 3.25rem);

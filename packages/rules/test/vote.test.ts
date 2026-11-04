@@ -146,3 +146,52 @@ describe('vote result', () => {
     expect(tileAt(game, 1, 1).building).toEqual({ kind: 'shelter', level: 2 });
   });
 });
+
+describe('shelter places a vote would give (shelterAfter)', () => {
+  // Igloos of mixed levels, built one a month: small, small, igloo, small, igloo, big, igloo, big.
+  const BUILDS = ['shelter-1', 'shelter-1', 'shelter-2', 'shelter-1', 'shelter-2', 'shelter-3', 'shelter-2', 'shelter-3'];
+
+  it.each([15, 20, 30])('equals shelterCapacity() once the option is really built, at %i villagers', (villagers) => {
+    const game = setup({ players: villagers, params: withoutLoss(freeBuildingParams()) });
+    for (const id of BUILDS) {
+      const option = game.voteOptions().find((o) => o.id === id);
+      expect(option?.shelterAfter, id).toBeTypeOf('number');
+      buildByVote(game, id);
+      expect(game.shelterCapacity(), `${id} at ${villagers}`).toBe(option!.shelterAfter);
+    }
+  });
+
+  it('counts the whole village once, not each igloo rounded up: 20 villagers, one small igloo, 3 places', () => {
+    // A level-1 igloo covers 1/6 of 20 villagers; 17 are left without a home.
+    const game = setup({ players: 20, params: withoutLoss(freeBuildingParams()) });
+    expect(game.shelterCapacity()).toBe(0);
+    expect(game.voteOptions().find((o) => o.id === 'shelter-1')?.shelterAfter).toBe(3);
+    buildByVote(game, 'shelter-1');
+    expect(game.shelterCapacity()).toBe(3);
+    expect(game.voteOptions().find((o) => o.id === 'shelter-2')?.shelterAfter).toBe(7);
+  });
+
+  it('an upgrade replaces the share of one level-1 igloo, whichever level the others are', () => {
+    const game = setup({ players: 15, params: withoutLoss(freeBuildingParams()) });
+    buildByVote(game, 'shelter-1');
+    buildByVote(game, 'shelter-1');
+    // 1/6 + 1/6 = 1/3: 5 places; raising one to level 2 gives 1/3 + 1/6 = 1/2: 7 places.
+    expect(game.shelterCapacity()).toBe(5);
+    expect(game.voteOptions().find((o) => o.id === 'shelter-2')?.shelterAfter).toBe(7);
+    buildByVote(game, 'shelter-2');
+    expect(game.shelterCapacity()).toBe(7);
+  });
+
+  it('only shelter options carry it, and an option that is not affordable still has it', () => {
+    const game = setup({ players: 15, params: withoutLoss(freeBuildingParams()) });
+    buildByVote(game, 'shelter-1');
+    const options = game.voteOptions();
+    expect(options.map((o) => o.kind)).toEqual(['none', 'shelter', 'shelter', 'school', 'workshop', 'gathering']);
+    for (const o of options) expect('shelterAfter' in o, o.id).toBe(o.kind === 'shelter');
+    const map = ['~~~~~', '~TTT~', '~TLT~', '~~~~~'];
+    const crowded = setup({ map, players: 15, params: freeBuildingParams() });
+    const blocked = crowded.voteOptions().find((o) => o.id === 'shelter-1');
+    expect(blocked?.blocked).toEqual(['space']);
+    expect(blocked?.shelterAfter).toBe(2);
+  });
+});

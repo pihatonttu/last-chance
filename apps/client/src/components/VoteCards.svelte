@@ -10,25 +10,47 @@
 
   /**
    * The month's vote as picture cards. Each card tells at once what the village gets (one big
-   * line, with before → after numbers where a building grows), what the children must then do
+   * line, with before → after numbers where something grows), what the children must then do
    * (one small line), what it costs and how many have chosen it, so nothing is hidden behind a
    * button (P38: little text at a time). Tapping a card votes. A red line warns when the
    * option's wood would leave the village fire short, or when there is no snow field to build
    * on. The phase's big title is in the top bar; the heading here is for screen readers.
+   *
+   * On a laptop or tablet the cards sit in columns with large pictures above the text. On a
+   * phone each card is a compact row, the picture on the left, so every option fits on a
+   * short scroll.
    */
   interface Props {
     vote: VoteView;
     phase: Phase;
     myVote: string | null;
     pending: string | null;
+    /** N: the village's size, which the numbers on the cards are counted from. */
     villagers: number;
+    /** Homes now: the number the top bar shows, the "before" of every home card. */
+    shelterCapacity: number;
     resources: Resources;
     lastVote: VoteOutcome | null;
     onvote: (option: string) => void;
+    /** Force the phone layout on or off; by default it follows the screen width. */
+    compact?: boolean;
   }
-  let { vote, phase, myVote, pending, villagers, resources, lastVote, onvote }: Props = $props();
+  let { vote, phase, myVote, pending, villagers, shelterCapacity, resources, lastVote, onvote, compact: forced }: Props = $props();
 
   const open = $derived(phase === 'vote');
+
+  // The phone breakpoint of Play.svelte, where its popup becomes a bottom sheet.
+  const PHONE = '(max-width: 640px)';
+  let phone = $state(typeof matchMedia === 'function' && matchMedia(PHONE).matches);
+  $effect(() => {
+    if (typeof matchMedia !== 'function') return;
+    const query = matchMedia(PHONE);
+    const update = () => (phone = query.matches);
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  });
+  const compact = $derived(forced ?? phone);
 </script>
 
 <section class="vote" aria-labelledby="vote-title">
@@ -38,9 +60,9 @@
     <p class="error" role="alert">{t(`voteRefusal.${lastVote.reason}`)}</p>
   {/if}
 
-  <ul class="cards">
+  <ul class="cards" class:compact>
     {#each vote.options as option (option.id)}
-      {@const card = optionCard(option, villagers)}
+      {@const card = optionCard(option, { villagers, shelterCapacity })}
       {@const mine = myVote === option.id}
       {@const missing = missingFor(option, resources)}
       {@const blocked = option.blocked.length > 0}
@@ -50,6 +72,7 @@
         <button
           type="button"
           class="card"
+          class:compact
           class:mine
           class:blocked
           aria-pressed={mine}
@@ -60,48 +83,50 @@
           {#if card.art}
             <span class="pics">
               {#if card.fromArt}
-                <PropPicture texture={card.fromArt} size={104} />
+                <PropPicture texture={card.fromArt} size={compact ? 52 : 104} />
                 <span class="arrow" aria-hidden="true">→</span>
               {/if}
-              <PropPicture texture={card.art} size={104} />
+              <PropPicture texture={card.art} size={compact ? (card.fromArt ? 52 : 76) : 104} />
             </span>
           {/if}
-          <span class="name">
-            {card.name}
+          <span class="text">
+            <span class="name">
+              {card.name}
+              {#if building}
+                <span class="stars" aria-label={t('vote.level', { level: option.level })}>
+                  {#each [1, 2, 3] as star (star)}<span class:on={star <= option.level}>★</span>{/each}
+                </span>
+              {/if}
+            </span>
+            <span class="gain" class:none={!building}>{card.benefit}</span>
+            {#if missing.space}
+              <span class="lock">{t('vote.blocked.space')}</span>
+            {:else}
+              <span class="why">{card.reason}</span>
+            {/if}
             {#if building}
-              <span class="stars" aria-label={t('vote.level', { level: option.level })}>
-                {#each [1, 2, 3] as star (star)}<span class:on={star <= option.level}>★</span>{/each}
+              <span class="cost">
+                {#if option.cost.wood === 0 && option.cost.stone === 0}
+                  <span class="free">{t('vote.freeShort')}</span>
+                {/if}
+                {#if option.cost.wood > 0}
+                  <span class="price" class:short={missing.wood > 0}><ArtIcon name="wood" size={22} />{formatNumber(option.cost.wood)}</span>
+                {/if}
+                {#if option.cost.stone > 0}
+                  <span class="price" class:short={missing.stone > 0}><ArtIcon name="stone" size={22} />{formatNumber(option.cost.stone)}</span>
+                {/if}
               </span>
             {/if}
-          </span>
-          <span class="gain" class:none={!building}>{card.benefit}</span>
-          {#if missing.space}
-            <span class="lock">{t('vote.blocked.space')}</span>
-          {:else}
-            <span class="why">{card.reason}</span>
-          {/if}
-          {#if building}
-            <span class="cost">
-              {#if option.cost.wood === 0 && option.cost.stone === 0}
-                <span class="free">{t('vote.freeShort')}</span>
-              {/if}
-              {#if option.cost.wood > 0}
-                <span class="price" class:short={missing.wood > 0}><ArtIcon name="wood" size={22} />{formatNumber(option.cost.wood)}</span>
-              {/if}
-              {#if option.cost.stone > 0}
-                <span class="price" class:short={missing.stone > 0}><ArtIcon name="stone" size={22} />{formatNumber(option.cost.stone)}</span>
-              {/if}
+            {#if blocked}
+              {#if !missing.space}<span class="lock">{t('vote.missing')}</span>{/if}
+            {:else if option.leavesFireCold}
+              <!-- A warning only: the vote is still accepted (docs/10-arktinen.md §4). -->
+              <span class="fire-cold"><Icon name="thermometer" size={18} />{t('vote.fireCold')}</span>
+            {/if}
+            <span class="tally" aria-label={tp('vote.votes', count)}>
+              <span class="bar"><span style:width="{voteShare(vote, option.id) * 100}%"></span></span>
+              <span class="count">{formatNumber(count)}</span>
             </span>
-          {/if}
-          {#if blocked}
-            {#if !missing.space}<span class="lock">{t('vote.missing')}</span>{/if}
-          {:else if option.leavesFireCold}
-            <!-- A warning only: the vote is still accepted (docs/10-arktinen.md §4). -->
-            <span class="fire-cold"><Icon name="thermometer" size={18} />{t('vote.fireCold')}</span>
-          {/if}
-          <span class="tally" aria-label={tp('vote.votes', count)}>
-            <span class="bar"><span style:width="{voteShare(vote, option.id) * 100}%"></span></span>
-            <span class="count">{formatNumber(count)}</span>
           </span>
           {#if mine}<span class="visually-hidden">{t('vote.yourChoice')}</span>{/if}
         </button>
@@ -126,6 +151,10 @@
     /* Wide enough for two 104 px pictures and the arrow of an upgrade. */
     grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr));
     gap: 0.6rem;
+  }
+  .cards.compact {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
   }
   .card {
     position: relative;
@@ -191,6 +220,13 @@
     font-size: 1.6rem;
     font-weight: 900;
     color: var(--primary);
+  }
+  .text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
   }
   .name {
     display: flex;
@@ -293,5 +329,72 @@
   .error {
     color: var(--danger);
     font-weight: 700;
+  }
+
+  /* Phone: a compact row. The picture (an upgrade's old above its new) on the left, the text on the right. */
+  .card.compact {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0.6rem;
+    padding: 0.4rem 0.55rem;
+  }
+  .compact .pics {
+    flex: none;
+    flex-direction: column;
+    width: 76px;
+    gap: 0;
+  }
+  .compact .arrow {
+    font-size: 1rem;
+    line-height: 1;
+    transform: rotate(90deg);
+  }
+  .compact .text {
+    flex-flow: row wrap;
+    align-content: flex-start;
+    gap: 0.15rem 0.5rem;
+  }
+  /* Everything takes a full line, except the price and the tally, which share the last one. */
+  .compact .name,
+  .compact .gain,
+  .compact .why,
+  .compact .lock,
+  .compact .fire-cold {
+    flex: 1 1 100%;
+  }
+  .compact .name {
+    order: 1;
+    font-size: 1.05rem;
+  }
+  .compact .gain {
+    order: 2;
+    min-height: 0;
+    padding: 0.15rem 0.45rem;
+    font-size: 0.95rem;
+  }
+  .compact .why {
+    order: 3;
+    font-size: 0.8rem;
+    line-height: 1.2;
+  }
+  .compact .lock,
+  .compact .fire-cold {
+    order: 4;
+    font-size: 0.8rem;
+    line-height: 1.2;
+  }
+  .compact .fire-cold {
+    flex: 0 1 auto;
+  }
+  .compact .cost {
+    order: 5;
+    flex: none;
+    align-items: center;
+  }
+  .compact .tally {
+    order: 6;
+    flex: 1 1 5rem;
+    margin-top: 0;
+    padding-top: 0;
   }
 </style>

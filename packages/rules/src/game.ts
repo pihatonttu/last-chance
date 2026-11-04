@@ -136,6 +136,11 @@ export interface VoteOption {
    * warns, even when the store is already short. A warning only; the vote is still accepted.
    */
   leavesFireCold: boolean;
+  /**
+   * Shelter options only: the village's `shelterCapacity()` once this option is built. Counted from
+   * the whole village's share, like the real capacity, so it is the number the top bar will show.
+   */
+  shelterAfter?: number;
 }
 
 export type VoteRefusal = 'wrong-phase' | 'unknown-player' | 'removed' | 'unknown-option' | 'blocked';
@@ -413,9 +418,30 @@ export class Game {
 
   /** Whole people with shelter this month (may exceed N when there is spare room). */
   shelterCapacity(): number {
-    const share = this.shelterShare();
+    return this.#capacityForShare(this.shelterShare());
+  }
+
+  /** The village's places for a given share: the whole village's share is rounded once, never per igloo. */
+  #capacityForShare(share: number): number {
     const n = this.#n();
     return share + EPSILON >= 1 ? Math.round(n * share) : n - this.#unsheltered(share);
+  }
+
+  /**
+   * The shelter share once a shelter option is built, added up tile by tile in the same order as
+   * `shelterShare()`: an upgrade replaces the share of the igloo it raises (the one the vote
+   * would pick), a new igloo adds one on the meadow it would take.
+   */
+  #shelterShareAfter(level: Level, upgrade: boolean): number {
+    const divisors = this.params.shelterDivisors;
+    const target = upgrade ? this.#upgradeTarget('shelter', level - 1) : this.#freeMeadow();
+    let share = 0;
+    for (const t of this.#tiles) {
+      const built = t === target ? level : t.building?.kind === 'shelter' ? t.building.level : 0;
+      if (built > 0) share += 1 / divisors[built - 1]!;
+    }
+    // No tile to build on (the option is blocked): count it as one more igloo all the same.
+    return target ? share : share + 1 / divisors[level - 1]!;
   }
 
   /** People without shelter: at least one whenever the share is below 1. */
@@ -881,7 +907,9 @@ export class Game {
     if (this.#resources.stone < cost.stone) blocked.push('stone');
     if (!upgrade && !this.#freeMeadow()) blocked.push('space');
     const leavesFireCold = cost.wood > 0 && cost.wood > this.#resources.wood - this.heatNeed();
-    return { id: `${kind}-${level}`, kind, level, upgrade, cost, blocked, leavesFireCold };
+    const option: VoteOption = { id: `${kind}-${level}`, kind, level, upgrade, cost, blocked, leavesFireCold };
+    if (kind === 'shelter') option.shelterAfter = this.#capacityForShare(this.#shelterShareAfter(level, upgrade));
+    return option;
   }
 
   #resolveVote(): VoteResolution {
