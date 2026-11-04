@@ -222,7 +222,7 @@
         <p class="muted">{tp('play.waiting.count', game.playerCount)}</p>
         <SoundToggle {sound} onLabel={t('play.soundOn')} offLabel={t('play.soundOff')} />
         <h2 class="howto-title">{t('lobby.howTo.title')}</h2>
-        <HowToPlay length={game.length} />
+        <HowToPlay />
       </div>
     </main>
   {:else if game.phase === 'ended'}

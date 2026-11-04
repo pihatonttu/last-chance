@@ -85,10 +85,10 @@ export const fi = {
   'lobby.trialHint': 'Voit pelata itse avaamalla oppilaan näkymän toiseen välilehteen.',
   'lobby.openStudent': 'Avaa oppilaan näkymä',
   'lobby.howTo.title': 'Näin pelataan',
-  'lobby.howTo.1': 'Pitäkää kylä tyytyväisenä, niin saatte tähtiä revontulijuhlassa {months} kuukauden päästä.',
-  'lobby.howTo.2': 'Kaikilla on {actions} energiaa kuussa, ja jokainen teko vie yhden.',
-  'lobby.howTo.3': 'Puu, jää ja ruoka menevät kylän yhteiseen varastoon, ja nuotio tarvitsee puuta.',
-  'lobby.howTo.4': 'Kuun lopussa kyläkokous äänestää, mitä rakennetaan.',
+  'lobby.howTo.1': 'Pitäkää kylä tyytyväisenä, niin saatte revontulijuhlassa tähtiä.',
+  'lobby.howTo.2': 'Kaikilla on {actions} energiaa kuussa, ja jokainen toiminto vie yhden.',
+  'lobby.howTo.3': 'Kaikki kerätty menee yhteiseen varastoon, ja nuotio tarvitsee puuta.',
+  'lobby.howTo.4': 'Kuun lopussa on kyläkokous: äänestätte, mitä rakennetaan.',
 
   // ---------------------------------------------------------------- players (host)
   'players.title': 'Pelaajat',

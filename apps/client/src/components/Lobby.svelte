@@ -81,7 +81,7 @@
 
     <div class="card howto">
       <h2>{t('lobby.howTo.title')}</h2>
-      <HowToPlay length={game.length} />
+      <HowToPlay />
     </div>
   </section>
 </div>

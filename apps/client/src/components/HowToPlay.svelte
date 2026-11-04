@@ -1,5 +1,4 @@
 <script lang="ts">
-  import type { GameLength } from '@saari/rules';
   import { t } from '../i18n/index.ts';
   import { PARAMS } from '../lib/rules-info.ts';
   import ArtIcon from './ArtIcon.svelte';
@@ -10,14 +9,11 @@
    * the energy, the shared store with the fire, and the village meeting. On the
    * projector's lobby and on pupils' devices while they wait.
    */
-  let { length }: { length: GameLength } = $props();
-
-  const months = $derived(PARAMS.months[length]);
 </script>
 
 <div class="how-to-play">
   <ol class="steps">
-    <li><span class="art"><ArtIcon name="ship" size={64} /></span>{t('lobby.howTo.1', { months })}</li>
+    <li><span class="art"><ArtIcon name="ship" size={64} /></span>{t('lobby.howTo.1')}</li>
     <li>
       <span class="art bolts" aria-hidden="true">
         {#each Array.from({ length: PARAMS.baseActions }, (_, i) => i) as i (i)}

@@ -19,15 +19,14 @@ function text(html: string): string {
 }
 
 /** The rendered steps, one HTML chunk per list item. */
-function steps(length: 'normal' | 'short' = 'normal'): string[] {
-  const { body } = render(HowToPlay, { props: { length } });
+function steps(): string[] {
+  const { body } = render(HowToPlay);
   return body.match(/<li[\s\S]*?<\/li>/g) ?? [];
 }
 
 describe('how to play', () => {
   it('has four steps', () => {
     expect(steps()).toHaveLength(4);
-    expect(steps('short')).toHaveLength(4);
   });
 
   it('shows one picture per step', () => {
@@ -51,8 +50,6 @@ describe('how to play', () => {
     expect(goal).toMatch(/tyytyväisenä/);
     expect(goal).toMatch(/tähtiä/);
     expect(goal).toMatch(/revontulijuhla/);
-    expect(goal).toContain(`${PARAMS.months.normal} kuukauden`);
-    expect(text(steps('short')[0]!)).toContain(`${PARAMS.months.short} kuukauden`);
   });
 
   it('the second step is the energy: N a month, every action uses one', () => {
@@ -76,7 +73,7 @@ describe('how to play', () => {
 describe('the word for the village score', () => {
   it('no message still says onnellisuus, mieliala or iloinen', () => {
     const offenders = allMessageKeys()
-      .filter((key) => /onnelli|mieliala|\biloi(nen|se)/i.test(t(key as never)))
+      .filter((key) => /onnelli|mieliala|\biloi/i.test(t(key as never)))
       .map((key) => `${key}: ${t(key as never)}`);
     expect(offenders).toEqual([]);
   });
