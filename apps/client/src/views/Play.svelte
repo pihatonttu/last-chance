@@ -261,7 +261,7 @@
         </div>
 
         {#if game.phase === 'action' && you}
-          <div class="corner bottom-left">
+          <div class="corner bottom-left" class:lifted={panel === 'tile'}>
             {#if you.actionsLeft === 0}<p class="bubble">{t('play.noActionsLeft')}</p>{/if}
             <EnergyMeter left={you.actionsLeft} max={you.maxActions} />
           </div>
@@ -383,6 +383,8 @@
     font-weight: 800;
   }
   .play {
+    /* How far the corners of the top bar reach over the map: everything else starts below. */
+    --under-hud: 3.25rem;
     display: grid;
     grid-template-rows: auto 1fr;
     height: 100dvh;
@@ -391,6 +393,10 @@
   .map-area {
     position: relative;
     min-height: 0;
+  }
+  .play .map-area :global(.recenter) {
+    top: var(--under-hud);
+    min-height: var(--touch);
   }
   .corner {
     position: absolute;
@@ -402,9 +408,12 @@
     pointer-events: auto;
   }
   .top-right {
-    top: 0.75rem;
+    top: var(--under-hud);
     right: 0.75rem;
     align-items: center;
+  }
+  .top-right :global(.btn) {
+    min-height: var(--touch);
   }
   .bottom-left {
     left: 0.75rem;
@@ -417,7 +426,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    min-height: 44px;
+    min-height: var(--touch);
     padding: 0 0.9rem;
     border: 2px solid var(--line);
     border-radius: 999px;
@@ -455,17 +464,17 @@
     right: 0.75rem;
     bottom: 0.75rem;
     width: min(24rem, calc(100% - 1.5rem));
-    max-height: calc(100% - 1.5rem);
+    max-height: calc(100% - var(--under-hud) - 0.75rem);
     overflow-y: auto;
     padding: 1rem;
     box-shadow: var(--shadow);
   }
   .popup-tall {
-    top: 0.75rem;
+    top: var(--under-hud);
     width: min(26rem, calc(100% - 1.5rem));
   }
   .popup-top {
-    top: 4.25rem;
+    top: calc(var(--under-hud) + 3.25rem);
     bottom: auto;
   }
   .popup .hide {
@@ -502,18 +511,32 @@
       animation: none;
     }
   }
+  /* The corners of the top bar need two rows from here down. */
+  @media (max-width: 760px) {
+    .play {
+      --under-hud: 5.75rem;
+    }
+  }
   @media (max-width: 640px) {
+    .play {
+      --under-hud: 4.6rem;
+    }
+    /* The sheet would cover the energy just when it matters, so the meter moves above it. */
+    .bottom-left.lifted {
+      top: var(--under-hud);
+      bottom: auto;
+    }
     .popup {
       right: 0;
       left: 0;
       bottom: 0;
       width: 100%;
-      max-height: 70%;
+      max-height: min(70%, calc(100% - var(--under-hud)));
       border-radius: var(--radius) var(--radius) 0 0;
     }
     .popup-tall {
       top: auto;
-      max-height: 85%;
+      max-height: calc(100% - var(--under-hud));
     }
     .popup-top {
       top: auto;
@@ -527,7 +550,7 @@
     inset: 0;
     display: grid;
     place-items: center;
-    padding: 1rem;
+    padding: var(--under-hud) 1rem 1rem;
     background: rgb(10 30 45 / 0.35);
   }
   .overlay-card {

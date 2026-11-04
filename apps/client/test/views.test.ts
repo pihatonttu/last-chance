@@ -184,7 +184,7 @@ describe('top bar', () => {
     const shown = text(bar(12, -45));
     expect(shown).toContain('Puu: 12 / nuotiolle 20');
     expect(shown).toContain('−25°');
-    expect(shown).toContain('→ −35°');
+    expect(shown).toContain('Ensi kuussa −35°');
     expect(shown).toContain('1 / 15');
     expect(shown).toContain('raja −60');
     expect(shown).not.toMatch(/Huhtikuu|Kevät/);

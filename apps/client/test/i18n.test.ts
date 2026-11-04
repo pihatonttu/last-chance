@@ -13,7 +13,6 @@ import {
   JOIN_REFUSALS,
   LEVELS,
   NICKNAME_REFUSALS,
-  PHASES,
   QUESTION_IDS,
   REFUSALS,
   RESOURCES,
@@ -57,7 +56,6 @@ function familyKeys(): string[] {
     for (const level of LEVELS) keys.push(`building.${kind}.${level}`);
   }
   for (const kind of ACTION_KINDS) keys.push(`action.${kind}`);
-  for (const phase of PHASES) keys.push(`phase.${phase}`);
   for (const r of REFUSALS) keys.push(`refusal.${r}`);
   for (const r of VOTE_REFUSALS) keys.push(`voteRefusal.${r}`);
   for (const r of JOIN_REFUSALS) keys.push(`joinRefusal.${r}`);

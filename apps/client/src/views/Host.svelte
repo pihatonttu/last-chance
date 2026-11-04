@@ -239,6 +239,8 @@
 
 <style>
   .host-game {
+    /* How far the corners of the top bar reach down: 3.6 times its projector font size. */
+    --under-hud: calc(clamp(18px, 1.45vw, 30px) * 3.6);
     display: grid;
     grid-template-rows: auto 1fr auto;
     height: 100dvh;
@@ -257,7 +259,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    padding: 0.75rem;
+    padding: var(--under-hud) 0.75rem 0.75rem;
     overflow-y: auto;
     font-size: clamp(16px, 1.15vw, 24px);
     background: var(--bg);
@@ -270,7 +272,7 @@
     inset: 0;
     display: grid;
     place-items: center;
-    padding: 1.5rem;
+    padding: var(--under-hud) 1.5rem 1.5rem;
     background: rgb(10 30 45 / 0.35);
   }
   .overlay-card {

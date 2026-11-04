@@ -22,6 +22,15 @@ export function hardFrost(t: number): boolean {
   return t <= PARAMS.weather.hardAt;
 }
 
+export type ForecastLook = 'hard' | 'cold' | 'mild' | 'party';
+
+/** What next month's frost means for the fire. No forecast (null) is the last month: the party. */
+export function forecastLook(forecast: number | null): ForecastLook {
+  if (forecast === null) return 'party';
+  if (hardFrost(forecast)) return 'hard';
+  return forecast <= PARAMS.weather.coldAt ? 'cold' : 'mild';
+}
+
 /** The wood in store does not cover what the fire burns at the end of this month. */
 export function fireShort(village: Pick<VillageView, 'resources' | 'heatNeed'>): boolean {
   return village.resources.wood < village.heatNeed;
