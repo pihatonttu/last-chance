@@ -100,7 +100,7 @@ describe('month summary', () => {
   it('warns when the village is close to giving up', () => {
     const shown = summary(monthReport({ happiness: -45 }));
     expect(shown).toContain('Kylä on luovuttamassa! Pitäkää nuotio ja ruoka kunnossa.');
-    expect(shown).toContain('Jos onnellisuus putoaa alle −60, kylä luovuttaa.');
+    expect(shown).toContain('Jos tyytyväisyys putoaa alle −60, kylä luovuttaa.');
     expect(shown).toContain('Seuraava kuukausi alkaa pian.');
   });
 
@@ -193,10 +193,10 @@ describe('top bar', () => {
   it('the wood is red when it does not cover the fire, the happiness when it is near the limit', () => {
     const red = bar(12, -45);
     expect(classOfTitled(red, 'Puu')).toMatch(/\bshort\b/);
-    expect(classOfTitled(red, 'Onnellisuus')).toMatch(/\bshort\b/);
+    expect(classOfTitled(red, 'Tyytyväisyys')).toMatch(/\bshort\b/);
     const fine = bar(20, -40);
     expect(classOfTitled(fine, 'Puu')).not.toMatch(/\bshort\b/);
-    expect(classOfTitled(fine, 'Onnellisuus')).not.toMatch(/\bshort\b/);
+    expect(classOfTitled(fine, 'Tyytyväisyys')).not.toMatch(/\bshort\b/);
   });
 });
 
