@@ -1,51 +1,61 @@
 <script lang="ts">
   import type { VoteView } from '@saari/protocol';
-  import type { Resources, VoteOption } from '@saari/rules';
+  import type { Resources } from '@saari/rules';
   import { formatNumber, t, tp } from '../i18n/index.ts';
-  import { buildingName } from '../lib/format.ts';
-  import { missingFor, optionArt, voteShare } from '../lib/vote.ts';
+  import { missingFor, optionCard, voteShare } from '../lib/vote.ts';
   import ArtIcon from './ArtIcon.svelte';
   import Icon from './Icon.svelte';
   import PropPicture from './PropPicture.svelte';
 
   /**
-   * Live vote for the projector: pictures, prices and bars, and a red line when an option's
-   * wood would leave the village fire short. Counts only, never names (P34).
+   * Live vote for the projector: pictures, what each option gives, prices and bars, and a red
+   * line when an option's wood would leave the village fire short or there is no snow field.
+   * Counts only, never names (P34). The phase's big title is in the top bar.
    */
   interface Props {
     vote: VoteView;
     voters: number;
+    /** The village's size N, which the numbers on the cards are counted from. */
+    villagers: number;
     resources: Resources;
     /** Action phase: the options the class can plan for, without bars. */
     compact?: boolean;
   }
-  let { vote, voters, resources, compact = false }: Props = $props();
-
-  function name(option: VoteOption): string {
-    return option.kind === 'none' || option.level === 0 ? t('vote.noneShort') : buildingName(option.kind, option.level);
-  }
+  let { vote, voters, villagers, resources, compact = false }: Props = $props();
 </script>
 
 <section class="vote-bars" aria-labelledby="vote-bars-title">
-  <h2 id="vote-bars-title">{t('vote.title')}</h2>
+  <h2 id="vote-bars-title" class="visually-hidden">{t('vote.title')}</h2>
   <p class="cast">{compact ? t('vote.upcoming') : t('vote.cast', { cast: vote.votesCast, total: voters })}</p>
   <ol>
     {#each vote.options as option (option.id)}
+      {@const card = optionCard(option, villagers)}
       {@const count = vote.counts[option.id] ?? 0}
       {@const missing = missingFor(option, resources)}
+      {@const building = option.kind !== 'none' && option.level > 0}
       <li class:blocked={option.blocked.length > 0}>
-        <PropPicture texture={optionArt(option)} size={52} />
+        {#if card.art}
+          <span class="pics">
+            {#if card.fromArt}
+              <PropPicture texture={card.fromArt} size={52} />
+              <span class="arrow" aria-hidden="true">→</span>
+            {/if}
+            <PropPicture texture={card.art} size={card.fromArt ? 52 : 64} />
+          </span>
+        {/if}
         <div class="body">
           <div class="head">
             <span class="name">
-              {name(option)}
-              {#if option.kind !== 'none' && option.level > 1}<span class="stars">{'★'.repeat(option.level)}</span>{/if}
+              {card.name}
+              {#if building && option.level > 1}<span class="stars">{'★'.repeat(option.level)}</span>{/if}
             </span>
             <span class="cost">
               {#if option.cost.wood > 0}<span class:short={missing.wood > 0}><ArtIcon name="wood" size={20} />{formatNumber(option.cost.wood)}</span>{/if}
               {#if option.cost.stone > 0}<span class:short={missing.stone > 0}><ArtIcon name="stone" size={20} />{formatNumber(option.cost.stone)}</span>{/if}
             </span>
           </div>
+          <div class="gain" class:none={!building}>{card.benefit}</div>
+          {#if !compact && !missing.space}<div class="why">{card.reason}</div>{/if}
           {#if !compact}
             <div class="tally">
               <div class="bar"><span style:width="{voteShare(vote, option.id) * 100}%"></span></div>
@@ -65,10 +75,6 @@
 </section>
 
 <style>
-  .vote-bars h2 {
-    margin: 0;
-    font-size: 1.3em;
-  }
   .cast {
     margin: 0.1em 0 0.6em;
     color: var(--muted);
@@ -80,12 +86,21 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.5em;
+    gap: 0.6em;
   }
   li {
     display: flex;
     align-items: center;
     gap: 0.5em;
+  }
+  .pics {
+    display: flex;
+    flex: none;
+    align-items: center;
+  }
+  .arrow {
+    font-weight: 900;
+    color: var(--primary);
   }
   .blocked :global(.pic) {
     filter: grayscale(1);
@@ -119,6 +134,19 @@
   }
   .short {
     color: var(--danger);
+  }
+  .gain {
+    margin-top: 0.1em;
+    font-weight: 900;
+    color: var(--primary-dark);
+  }
+  .gain.none {
+    color: var(--muted);
+  }
+  .why {
+    font-size: 0.85em;
+    font-weight: 700;
+    color: var(--muted);
   }
   .tally {
     display: flex;

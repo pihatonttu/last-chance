@@ -191,7 +191,13 @@
           {/if}
           {#if game.vote}
             <div class="card">
-              <VoteBars vote={game.vote} {voters} resources={game.village.resources} compact={game.phase === 'action'} />
+              <VoteBars
+                vote={game.vote}
+                {voters}
+                villagers={game.village.villagers}
+                resources={game.village.resources}
+                compact={game.phase === 'action'}
+              />
             </div>
           {/if}
           {#if game.phase !== 'action'}

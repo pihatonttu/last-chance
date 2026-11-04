@@ -1,22 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { VoteOption } from '@saari/rules';
 import { actionName, gainText, optionName, questionText, tickerText, yieldGain } from '../src/lib/format.ts';
 import { checkNickname } from '../src/lib/names.ts';
-import { parseOptionId, shelterPeople } from '../src/lib/rules-info.ts';
-import { effectText, voteShare } from '../src/lib/vote.ts';
-
-function option(over: Partial<VoteOption>): VoteOption {
-  return {
-    id: 'none',
-    kind: 'none',
-    level: 0,
-    upgrade: false,
-    cost: { wood: 0, stone: 0 },
-    blocked: [],
-    leavesFireCold: false,
-    ...over,
-  };
-}
+import { parseOptionId } from '../src/lib/rules-info.ts';
+import { voteShare } from '../src/lib/vote.ts';
 
 describe('game text', () => {
   it('shows the exact previewed yield of every yield type', () => {
@@ -71,14 +57,6 @@ describe('arctic names (docs/10-arktinen.md §3)', () => {
 });
 
 describe('vote cards', () => {
-  it('what an option does', () => {
-    const tent = option({ id: 'shelter-1', kind: 'shelter', level: 1, cost: { wood: 120, stone: 0 }, blocked: ['wood', 'space'] });
-    expect(effectText(tent, 30)).toBe(`Koti noin ${shelterPeople(1, 30)} kyläläiselle`);
-    const hut = option({ id: 'shelter-2', kind: 'shelter', level: 2, upgrade: true });
-    expect(effectText(hut, 30)).toMatch(/^Noin \d+ kotipaikkaa lisää$/);
-    expect(effectText(option({}), 30)).toBe('Puu ja jää säästetään');
-  });
-
   it('live percentages', () => {
     const vote = { options: [], counts: { none: 1, 'shelter-1': 3 }, votesCast: 4 };
     expect(voteShare(vote, 'shelter-1')).toBe(0.75);

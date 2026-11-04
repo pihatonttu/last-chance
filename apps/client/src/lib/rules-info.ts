@@ -61,6 +61,11 @@ export function gatheringUses(level: Level, villagers: number, params: GameParam
   return recreationCapacity(params.gatheringDivisors[level - 1]!, villagers);
 }
 
+/** The month's mood a gathering place gives when every use is taken (the engine's moodRecreation). */
+export function gatheringMood(level: Level, villagers: number, params: GameParams = PARAMS): number {
+  return Math.round((params.moodRecreation * gatheringUses(level, villagers, params)) / villagersForFormulas(villagers));
+}
+
 export function skillNeeded(level: number, params: GameParams = PARAMS): number {
   return params.skillProgressPerLevel * level;
 }
@@ -80,6 +85,17 @@ export function actionsPerMonth(education: number, params: GameParams = PARAMS):
 /** Progress per study / tool-making action = the building's level. */
 export function skillGainPerAction(level: Level): number {
   return level;
+}
+
+/** Studies or tool-making rounds at a building of this level to reach the next skill level from level 1. */
+export function actionsToNextSkill(buildingLevel: Level, params: GameParams = PARAMS): number {
+  return Math.ceil(skillNeeded(1, params) / skillGainPerAction(buildingLevel));
+}
+
+/** One harvest and what it becomes with the first step of tools (tools 2): "+10 becomes +13". */
+export function toolsExample(params: GameParams = PARAMS): { from: number; to: number } {
+  const from = params.harvestYield;
+  return { from, to: Math.round(from * toolsMultiplier(2, params)) };
 }
 
 export function isBuildingKind(value: string): value is BuildingKind {
