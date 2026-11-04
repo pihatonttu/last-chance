@@ -93,6 +93,6 @@ describe('the word for the village score', () => {
     expect(t('help.4')).toMatch(/tyytyväisyys laskee/);
     expect(t('help.4')).toMatch(/Jos tyytyväisyys putoaa alle rajan/);
     expect(t('terrain.spring.description')).toMatch(/tyytyväisyyttä/);
-    expect(t('building.gathering.description')).toMatch(/tyytyväisyyttä/);
+    expect(t('building.gathering.description')).toMatch(/tyytyväisemmän/);
   });
 });
