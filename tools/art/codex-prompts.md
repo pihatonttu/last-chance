@@ -1110,10 +1110,16 @@ apps/client/src/components/MoodFace.svelte: replace the svg, and the fill and mo
 Keep the kind constant and the mood thresholds as they are.
 
 apps/client/src/components/EnergyMeter.svelte: import ArtIcon and replace the svg in the #each with
-    <span class="bolt" class:full><ArtIcon name="bolt" size={34} /></span>
+    <span class="bolt" class:full><ArtIcon name="bolt" size={46} /></span>
 Replace the .bolt, .bolt path and .bolt.full path styles with
-    .bolt { display: inline-flex; width: 34px; height: 34px; }
+    .bolt { display: inline-flex; width: 46px; height: 46px; }
+    .bolt :global(img) { width: 100%; height: 100%; }
     .bolt:not(.full) { filter: grayscale(1); opacity: 0.35; }
+Keep the phone rule that makes .bolt 36 px.
+
+apps/client/src/components/GainChip.svelte: this is the action button's "-1 energy" pill. Import
+ArtIcon, replace the bolt svg with <ArtIcon name="bolt" size={20} /> and remove the .bolt and .bolt path
+styles.
 
 apps/client/src/components/HowToPlay.svelte: replace the bolt svg with
     <ArtIcon name="bolt" size={32} />
@@ -1129,7 +1135,7 @@ that no call site changes, and remove their two svg branches. Wrap the svg like 
     {/if}
 
 CSS that targeted the old mood svg:
-- apps/client/src/components/TopBar.svelte: change .pill :global(svg[role='img']) to .pill :global(.art-icon)
+- apps/client/src/components/TopBar.svelte: change .mood :global(svg[role='img']) to .mood :global(.art-icon)
 - apps/client/src/components/MonthSummary.svelte: delete the selector line .tile :global(svg[role='img']),
 
 Tests in apps/client/test/views.test.ts that looked at the old svg:
@@ -1137,6 +1143,11 @@ Tests in apps/client/test/views.test.ts that looked at the old svg:
   expect(body).not.toContain('icons/thermometer.png');
 - in "the giving-up face is a picture only", change the regular expression's end from
   <svg[^>]*role="img"/ to <img[^>]*icons\/mood-bad\.png/
+
+Tests in apps/client/test/hud.test.ts count the energy bolts with body.match(/<svg/g). Count
+icons/bolt.png instead. The count of bolts itself must stay the same.
+If another test fails only because it looks for the old svg markup of a bolt or a face, change that
+assertion to the new picture and list it in your report. Never change what a test expects of the game.
 
 STEP 4: install the pictures, in this order
 python -I tools/art/kenney-props-post.py tools/art/codex-out/props

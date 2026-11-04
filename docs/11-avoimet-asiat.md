@@ -48,6 +48,11 @@ Näihin ei tarvitse odottaa päätöstä, mutta kerro silti, mihin tartut.
 
 ## Pienet siistimiset
 
+- Projektorin toimintavuoron tiivis äänestyslista: pitkä nimi voi osua hintaan 1280 px:n näytöllä
+  (`VoteBars.svelte`, `.pics` on kiinteä 6em).
+- Projektorilla 1280 x 720 pahin äänestystilanne jää arviolta 11 px yli, ja vierityspalkki ilmestyy.
+- Vaakasuuntaisella puhelimella ruudun sijoitus (`parkTile` tiedostossa `camera.ts`) ei ole testattu
+  tilanteessa, jossa ponnahdusikkuna ja yläpalkki vievät koko korkeuden.
 - `lastMonth`-ehto on kopioitu kahteen paikkaan (`Play.svelte`, `Host.svelte`).
 - Jälkipuinnin lukutaulukon "–" vanhoille raporteille ei kerro ruudunlukijalle mitään
   (`Debrief.svelte`). Kuukausinäkymässä sama on jo tehty piilotetulla tekstillä.
