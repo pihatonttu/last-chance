@@ -443,14 +443,14 @@ describe('vote bars on the projector', () => {
     return render(VoteBars, { props: { vote, voters: 10, villagers: 15, shelterCapacity: 0, resources: RESOURCES, ...over } }).body;
   }
 
-  it('every option shows its big line, and in the vote also its small line', () => {
+  it('every option shows its big line; the small line stays on the pupils own cards', () => {
     for (const o of EVERY_OPTION) {
       const html = bars([o], { shelterCapacity: villageOf(o).shelterCapacity });
       const shown = text(html);
       const expected = AT_15[o.id]!;
       expect(shown, o.id).toContain(expected.name);
       expect(shown, o.id).toContain(expected.benefit);
-      expect(shown, o.id).toContain(expected.reason);
+      expect(shown, o.id).not.toContain(expected.reason);
     }
     const html = bars(EVERY_OPTION);
     expect(text(html)).toContain('Ääniä annettu 4 / 10');

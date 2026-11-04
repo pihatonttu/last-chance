@@ -255,19 +255,22 @@
       {/if}
     </div>
 
-    <details class="more">
-      <summary>{t('tile.more')}</summary>
-      <p>{description}</p>
-      {#each meters as meter (meter.label)}
-        <div class="meter">
-          <span>{meter.label}</span>
-          <div class="bar" aria-hidden="true"><span style:width="{Math.min(1, meter.share) * 100}%"></span></div>
-        </div>
-      {/each}
-      {#each detail as line (line)}
-        <p class="detail">{line}</p>
-      {/each}
-    </details>
+    <!-- The line above the button already says what a building gives; a home has nothing more. -->
+    {#if !gives || meters.length > 0 || detail.length > 0}
+      <details class="more">
+        <summary>{t('tile.more')}</summary>
+        {#if !gives}<p>{description}</p>{/if}
+        {#each meters as meter (meter.label)}
+          <div class="meter">
+            <span>{meter.label}</span>
+            <div class="bar" aria-hidden="true"><span style:width="{Math.min(1, meter.share) * 100}%"></span></div>
+          </div>
+        {/each}
+        {#each detail as line (line)}
+          <p class="detail">{line}</p>
+        {/each}
+      </details>
+    {/if}
   {/if}
 </section>
 

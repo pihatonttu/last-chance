@@ -11,8 +11,8 @@ import type { Coord, Gain, PublicTile } from '@saari/rules';
 import { formatNumber } from '../i18n/index.ts';
 import { gainParts } from '../lib/format.ts';
 import { exploreNeeded, stockMax } from '../lib/rules-info.ts';
-import { clampCamera, fitCamera, panBy, playArea, screenToWorld, zoomAt, type Camera } from './camera.ts';
-import { drawOrder, tileCenter, tilesBounds, worldToTile, type Rect } from './iso.ts';
+import { clampCamera, fitCamera, NO_COVER, panBy, parkTile, playArea, screenToWorld, zoomAt, type Camera, type MapCover } from './camera.ts';
+import { drawOrder, HALF_H, tileCenter, tilesBounds, worldToTile, type Rect } from './iso.ts';
 import {
   CLOUD_SCALE,
   fogLook,
@@ -133,6 +133,7 @@ export class MapRenderer {
   /** Students: the explored part of the island, where the map frames by default. */
   #focus: Rect | null = null;
   #camera: Camera = { x: 0, y: 0, scale: 1 };
+  #cover: MapCover = NO_COVER;
   #userMoved = false;
   #selected: Coord | null = null;
   #hover: Coord | null = null;
@@ -204,20 +205,19 @@ export class MapRenderer {
     this.#requestRender();
   }
 
-  /**
-   * Pans so a tapped tile is not hidden under its popup: the popup opens bottom-right on
-   * tablets and as a sheet over the lower part on phones.
-   */
+  /** What lies over the map now. A sheet that grew may have just covered the selected tile. */
+  setCover(cover: MapCover): void {
+    this.#cover = cover;
+    if (this.#selected && this.#options.mode === 'student') this.#keepVisible(this.#selected);
+  }
+
+  /** Pans so that the popup and the buttons over the map leave a tapped tile in sight. */
   #keepVisible(coord: Coord): void {
-    const { width, height } = this.#viewSize();
     const c = tileCenter(coord.x, coord.y);
     const sx = this.#camera.x + c.x * this.#camera.scale;
     const sy = this.#camera.y + c.y * this.#camera.scale;
-    const phone = width < 640;
-    const clearX = phone ? sx > 40 && sx < width - 40 : sx > 40 && sx < width - 420;
-    const clearY = phone ? sy > 60 && sy < height * 0.3 : sy > 60 && sy < height - 60;
-    if (clearX && clearY) return;
-    const target = phone ? { x: width / 2, y: height * 0.2 } : { x: Math.min(width * 0.4, width - 460), y: height * 0.45 };
+    const target = parkTile({ x: sx, y: sy }, HALF_H * this.#camera.scale, this.#viewSize(), this.#cover);
+    if (!target) return;
     this.#camera = panBy(this.#camera, target.x - sx, target.y - sy);
     this.#setUserMoved(true);
     this.#applyCamera();

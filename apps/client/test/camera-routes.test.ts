@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clampCamera, fitCamera, panBy, playArea, screenToWorld, worldToScreen, zoomAt } from '../src/map/camera.ts';
+import { clampCamera, fitCamera, panBy, parkTile, playArea, screenToWorld, worldToScreen, zoomAt } from '../src/map/camera.ts';
 import { isGameCode, normalizeCode, parseRoute } from '../src/lib/routes.ts';
 import { backoffDelay } from '../src/net/websocket.ts';
 import { isMock } from '../src/net/mode.ts';
@@ -33,6 +33,89 @@ describe('camera', () => {
     const bottom = bounds.maxY * clamped.scale + clamped.y;
     expect(left).toBeLessThanOrEqual(400 - 50);
     expect(bottom).toBeGreaterThanOrEqual(50);
+  });
+});
+
+describe('parkTile: a tapped tile stays in sight', () => {
+  // A phone of 375 x 667 as measured: the map is 550 px tall under the bar.
+  const PHONE = { width: 375, height: 550 };
+  const COVER = { top: 82, corner: 69, sheet: 217 };
+  const HALF = 13;
+
+  /** The free band on the phone: under the corners, above the sheet. */
+  const top = COVER.top + COVER.corner;
+  const sheetTop = PHONE.height - COVER.sheet;
+
+  it('leaves a tile alone when it is already free on a phone', () => {
+    expect(parkTile({ x: 180, y: 240 }, HALF, PHONE, COVER)).toBeNull();
+  });
+
+  it('moves a tile out from under the name button and the lifted meter', () => {
+    // Where the old rule left it: at height * 0.2, behind the name button.
+    const target = parkTile({ x: 188, y: 110 }, HALF, PHONE, COVER);
+    expect(target).not.toBeNull();
+    expect(target!.y - HALF).toBeGreaterThanOrEqual(top);
+    expect(target!.y + HALF).toBeLessThanOrEqual(sheetTop);
+    expect(target!.x).toBe(PHONE.width / 2);
+  });
+
+  it('moves a tile out from under the sheet', () => {
+    const target = parkTile({ x: 180, y: 400 }, HALF, PHONE, COVER);
+    expect(target!.y - HALF).toBeGreaterThanOrEqual(top);
+    expect(target!.y + HALF).toBeLessThanOrEqual(sheetTop);
+  });
+
+  it('counts the whole tile, not only its centre', () => {
+    expect(parkTile({ x: 180, y: top + 2 }, HALF, PHONE, COVER)).not.toBeNull();
+    expect(parkTile({ x: 180, y: sheetTop - 2 }, HALF, PHONE, COVER)).not.toBeNull();
+    expect(parkTile({ x: 180, y: top + HALF }, HALF, PHONE, COVER)).toBeNull();
+    expect(parkTile({ x: 180, y: sheetTop - HALF }, HALF, PHONE, COVER)).toBeNull();
+  });
+
+  it('moves a tile in from the sides of a phone', () => {
+    expect(parkTile({ x: 20, y: 240 }, HALF, PHONE, COVER)?.x).toBe(PHONE.width / 2);
+    expect(parkTile({ x: 355, y: 240 }, HALF, PHONE, COVER)?.x).toBe(PHONE.width / 2);
+  });
+
+  it('parks near the top of a tall free band, so a sheet that grows does not push it out again', () => {
+    const tall = { width: 375, height: 695 };
+    const target = parkTile({ x: 180, y: 90 }, HALF, tall, { ...COVER, sheet: 150 })!;
+    expect(target.y - HALF).toBeGreaterThanOrEqual(top);
+    // Well above the middle of the band, and free of a sheet nearly twice as tall.
+    expect(target.y + HALF).toBeLessThanOrEqual(tall.height - 290);
+  });
+
+  it('keeps the middle when the sheet leaves only a sliver', () => {
+    // A phone's sheet at its 70 %: not a tile's height left between it and the meter.
+    const cover = { ...COVER, sheet: 385 };
+    expect(parkTile({ x: 180, y: 60 }, HALF, PHONE, cover)?.y).toBe((top + (PHONE.height - 385)) / 2);
+  });
+
+  it('a phone is what the page calls a phone: 640 px is still one', () => {
+    const edge = { width: 640, height: 550 };
+    expect(parkTile({ x: 320, y: 400 }, HALF, edge, COVER)).not.toBeNull();
+    const tablet = { width: 641, height: 550 };
+    expect(parkTile({ x: 180, y: 400 }, HALF, tablet, COVER)).toBeNull();
+  });
+
+  describe('on a tablet', () => {
+    const TABLET = { width: 768, height: 900 };
+    // Only the bar's corners count: the meter stays at the bottom and the popup at the right.
+    const cover = { top: 72, corner: 69, sheet: 300 };
+
+    it('leaves a tile alone left of the popup', () => {
+      expect(parkTile({ x: 200, y: 400 }, HALF, TABLET, cover)).toBeNull();
+      expect(parkTile({ x: 200, y: 72 + HALF }, HALF, TABLET, cover)).toBeNull();
+    });
+
+    it('moves a tile out from under the corners of the bar', () => {
+      const target = parkTile({ x: 200, y: 60 }, HALF, TABLET, cover);
+      expect(target).toEqual({ x: Math.min(768 * 0.4, 768 - 460), y: 900 * 0.45 });
+    });
+
+    it('moves a tile out from under the popup on the right', () => {
+      expect(parkTile({ x: 600, y: 400 }, HALF, TABLET, cover)).not.toBeNull();
+    });
   });
 });
 

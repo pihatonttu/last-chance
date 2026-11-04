@@ -164,7 +164,7 @@
   {:else if game.map && client}
     <div class="host-game" style:--under-hud={underHud > 0 ? `${underHud}px` : null}>
       <TopBar {game} clockOffset={client.clockOffset} phaseTotalMs={client.phaseTotalMs} size="projector" bind:underHud />
-      <div class="body">
+      <div class="body" class:voting={game.phase === 'vote'}>
         <div class="map-area">
           <MapView
             map={game.map}
@@ -202,7 +202,7 @@
             </div>
           {/if}
           {#if game.phase !== 'action'}
-            <div class="card"><Ticker items={client.ticker} /></div>
+            <div class="card" class:leftover={game.phase === 'vote'}><Ticker items={client.ticker} /></div>
           {/if}
           {#if showPlayers}
             <div class="card players-card">
@@ -263,6 +263,10 @@
     grid-template-columns: minmax(0, 1fr) clamp(260px, 25vw, 520px);
     min-height: 0;
   }
+  /* The map gives way during the vote: each option needs a wide row to fit the list on the screen. */
+  .body.voting {
+    grid-template-columns: minmax(0, 1fr) clamp(540px, 44vw, 860px);
+  }
   .map-area {
     position: relative;
     min-height: 0;
@@ -278,6 +282,16 @@
   }
   .side .card {
     padding: 0.9rem 1rem;
+  }
+  /* During the vote the feed takes only the room the list leaves, so nothing has to scroll. */
+  .side .leftover {
+    flex: 1 1 0;
+    min-height: 0;
+    padding-block: 0;
+    overflow: hidden;
+  }
+  .leftover :global(.ticker) {
+    padding-block: 0.9rem;
   }
   .overlay {
     position: absolute;

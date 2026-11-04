@@ -10,7 +10,9 @@
   /**
    * Live vote for the projector: pictures, what each option gives, prices and bars, and a red
    * line when an option's wood would leave the village fire short or there is no snow field.
-   * Counts only, never names (P34). The phase's big title is in the top bar.
+   * Counts only, never names (P34). The phase's big title is in the top bar. Every option and
+   * its tally must fit on the screen at once, because nobody scrolls a projector during a
+   * meeting, so the small line of the pupils' cards is left out.
    */
   interface Props {
     vote: VoteView;
@@ -24,40 +26,38 @@
     compact?: boolean;
   }
   let { vote, voters, villagers, shelterCapacity, resources, compact = false }: Props = $props();
+
+  const PICTURE = 44;
 </script>
 
 <section class="vote-bars" aria-labelledby="vote-bars-title">
   <h2 id="vote-bars-title" class="visually-hidden">{t('vote.title')}</h2>
   <p class="cast">{compact ? t('vote.upcoming') : t('vote.cast', { cast: vote.votesCast, total: voters })}</p>
-  <ol>
+  <ol class:compact>
     {#each vote.options as option (option.id)}
       {@const card = optionCard(option, { villagers, shelterCapacity })}
       {@const count = vote.counts[option.id] ?? 0}
       {@const missing = missingFor(option, resources)}
       {@const building = option.kind !== 'none' && option.level > 0}
       <li class:blocked={option.blocked.length > 0}>
-        {#if card.art}
-          <span class="pics">
-            {#if card.fromArt}
-              <PropPicture texture={card.fromArt} size={52} />
-              <span class="arrow" aria-hidden="true">→</span>
-            {/if}
-            <PropPicture texture={card.art} size={card.fromArt ? 52 : 64} />
-          </span>
-        {/if}
+        <!-- There even without a picture, so the names and the bars stand in line. -->
+        <span class="pics">
+          {#if card.fromArt}
+            <PropPicture texture={card.fromArt} size={PICTURE} />
+            <span class="arrow" aria-hidden="true">→</span>
+          {/if}
+          {#if card.art}<PropPicture texture={card.art} size={PICTURE} />{/if}
+        </span>
         <div class="body">
-          <div class="head">
-            <span class="name">
-              {card.name}
-              {#if building && option.level > 1}<span class="stars">{'★'.repeat(option.level)}</span>{/if}
-            </span>
-            <span class="cost">
-              {#if option.cost.wood > 0}<span class:short={missing.wood > 0}><ArtIcon name="wood" size={20} />{formatNumber(option.cost.wood)}</span>{/if}
-              {#if option.cost.stone > 0}<span class:short={missing.stone > 0}><ArtIcon name="stone" size={20} />{formatNumber(option.cost.stone)}</span>{/if}
-            </span>
-          </div>
+          <span class="name">
+            {card.name}
+            {#if building && option.level > 1}<span class="stars">{'★'.repeat(option.level)}</span>{/if}
+          </span>
+          <span class="cost">
+            {#if option.cost.wood > 0}<span class:short={missing.wood > 0}><ArtIcon name="wood" size={20} />{formatNumber(option.cost.wood)}</span>{/if}
+            {#if option.cost.stone > 0}<span class:short={missing.stone > 0}><ArtIcon name="stone" size={20} />{formatNumber(option.cost.stone)}</span>{/if}
+          </span>
           <div class="gain" class:none={!building}>{card.benefit}</div>
-          {#if !compact && !missing.space}<div class="why">{card.reason}</div>{/if}
           {#if !compact}
             <div class="tally">
               <div class="bar"><span style:width="{voteShare(vote, option.id) * 100}%"></span></div>
@@ -88,7 +88,7 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.6em;
+    gap: 0.5em;
   }
   li {
     display: flex;
@@ -99,6 +99,9 @@
     display: flex;
     flex: none;
     align-items: center;
+    justify-content: center;
+    /* Two pictures and an arrow. */
+    width: 6em;
   }
   .arrow {
     font-weight: 900;
@@ -108,15 +111,24 @@
     filter: grayscale(1);
     opacity: 0.55;
   }
+  /* Two rows: the name and its price, then the big line and its tally, in one column for all. */
   .body {
     flex: 1;
     min-width: 0;
-  }
-  .head {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 8em;
     align-items: center;
-    gap: 0.5em;
+    gap: 0 0.6em;
+    line-height: 1.2;
+  }
+  .compact .body {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .compact .gain,
+  .lock {
+    grid-column: 1 / -1;
+  }
+  .name {
     font-weight: 800;
   }
   .stars {
@@ -124,9 +136,11 @@
     margin-left: 0.2em;
   }
   .cost {
+    justify-self: end;
     display: inline-flex;
     gap: 0.4em;
     font-size: 0.9em;
+    font-weight: 800;
     font-variant-numeric: tabular-nums;
   }
   .cost > span {
@@ -138,16 +152,10 @@
     color: var(--danger);
   }
   .gain {
-    margin-top: 0.1em;
     font-weight: 900;
     color: var(--primary-dark);
   }
   .gain.none {
-    color: var(--muted);
-  }
-  .why {
-    font-size: 0.85em;
-    font-weight: 700;
     color: var(--muted);
   }
   .tally {
@@ -172,6 +180,7 @@
   .lock {
     font-size: 0.8em;
     font-weight: 700;
+    line-height: 1.1;
     color: var(--danger);
   }
   .fire-cold {

@@ -25,6 +25,7 @@ import type { BadgeId, DebriefData } from '@saari/debrief';
  * 3: demolishing a greenhouse (docs/12-selkeys.md §1): `intent` on `act`, the new action
  * kind, `alternative` and `freeMeadowsAfter` in action previews and the `field-removed`
  * ticker event; tabs from before could not offer it or show it, so they must reload.
+ * Also `VoteOption.shelterAfter`, the homes a shelter option would give (§3).
  *
  * 2: the settlers' badges (`badges` message) and the arctic fields: the frost
  * (`temperature`, `forecast`), the village fire's wood (`heatNeed`), the loss limit

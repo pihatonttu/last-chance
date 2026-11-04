@@ -9,6 +9,7 @@ import { render } from 'svelte/server';
 import type { ActionPreview, PublicTile, Yield } from '@saari/rules';
 import Ticker from '../src/components/Ticker.svelte';
 import TilePanel from '../src/components/TilePanel.svelte';
+import { terrainDescription } from '../src/lib/format.ts';
 import { shelterPeople } from '../src/lib/rules-info.ts';
 import { tile, village } from './fixtures.ts';
 
@@ -463,6 +464,31 @@ describe('what a building gives, above the button', () => {
     const html = renderPanel({ terrain: 'forest', stock: 40 }, ready('chop', resource('wood', 10)));
     expect(text(html)).not.toContain('kyläläiselle');
     expect(text(html)).not.toContain('saat lisää energiaa');
+  });
+
+  it('"More info" does not repeat the sentence above the button', () => {
+    const rec: Yield = { type: 'recreation', usesLeft: 2, capacity: 2 };
+    const html = renderPanel({ terrain: 'meadow', building: { kind: 'gathering', level: 1 } }, ready('gather', rec));
+    const sentence = 'Yhdessä vietetty aika tekee kylästä tyytyväisemmän.';
+    expect(text(html).split(sentence)).toHaveLength(2);
+    // What only "More info" knows stays there.
+    expect(html.indexOf('<details')).toBeGreaterThan(-1);
+    expect(text(html.slice(html.indexOf('<details')))).toContain('Käyttökertoja');
+  });
+
+  it('a terrain tile keeps its description in "More info"', () => {
+    const html = renderPanel({ terrain: 'forest', stock: 40 }, ready('chop', resource('wood', 10)));
+    expect(text(html.slice(html.indexOf('<details')))).toContain(terrainDescription(tile(0, 0, { terrain: 'forest', stock: 40 })));
+  });
+
+  it('a home has nothing more to tell, so there is no empty "More info"', () => {
+    const html = renderPanel(
+      { terrain: 'meadow', building: { kind: 'shelter', level: 1 } },
+      { kind: null, available: false, reason: 'no-action', yield: { type: 'none' } },
+      { village: v },
+    );
+    expect(html).not.toContain('<details');
+    expect(text(html)).not.toContain('Lisätietoja');
   });
 });
 

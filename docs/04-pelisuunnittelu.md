@@ -580,7 +580,9 @@ Tarkka käyttöliittymä suunnitellaan vaiheessa V6, ja napateeman näkymät on 
   kasvihuone, ja sen alla lukee "Ruudusta tulee taas lumikenttä." Kun kasvihuone jättäisi
   vapaita lumikenttiä enintään `meadowWarningAt` (2), Rakenna kasvihuone -napin alla on
   rauhallinen huomautus (§10.4). Loput (kuvaus, varasto, työn eteneminen, käyttökerrat)
-  odottavat "Lisätietoja"-osan takana.
+  odottavat "Lisätietoja"-osan takana. Rakennuksen kuvausta ei toisteta siellä, ja jos muuta
+  kerrottavaa ei ole (koti), osaa ei näytetä. Puhelimella napautettu ruutu siirtyy näkyviin
+  yläkulmien ja ponnahdusikkunan väliin.
 - **Äänestys:** kortit, jakauma ja oma valinta. Kortti kertoo hyödyn heti ja ilman erillistä
   ohjenappia (§10.2). Jos vaihtoehto veisi nuotion puun, kortissa on punainen varoitus
   "Nuotiolle ei jää puuta".
@@ -592,7 +594,10 @@ Tarkka käyttöliittymä suunnitellaan vaiheessa V6, ja napateeman näkymät on 
 
 **Projektori**
 - Koko saari ja kaikki yhteiset luvut isolla, myös sääkello ja häviöraja.
-- Vaiheen otsikko (HOMMIIN! tai KYLÄKOKOUS), ajastin ja äänestysjakauma.
+- Vaiheen otsikko (HOMMIIN! tai KYLÄKOKOUS), ajastin ja äänestysjakauma. Äänestyksen ajaksi
+  sivupaneeli levenee ja kartta väistyy, jotta kaikki vaihtoehdot palkkeineen mahtuvat kerralla
+  näkyviin: kokouksen aikana projektoria ei vieritetä. Kuva, nimi, hinta, iso rivi ja palkki
+  ovat rivillä, ja pieni rivi on vain oppilaiden korteissa.
 - Tapahtumanauha, esim. "Kylä löysi kuuman lähteen!", "Ensi kuussa kova pakkanen: −35°!",
   "Puu ei riitä nuotiolle: puuttuu 40.", "Ruoka ei riitä: puuttuu 12." ja "Kylä on
   luovuttamassa! Pitäkää nuotio ja ruoka kunnossa."

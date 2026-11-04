@@ -59,6 +59,52 @@ export function clampCamera(cam: Camera, bounds: Rect, viewW: number, viewH: num
   return { ...cam, x, y };
 }
 
+/** What lies over the map, in pixels from its edges. The page around the map measures these. */
+export interface MapCover {
+  /** How far the corners of the top bar reach down. */
+  top: number;
+  /** Phones: what stands right under those corners, the name button or the lifted energy meter. */
+  corner: number;
+  /** Phones: the height of the sheet over the bottom of the map. */
+  sheet: number;
+}
+
+export const NO_COVER: MapCover = { top: 0, corner: 0, sheet: 0 };
+
+/** The width where the page's popup becomes a sheet and the meter moves up (Play.svelte). */
+const PHONE_MAX_WIDTH = 640;
+/** Room kept at the sides of the map and, on a tablet, at its bottom. */
+const EDGE = 40;
+const TABLET_BOTTOM = 60;
+/** A tablet's popup on the right, with the room around it. */
+const POPUP_ROOM = 420;
+/**
+ * How far under the corners a phone parks a tile at most. The sheet grows once the tile's
+ * action arrives, so the middle of a tall free band would soon lie under it and the map
+ * would jump twice.
+ */
+const PARK_DEPTH = 64;
+
+/**
+ * Where to pan a tapped tile so that nothing covers it, or null when nothing does. `tile` is
+ * its centre on the screen and `halfHeight` half of its height there. On a phone the tile
+ * must fit between the top corners and the sheet; on a tablet the popup is at the bottom
+ * right and only the corners of the bar are above.
+ */
+export function parkTile(tile: Point, halfHeight: number, view: { width: number; height: number }, cover: MapCover): Point | null {
+  const { width, height } = view;
+  if (width <= PHONE_MAX_WIDTH) {
+    const top = cover.top + cover.corner;
+    const bottom = height - cover.sheet;
+    const clearX = tile.x > EDGE && tile.x < width - EDGE;
+    const clearY = tile.y - halfHeight >= top && tile.y + halfHeight <= bottom;
+    return clearX && clearY ? null : { x: width / 2, y: top + Math.min((bottom - top) / 2, PARK_DEPTH) };
+  }
+  const clearX = tile.x > EDGE && tile.x < width - POPUP_ROOM;
+  const clearY = tile.y - halfHeight >= cover.top && tile.y < height - TABLET_BOTTOM;
+  return clearX && clearY ? null : { x: Math.min(width * 0.4, width - 460), y: height * 0.45 };
+}
+
 /**
  * Where a student's map frames by default: the explored land with two tiles of room round
  * it (the green boxes to explore next and the fishing water), or the landing at the start.

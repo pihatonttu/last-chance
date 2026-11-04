@@ -52,6 +52,10 @@
   let panel = $state<'none' | 'tile' | 'vote' | 'me'>('none');
   /** How far the top bar's corners reach over the map, measured by the bar. */
   let underHud = $state(0);
+  /** The name button's corner, the energy meter's corner and the tile popup, as they stand. */
+  let nameHeight = $state(0);
+  let meterHeight = $state(0);
+  let popupHeight = $state(0);
 
   function onMessage(message: ServerMessage): void {
     switch (message.t) {
@@ -121,6 +125,12 @@
   const preview = $derived(
     selected && client.preview && client.preview.x === selected.x && client.preview.y === selected.y ? client.preview.preview : null,
   );
+  /** A phone keeps the tapped tile between these: the sheet below, the name and the lifted meter above. */
+  const cover = $derived({
+    top: underHud,
+    corner: Math.max(nameHeight, game?.phase === 'action' ? meterHeight : 0),
+    sheet: panel === 'tile' ? popupHeight : 0,
+  });
 
   // Ask for a fresh preview whenever the selected tile, the phase or my actions change.
   $effect(() => {
@@ -140,6 +150,8 @@
   });
 
   function select(x: number, y: number): void {
+    // A new popup measures itself; the height of the last one would pan the map for nothing.
+    if (panel !== 'tile') popupHeight = 0;
     selected = { x, y };
     panel = 'tile';
   }
@@ -248,12 +260,13 @@
           villagers={game.village.villagers}
           mode="student"
           {selected}
+          {cover}
           effects={client.effects}
           onselect={select}
           label={t('map.label.student')}
         />
 
-        <div class="corner top-right">
+        <div class="corner top-right" bind:clientHeight={nameHeight}>
           {#if you}
             <button type="button" class="me" aria-expanded={panel === 'me'} onclick={() => (panel = panel === 'me' ? 'none' : 'me')}>
               <span class="dot" style:background={you.color}></span>{you.nickname}
@@ -263,7 +276,7 @@
         </div>
 
         {#if game.phase === 'action' && you}
-          <div class="corner bottom-left" class:lifted={panel === 'tile'}>
+          <div class="corner bottom-left" class:lifted={panel === 'tile'} bind:clientHeight={meterHeight}>
             {#if you.actionsLeft === 0}<p class="bubble">{t('play.noActionsLeft')}</p>{/if}
             <EnergyMeter left={you.actionsLeft} max={you.maxActions} />
           </div>
@@ -273,7 +286,7 @@
         {/if}
 
         {#if panel === 'tile' && selectedTile}
-          <div class="popup card">
+          <div class="popup card" bind:clientHeight={popupHeight}>
             {#if game.phase === 'action' && you?.actionsLeft === 0}
               <p class="bubble sheet-note">{t('play.noActionsLeft')}</p>
             {/if}

@@ -4,6 +4,7 @@
   import type { Coord } from '@saari/rules';
   import { t } from '../i18n/index.ts';
   import type { FloatingEffect } from '../state/reducer.ts';
+  import { NO_COVER, type MapCover } from './camera.ts';
   import type { MapMode, MapRenderer } from './renderer.ts';
 
   interface Props {
@@ -11,12 +12,14 @@
     villagers: number;
     mode: MapMode;
     selected?: Coord | null;
+    /** What lies over the map, so a tapped tile can stay in sight. */
+    cover?: MapCover;
     effects?: readonly FloatingEffect[];
     onselect?: (x: number, y: number) => void;
     label: string;
   }
 
-  let { map, villagers, mode, selected = null, effects = [], onselect, label }: Props = $props();
+  let { map, villagers, mode, selected = null, cover = NO_COVER, effects = [], onselect, label }: Props = $props();
 
   let host: HTMLDivElement;
   let renderer: MapRenderer | null = $state(null);
@@ -57,6 +60,10 @@
 
   $effect(() => {
     renderer?.update(map, villagers);
+  });
+
+  $effect(() => {
+    renderer?.setCover(cover);
   });
 
   $effect(() => {

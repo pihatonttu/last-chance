@@ -147,6 +147,8 @@
     padding: 0;
   }
   .cards {
+    /* Under the floating hide button: a grid beside a float loses that width all the way down. */
+    clear: both;
     display: grid;
     /* Wide enough for two 104 px pictures and the arrow of an upgrade. */
     grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr));
