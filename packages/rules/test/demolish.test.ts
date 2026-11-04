@@ -59,6 +59,15 @@ describe('demolish', () => {
     expect(tileAt(game, 2, 4)).toMatchObject({ terrain: 'meadow', stock: 0, work: 0 });
   });
 
+  it('a second pupil who comes too late is refused and keeps the action', () => {
+    const game = setup();
+    plow(game, 'p1', 2, 4);
+    demolish(game, 'p2', 2, 4, 3);
+    expect(game.act('p3', 2, 4, 'demolish')).toEqual({ ok: false, reason: 'no-action' });
+    expect(game.player('p3')?.actionsLeft).toBe(3);
+    expect(tileAt(game, 2, 4)).toMatchObject({ terrain: 'meadow', stock: 0, work: 0 });
+  });
+
   it('logs the action and, when done, the field-removed event', () => {
     const game = setup();
     plow(game, 'p1', 2, 4);

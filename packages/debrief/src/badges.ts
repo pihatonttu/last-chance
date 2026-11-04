@@ -54,7 +54,7 @@ export const BADGE_RULES = {
   maxWorkBadges: 2,
   /** A work badge needs at least this many actions... */
   minActions: 3,
-  /** ...and this share of the player's own actions. */
+  /** ...and this share of the player's own actions. Demolishing is left out of that total. */
   minShare: 0.2,
   /** "voter" needs at least this many village meetings since joining. */
   minMeetings: 3,
