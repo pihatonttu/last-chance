@@ -30,13 +30,17 @@ export const BADGE_IDS: readonly BadgeId[] = [
   'settler',
 ];
 
-/** A Record over every ActionKind, so a new kind in the engine fails to compile until it has a badge. */
-const BADGE_OF: Readonly<Record<ActionKind, WorkBadge>> = {
+/**
+ * A Record over every ActionKind, so a new kind in the engine fails to compile until it has a
+ * badge. Null: no badge at all, and the action does not count in the player's total either.
+ */
+const BADGE_OF: Readonly<Record<ActionKind, WorkBadge | null>> = {
   explore: 'explorer',
   fish: 'fisher',
   chop: 'lumberjack',
   plow: 'farmer',
   harvest: 'farmer',
+  demolish: null,
   'build-quarry': 'stonecutter',
   mine: 'stonecutter',
   study: 'learner',
@@ -68,6 +72,7 @@ export function badgesFor(log: readonly LogEntry[], playerId: string, monthsPlay
   for (const e of log) {
     if (e.type !== 'action' || e.player !== playerId || e.month < 1 || e.month > monthsPlayed) continue;
     const badge = BADGE_OF[e.kind];
+    if (badge === null) continue;
     counts.set(badge, (counts.get(badge) ?? 0) + 1);
     total += 1;
   }

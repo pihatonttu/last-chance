@@ -25,7 +25,7 @@ export interface Tile {
   fog: boolean;
   /** Exploration progress while fogged. */
   exploreWork: number;
-  /** Plowing (meadow) or quarry building (rock) progress. */
+  /** Plowing (meadow), quarry building (rock) or demolishing (field) progress. */
   work: number;
   /** Wood (forest), food (field) or stone (quarry) left. */
   stock: number;
@@ -58,6 +58,7 @@ export type Skill = 'education' | 'tools';
 export type ActionKind =
   | 'explore'
   | 'plow'
+  | 'demolish'
   | 'harvest'
   | 'fish'
   | 'chop'
@@ -67,6 +68,9 @@ export type ActionKind =
   | 'gather'
   | 'study'
   | 'make-tools';
+
+/** Which action of a tile a player means: its main one, or tearing down a greenhouse. */
+export type ActionIntent = 'main' | 'demolish';
 
 export type Refusal =
   | 'unknown-player'
@@ -94,6 +98,13 @@ export interface ActionPreview {
   available: boolean;
   reason?: Refusal;
   yield: Yield;
+  /** The second action of a field tile; the fields above describe its main action. */
+  alternative?: { kind: 'demolish'; available: boolean; reason?: Refusal; yield: Yield };
+  /**
+   * Free snow fields left after this greenhouse (docs/12-selkeys.md §1): on plow previews only,
+   * when the number is at most `meadowWarningAt`. A warning; plowing is still allowed.
+   */
+  freeMeadowsAfter?: number;
 }
 
 export interface Gain {
@@ -167,7 +178,7 @@ export type LogEvent =
   | { type: 'action'; player: string; kind: ActionKind; x: number; y: number; gain: Gain }
   | { type: 'tile-revealed'; x: number; y: number; terrain: Terrain; player: string }
   | { type: 'spring-found'; x: number; y: number; player: string }
-  | { type: 'field-ready' | 'quarry-ready' | 'forest-cleared'; x: number; y: number; player: string }
+  | { type: 'field-ready' | 'field-removed' | 'quarry-ready' | 'forest-cleared'; x: number; y: number; player: string }
   | { type: 'level-up'; player: string; skill: Skill; level: number }
   | { type: 'actions-unused'; player: string; count: number }
   | { type: 'vote'; player: string; option: string; previous: string | null }
@@ -557,18 +568,24 @@ export class Game {
     if (!p) return { kind: null, available: false, reason: 'unknown-player', yield: { type: 'none' } };
     if (!tile) return { kind: null, available: false, reason: 'out-of-bounds', yield: { type: 'none' } };
     const plan = this.#plan(p, tile);
-    const reason = this.#refusal(p, plan);
-    return reason === undefined
-      ? { kind: plan.kind, available: true, yield: plan.yield }
-      : { kind: plan.kind, available: false, reason, yield: plan.yield };
+    const preview: ActionPreview = { kind: plan.kind, ...this.#availability(p, plan) };
+    if (tile.terrain === 'field') {
+      preview.alternative = { kind: 'demolish', ...this.#availability(p, this.#planDemolish(p, tile)) };
+    }
+    if (plan.kind === 'plow') {
+      // The tile itself is one of the free snow fields until it becomes a greenhouse.
+      const left = this.#freeMeadows().length - 1;
+      if (left <= this.params.meadowWarningAt) preview.freeMeadowsAfter = left;
+    }
+    return preview;
   }
 
-  act(playerId: string, x: number, y: number): ActResult {
+  act(playerId: string, x: number, y: number, intent: ActionIntent = 'main'): ActResult {
     const p = this.#players.get(playerId);
     if (!p) return { ok: false, reason: 'unknown-player' };
     const tile = this.#tileAt({ x, y });
     if (!tile) return { ok: false, reason: 'out-of-bounds' };
-    const plan = this.#plan(p, tile);
+    const plan = intent === 'demolish' ? this.#planDemolish(p, tile) : this.#plan(p, tile);
     const reason = this.#refusal(p, plan);
     if (reason !== undefined || !plan.perform || plan.kind === null) {
       return { ok: false, reason: reason ?? 'no-action' };
@@ -586,6 +603,11 @@ export class Game {
     if (this.#phase !== 'action') return 'wrong-phase';
     if (p.actionsUsed >= this.#maxActions(p)) return 'no-actions-left';
     return plan.refusal;
+  }
+
+  #availability(p: Player, plan: Plan): { available: boolean; reason?: Refusal; yield: Yield } {
+    const reason = this.#refusal(p, plan);
+    return reason === undefined ? { available: true, yield: plan.yield } : { available: false, reason, yield: plan.yield };
   }
 
   #plan(p: Player, tile: Tile): Plan {
@@ -695,6 +717,19 @@ export class Game {
         return { work: m };
       },
     };
+  }
+
+  /**
+   * Tears a greenhouse down into a snow field, so a class that built on every field can
+   * still place igloos (docs/12-selkeys.md §1). Harvesting goes on until the work is done.
+   */
+  #planDemolish(p: Player, tile: Tile): Plan {
+    if (tile.terrain !== 'field') return { kind: null, yield: { type: 'none' }, refusal: 'no-action' };
+    return this.#planWork(tile, 'demolish', this.#toolsMultiplier(p), this.params.demolishWork, (player) => {
+      tile.terrain = 'meadow';
+      tile.stock = 0;
+      this.#emit({ type: 'field-removed', x: tile.x, y: tile.y, player: player.id });
+    });
   }
 
   #planRecreation(tile: Tile, kind: ActionKind, capacity: number): Plan {
@@ -874,12 +909,14 @@ export class Game {
     return result;
   }
 
-  /** Nearest revealed meadow without a building, never the landing (the fire); unplowed first, then by row and column. */
+  /** Revealed meadows without a building, never the landing (the fire). */
+  #freeMeadows(): Tile[] {
+    return this.#tiles.filter((t) => !t.fog && t.terrain === 'meadow' && !t.building && !this.#isLanding(t));
+  }
+
+  /** The nearest free meadow; unplowed first, then by row and column. */
   #freeMeadow(): Tile | undefined {
-    return this.#nearest(
-      this.#tiles.filter((t) => !t.fog && t.terrain === 'meadow' && !t.building && !this.#isLanding(t)),
-      true,
-    );
+    return this.#nearest(this.#freeMeadows(), true);
   }
 
   #upgradeTarget(kind: BuildingKind, level: number): Tile | undefined {

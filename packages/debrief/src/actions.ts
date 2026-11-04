@@ -9,6 +9,7 @@ const GROUP_OF: Readonly<Record<ActionKind, ActionGroup>> = {
   harvest: 'food',
   fish: 'food',
   plow: 'fields',
+  demolish: 'fields',
   chop: 'materials',
   mine: 'materials',
   'build-quarry': 'materials',

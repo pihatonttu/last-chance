@@ -49,6 +49,14 @@ describe('playGame', () => {
     expect(game.reports).toHaveLength(15);
   });
 
+  it('no bot demolishes a greenhouse: they build around them', () => {
+    const mix = { cooperative: 0.4, random: 0.4, skillsOnly: 0.1, lazy: 0.1 };
+    const game = playGame({ seed: 5, villagers: 12, length: 'short', mix });
+    expect(game.log.some((e) => e.type === 'field-ready')).toBe(true);
+    expect(game.log.filter((e) => e.type === 'action' && e.kind === 'demolish')).toEqual([]);
+    expect(game.log.filter((e) => e.type === 'field-removed')).toEqual([]);
+  });
+
   it('is deterministic for the same seed and mix', () => {
     const run = () => playGame({ seed: 9, villagers: 12, length: 'short', mix: { random: 1 } });
     const a = run();

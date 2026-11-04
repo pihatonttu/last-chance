@@ -41,6 +41,19 @@ describe('badgesFor (docs/09-uudisasukkaat.md §2.3)', () => {
     expect(badgesFor(b.entries, 'p1', 1)).toEqual(['farmer', 'stonecutter']);
   });
 
+  it('gives no badge for demolishing: Puutarhuri is about growing food (docs/12-selkeys.md §1)', () => {
+    const only = new LogBuilder().join('p1').month(1).act('p1', 'demolish', 6).votePhase().result(RESULT);
+    expect(badgesFor(only.entries, 'p1', 1)).toEqual(['settler']);
+
+    const withPlowing = new LogBuilder().join('p1').month(1).act('p1', 'plow', 2).act('p1', 'demolish', 3).votePhase().result(RESULT);
+    expect(badgesFor(withPlowing.entries, 'p1', 1)).toEqual(['settler']);
+  });
+
+  it('demolishing takes no share from the badges of other work', () => {
+    const b = new LogBuilder().join('p1').month(1).act('p1', 'chop', 3).act('p1', 'demolish', 20).votePhase().result(RESULT);
+    expect(badgesFor(b.entries, 'p1', 1)).toEqual(['lumberjack']);
+  });
+
   it('counts the meetings from joining, and needs at least three', () => {
     const b = new LogBuilder().join('p1');
     b.month(1).votePhase().vote('p1', 'none').result(RESULT);

@@ -56,6 +56,10 @@ export interface GameParams {
 
   fieldCapacity: number;
   plowWork: number;
+  /** Work to tear a greenhouse down into a free snow field (docs/12-selkeys.md §1). */
+  demolishWork: number;
+  /** A plow preview warns when the greenhouse leaves this many free snow fields or fewer. */
+  meadowWarningAt: number;
   forestCapacity: number;
   /** Forest stock is multiplied by this each month and rounded up. */
   forestRegrowth: number;
@@ -132,6 +136,8 @@ export const DEFAULT_PARAMS: GameParams = {
 
   fieldCapacity: 30,
   plowWork: 3,
+  demolishWork: 3,
+  meadowWarningAt: 2,
   forestCapacity: 40,
   forestRegrowth: 1.25,
   quarryCapacity: 120,

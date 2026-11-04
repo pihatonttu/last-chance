@@ -10,6 +10,7 @@ describe('groupOf', () => {
       harvest: 'food',
       fish: 'food',
       plow: 'fields',
+      demolish: 'fields',
       chop: 'materials',
       mine: 'materials',
       'build-quarry': 'materials',

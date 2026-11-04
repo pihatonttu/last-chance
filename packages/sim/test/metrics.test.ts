@@ -158,6 +158,12 @@ describe('measureGame on a hand-made game', () => {
     expect(m.actionShare.recreation).toBeCloseTo(2 / 11, 12);
   });
 
+  it('counts demolishing as work on the fields', () => {
+    const demolished = measureGame({ ...fake, log: [action(1, 'demolish')] });
+    expect(demolished.actions).toBe(1);
+    expect(demolished.actionShare.fields).toBe(1);
+  });
+
   it('counts cold months and whether the game was lost', () => {
     const cold = { temperature: -35, need: 6, burned: 2, cold: 2 };
     const frozen = measureGame({

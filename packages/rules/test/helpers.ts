@@ -1,4 +1,4 @@
-import { Game, type GameOptions } from '../src/game.ts';
+import { Game, type ActionIntent, type GameOptions } from '../src/game.ts';
 import type { GameParams } from '../src/params.ts';
 import { RULE_TEST_PARAMS } from './params.ts';
 import type { NaturalTerrain, TerrainMap } from '../src/types.ts';
@@ -118,8 +118,8 @@ export function buildByVote(game: Game, option: string) {
 }
 
 /** Use one action, failing the test with the reason if it is refused. */
-export function act(game: Game, player: string, x: number, y: number) {
-  const res = game.act(player, x, y);
+export function act(game: Game, player: string, x: number, y: number, intent: ActionIntent = 'main') {
+  const res = game.act(player, x, y, intent);
   if (!res.ok) throw new Error(`${player} act at ${x},${y} refused: ${res.reason}`);
   return res;
 }

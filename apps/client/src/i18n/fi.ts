@@ -221,6 +221,7 @@ export const fi = {
   // ---------------------------------------------------------------- actions
   'action.explore': 'Tutki',
   'action.plow': 'Rakenna kasvihuone',
+  'action.demolish': 'Pura kasvihuone',
   'action.harvest': 'Korjaa sato',
   'action.fish': 'Pilki',
   'action.chop': 'Kaada puita',

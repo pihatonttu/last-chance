@@ -17,6 +17,7 @@ import type { ActionKind, Game } from '@saari/rules';
 const GROUP_OF: Record<ActionKind, ActionGroup> = {
   explore: 'explore',
   plow: 'fields',
+  demolish: 'fields',
   harvest: 'food',
   fish: 'food',
   chop: 'materials',

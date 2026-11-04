@@ -38,6 +38,7 @@ export const LEVELS: readonly Level[] = [1, 2, 3];
 export const ACTION_KINDS = keys<ActionKind>({
   explore: true,
   plow: true,
+  demolish: true,
   harvest: true,
   fish: true,
   chop: true,

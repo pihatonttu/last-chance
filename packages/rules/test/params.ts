@@ -25,6 +25,8 @@ export const RULE_TEST_PARAMS: GameParams = {
 
   fieldCapacity: 30,
   plowWork: 3,
+  demolishWork: 3,
+  meadowWarningAt: 2,
   forestCapacity: 40,
   forestRegrowth: 1.25,
   quarryCapacity: 60,
