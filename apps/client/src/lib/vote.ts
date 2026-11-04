@@ -56,7 +56,7 @@ export function optionCard(option: VoteOption, villagers: number, params: GamePa
       return grows
         ? {
             ...base,
-            benefit: t('vote.gain.studyFaster', { n: skillGainPerAction(level) }),
+            benefit: t('vote.gain.studySteps', { from: skillGainPerAction(before), to: skillGainPerAction(level) }),
             reason: t('vote.why.studyFaster'),
           }
         : {
@@ -68,7 +68,7 @@ export function optionCard(option: VoteOption, villagers: number, params: GamePa
       return grows
         ? {
             ...base,
-            benefit: t('vote.gain.toolsFaster', { n: skillGainPerAction(level) }),
+            benefit: t('vote.gain.toolsSteps', { from: skillGainPerAction(before), to: skillGainPerAction(level) }),
             reason: t('vote.why.toolsFaster'),
           }
         : {
