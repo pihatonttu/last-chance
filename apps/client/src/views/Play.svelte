@@ -153,10 +153,10 @@
     if (event.key === 'Escape' && panel !== 'none') closePanel();
   }
 
-  function act(): void {
+  function act(intent?: 'demolish'): void {
     if (!selected) return;
     pendingAct = selected;
-    session.act(selected.x, selected.y);
+    session.act(selected.x, selected.y, intent);
   }
 </script>
 

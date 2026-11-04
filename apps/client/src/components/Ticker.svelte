@@ -20,6 +20,8 @@
         return 'props/spring';
       case 'field-ready':
         return 'props/field-0';
+      case 'field-removed':
+        return 'props/meadow-b';
       case 'quarry-ready':
         return 'props/quarry';
       case 'forest-cleared':

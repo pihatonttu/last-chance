@@ -70,7 +70,7 @@ function familyKeys(): string[] {
   for (const mood of ['good', 'ok', 'bad']) keys.push(`mood.${mood}`);
   for (const gain of [...RESOURCES, 'work', 'recreation', 'education', 'tools']) keys.push(`gain.${gain}.one`, `gain.${gain}.other`);
   for (const crisis of ['hunger', 'no-shelter', 'cold']) keys.push(`debrief.crisis.${crisis}.one`, `debrief.crisis.${crisis}.other`);
-  for (const kind of ['explore', 'plow', 'build-quarry']) keys.push(`yield.workDone.${kind}`);
+  for (const kind of ['explore', 'plow', 'demolish', 'build-quarry']) keys.push(`yield.workDone.${kind}`);
   for (const terrain of ['forest', 'field', 'quarry']) keys.push(`tile.stock.${terrain}`);
   for (const work of ['plow', 'quarry']) keys.push(`tile.work.${work}`);
   for (const badge of BADGE_IDS) keys.push(`badge.${badge}.name`, `badge.${badge}.text`);

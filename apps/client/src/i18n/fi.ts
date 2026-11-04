@@ -199,6 +199,12 @@ export const fi = {
   'tile.work.quarry': 'Jäälouhoksen perustus {done} / {needed} työtä',
   'tile.explore': 'Tutkimistyö {done} / {needed}',
   'tile.uses': 'Käyttökertoja jäljellä tässä kuussa {left} / {capacity}',
+  'tile.meadowsLeft': 'Iglut tarvitsevat lumikenttiä: tämän jälkeen vapaita on {n}.',
+  'tile.meadowsNone': 'Tämän jälkeen vapaita lumikenttiä ei ole.',
+  'tile.gives.shelter': 'Koti {n} kyläläiselle.',
+  'tile.gives.school': 'Opiskelemalla saat lisää energiaa.',
+  'tile.gives.workshop': 'Työkaluilla saat enemmän joka työstä.',
+  'tile.gives.gathering': 'Yhdessä vietetty aika tekee kylästä tyytyväisemmän.',
 
   // ---------------------------------------------------------------- buildings
   'building.shelter.kind': 'Koti',
@@ -240,6 +246,19 @@ export const fi = {
   'action.pending': 'Tehdään…',
   'action.done': 'Tehty: {gain}',
   'action.waitPhase': 'Toimintoja voi tehdä toimintavuorolla.',
+  // The button's name for a screen reader: the action, what it costs and what it gives.
+  'action.cost': '1 energia',
+  'action.label': '{action}, {cost}',
+  'action.label.resource': '{action}, {cost}, saat {gain}',
+  'action.label.work': '{action}, {cost}, työ etenee: {after} / {needed}',
+  'action.label.progress': '{action}, {cost}, edistyt: {after} / {needed}',
+  'action.label.recreation': '{action}, {cost}, kylä on tyytyväisempi',
+  'action.amount.food.one': '{n} ruoan',
+  'action.amount.food.other': '{n} ruokaa',
+  'action.amount.wood.one': '{n} puun',
+  'action.amount.wood.other': '{n} puuta',
+  'action.amount.stone.one': '{n} jään',
+  'action.amount.stone.other': '{n} jäätä',
 
   // ---------------------------------------------------------------- gains and yields
   'gain.food.one': '+{n} ruoka',
@@ -260,6 +279,7 @@ export const fi = {
   'yield.workDone.explore': 'Ruutu paljastuu!',
   'yield.workDone.plow': 'Kasvihuone valmistuu!',
   'yield.workDone.build-quarry': 'Jäälouhos valmistuu!',
+  'yield.workDone.demolish': 'Ruudusta tulee taas lumikenttä.',
   'yield.recreation': 'Käyttökertoja jäljellä {left} / {capacity}',
   'yield.skill': 'Edistys {done} → {after} / {needed}',
   'yield.levelUp': 'Nouset tasolle {level}!',
