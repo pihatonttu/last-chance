@@ -18,7 +18,9 @@ export function phaseHeading(phase: Phase, paused: boolean): PhaseHeading {
       return { title: t('bar.title.vote'), subtitle: t('bar.subtitle.vote') };
     case 'summary':
       return { title: t('bar.title.summary'), subtitle: t('bar.subtitle.summary') };
-    default:
+    case 'action':
+    case 'lobby':
+    case 'ended':
       return { title: t('bar.title.action'), subtitle: t('bar.subtitle.action') };
   }
 }

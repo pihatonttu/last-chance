@@ -20,8 +20,10 @@
     clockOffset: number;
     phaseTotalMs: number;
     size?: 'projector' | 'student';
+    /** How far the corners reach down over the map, in pixels; they wrap on narrower screens. */
+    underHud?: number;
   }
-  let { game, clockOffset, phaseTotalMs, size = 'student' }: Props = $props();
+  let { game, clockOffset, phaseTotalMs, size = 'student', underHud = $bindable(0) }: Props = $props();
 
   const HINTS: Record<ForecastLook, string> = {
     hard: t('bar.hint.hard'),
@@ -63,7 +65,7 @@
       <span class="hint">{HINTS[look]}</span>
     </div>
   </div>
-  <div class="corners">
+  <div class="corners" bind:clientHeight={underHud}>
     <div class="pill resources" role="group" aria-label={t('bar.resources')}>
       <div class="cell" class:short={cold} title="{t('bar.wood')} · {t('bar.fireNeed', { need: village.heatNeed })}">
         <ArtIcon name="wood" size={icon} />
@@ -205,7 +207,8 @@
     border-color: var(--ok);
   }
   .mild b {
-    color: var(--ok);
+    /* Darker than --ok, which reaches only 4.42:1 on --ok-soft. */
+    color: #28692c;
   }
   .party {
     background: var(--primary-soft);

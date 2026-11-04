@@ -130,7 +130,7 @@ export const fi = {
   'bar.title.paused': 'TAUKO',
   'bar.nextMonth': 'Ensi kuussa',
   'bar.hint.hard': 'Kova pakkanen: nuotio vie paljon puuta',
-  'bar.hint.cold': 'Kylmenee: nuotio vie enemmän puuta',
+  'bar.hint.cold': 'Kylmä sää: nuotio vie enemmän puuta',
   'bar.hint.mild': 'Leuto sää: puuta voi jäädä rakentamiseen',
   'bar.resources': 'Kylän varasto',
   'bar.wood': 'Puu',

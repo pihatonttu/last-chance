@@ -50,6 +50,8 @@
   let pendingAct = $state<Coord | null>(null);
   /** One popup at a time over the map, so the screen never fills up with text. */
   let panel = $state<'none' | 'tile' | 'vote' | 'me'>('none');
+  /** How far the top bar's corners reach over the map, measured by the bar. */
+  let underHud = $state(0);
 
   function onMessage(message: ServerMessage): void {
     switch (message.t) {
@@ -238,9 +240,9 @@
       </div>
     </main>
   {:else if game.map}
-    <div class="play">
-      <TopBar {game} clockOffset={client.clockOffset} phaseTotalMs={client.phaseTotalMs} />
-      <div class="map-area">
+    <div class="play" style:--under-hud={underHud > 0 ? `${underHud}px` : null}>
+      <TopBar {game} clockOffset={client.clockOffset} phaseTotalMs={client.phaseTotalMs} bind:underHud />
+      <div class="map-area" class:sheet={panel === 'tile'}>
         <MapView
           map={game.map}
           villagers={game.village.villagers}
@@ -272,6 +274,9 @@
 
         {#if panel === 'tile' && selectedTile}
           <div class="popup card">
+            {#if game.phase === 'action' && you?.actionsLeft === 0}
+              <p class="bubble sheet-note">{t('play.noActionsLeft')}</p>
+            {/if}
             <TilePanel
               tile={selectedTile}
               landing={game.map.landing}
@@ -383,7 +388,10 @@
     font-weight: 800;
   }
   .play {
-    /* How far the corners of the top bar reach over the map: everything else starts below. */
+    /*
+     * How far the corners of the top bar reach over the map: everything else starts below.
+     * The bar measures this; these values only hold until the first measurement.
+     */
     --under-hud: 3.25rem;
     display: grid;
     grid-template-rows: auto 1fr;
@@ -444,6 +452,16 @@
     color: var(--warn);
     font-weight: 700;
     box-shadow: var(--shadow);
+  }
+  /* Tablets: the bubble stops short of the tile popup on the right. */
+  .bottom-left.lifted .bubble {
+    max-width: calc(100vw - 24rem - 2.25rem);
+  }
+  /* The same message inside a phone's sheet, where the bubble has no room (see below). */
+  .sheet-note {
+    display: none;
+    margin-bottom: 0.75rem;
+    box-shadow: none;
   }
   .tap-hint {
     position: absolute;
@@ -521,10 +539,23 @@
     .play {
       --under-hud: 4.6rem;
     }
-    /* The sheet would cover the energy just when it matters, so the meter moves above it. */
+    /*
+     * The sheet would cover the energy just when it matters, so the meter moves above it. Up
+     * there it takes the recenter button's place, and the bubble would cover the name and
+     * sound buttons, so the button waits and the message moves into the sheet.
+     */
     .bottom-left.lifted {
       top: var(--under-hud);
       bottom: auto;
+    }
+    .bottom-left.lifted .bubble {
+      display: none;
+    }
+    .sheet-note {
+      display: block;
+    }
+    .play .map-area.sheet :global(.recenter) {
+      display: none;
     }
     .popup {
       right: 0;

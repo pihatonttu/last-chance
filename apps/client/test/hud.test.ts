@@ -63,6 +63,12 @@ describe('phaseHeading', () => {
     expect(phaseHeading('summary', false)).toEqual({ title: 'KUUKAUSI PÄÄTTYI', subtitle: 'Katsokaa, miten kylällä menee' });
   });
 
+  it('the lobby and the end have their own screens, so they read like the action phase', () => {
+    const action = phaseHeading('action', false);
+    expect(phaseHeading('lobby', false)).toEqual(action);
+    expect(phaseHeading('ended', false)).toEqual(action);
+  });
+
   it('a pause says only TAUKO, whatever the phase', () => {
     for (const phase of PHASES) expect(phaseHeading(phase, true)).toEqual({ title: 'TAUKO', subtitle: null });
   });
@@ -136,6 +142,18 @@ describe('top bar: the weather clock', () => {
     expect(shown).not.toContain('Aikaa jäljellä');
   });
 
+  it('the ring shows the share of the phase that is left', () => {
+    const html = bar({ timer: timer({ phaseEndsAt: null, remainingMs: 30_000, phaseMs: 60_000 }) });
+    expect(html).toContain(`stroke-dasharray="${ringDash(0.5, 19)}"`);
+  });
+
+  it('turns urgent in the last seconds, but not in a pause', () => {
+    const urgent = /class="clock[^"]*\burgent\b/;
+    expect(bar({ timer: timer({ phaseEndsAt: null, remainingMs: 8_000 }) })).toMatch(urgent);
+    expect(bar({ timer: timer({ phaseEndsAt: null, remainingMs: 30_000 }) })).not.toMatch(urgent);
+    expect(bar({ timer: timer({ paused: true, phaseEndsAt: null, remainingMs: 8_000 }) })).not.toMatch(urgent);
+  });
+
   it('no longer repeats the old phase name beside the clock', () => {
     expect(text(bar({ phase: 'action' }))).not.toContain('Toimintavuoro');
   });
@@ -143,7 +161,7 @@ describe('top bar: the weather clock', () => {
 
 describe('top bar: the forecast card', () => {
   const HARD = 'Kova pakkanen: nuotio vie paljon puuta';
-  const COLD = 'Kylmenee: nuotio vie enemmän puuta';
+  const COLD = 'Kylmä sää: nuotio vie enemmän puuta';
   const MILD = 'Leuto sää: puuta voi jäädä rakentamiseen';
 
   it.each([

@@ -39,6 +39,8 @@
 
   let showPlayers = $state(false);
   let showDebrief = $state(false);
+  /** How far the top bar's corners reach down, measured by the bar. */
+  let underHud = $state(0);
   let savedDebrief = $state<{ debrief: DebriefData; storedToken: string | null } | null>(readSaved());
 
   function readSaved(): { debrief: DebriefData; storedToken: string | null } | null {
@@ -160,8 +162,8 @@
       {/if}
     </main>
   {:else if game.map && client}
-    <div class="host-game">
-      <TopBar {game} clockOffset={client.clockOffset} phaseTotalMs={client.phaseTotalMs} size="projector" />
+    <div class="host-game" style:--under-hud={underHud > 0 ? `${underHud}px` : null}>
+      <TopBar {game} clockOffset={client.clockOffset} phaseTotalMs={client.phaseTotalMs} size="projector" bind:underHud />
       <div class="body">
         <div class="map-area">
           <MapView
@@ -239,7 +241,10 @@
 
 <style>
   .host-game {
-    /* How far the corners of the top bar reach down: 3.6 times its projector font size. */
+    /*
+     * How far the corners of the top bar reach down, as 3.6 times its projector font size.
+     * The bar measures this; this value only holds until the first measurement.
+     */
     --under-hud: calc(clamp(18px, 1.45vw, 30px) * 3.6);
     display: grid;
     grid-template-rows: auto 1fr auto;
