@@ -19,3 +19,9 @@ coverage/
 Thumbs.db
 .vscode/
 .idea/
+
+# Tools
+.svelte-check/
+.claude/worktrees/
+.claude/settings.local.json
+.superpowers/
