@@ -9,13 +9,14 @@ silloin myös dokumentti.
 | Dokumentti | Sisältö |
 |---|---|
 | [`04-pelisuunnittelu.md`](04-pelisuunnittelu.md) | pelisäännöt, tästä kannattaa aloittaa |
-| [`03-paatokset.md`](03-paatokset.md) | päätösloki P1–P59: mitä on lukittu ja miksi |
+| [`03-paatokset.md`](03-paatokset.md) | päätösloki P1–P63: mitä on lukittu ja miksi |
 | [`05-tasapaino.md`](05-tasapaino.md) | tasapainon viritys, hyväksymisehdot ja simulaattorin käyttö |
 | [`06-tietosuoja.md`](06-tietosuoja.md) | tietosuojaseloste (luonnos) |
 | [`07-opettajan-ohje.md`](07-opettajan-ohje.md) | ohje opettajalle (luonnos) |
 | [`08-julkaisu.md`](08-julkaisu.md) | tuotantoympäristö ja päivitys |
 | [`10-arktinen.md`](10-arktinen.md) | nykyisen teeman suunnitelma ja perustelut |
 | [`11-avoimet-asiat.md`](11-avoimet-asiat.md) | avoimet päätökset ja vapaat työt |
+| [`12-selkeys.md`](12-selkeys.md) | lasten testipelin korjaukset 2026-11-04: purkaminen, sana tyytyväisyys ja uusi pelinäkymä |
 
 ## Historia
 
@@ -25,7 +26,7 @@ vanhentuneita.
 | Dokumentti | Sisältö |
 |---|---|
 | [`01-alkuperainen-peli.md`](01-alkuperainen-peli.md) | alkuperäisen *Saarella*-pelin rakenne |
-| [`02-suunnitelma.md`](02-suunnitelma.md) | alkuperäinen suunnitelma ja vaiheet V0–V10 |
+| [`02-suunnitelma.md`](02-suunnitelma.md) | alkuperäinen suunnitelma ja vaiheet V0–V11 |
 | [`09-uudisasukkaat.md`](09-uudisasukkaat.md) | oma tarina, kehystys ja merkit (vuodenajat ja nimet korvattu) |
 | [`superpowers/plans/`](superpowers/plans/) | toteutussuunnitelmat, joissa on tekijän koneen polkuja |
 | [`sim/`](sim/) | simulaattorin raportit päivämäärittäin |

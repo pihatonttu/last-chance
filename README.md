@@ -3,7 +3,7 @@
 Selainpohjainen yhteistyöpeli koululuokille (2.–6. luokka). Jäänmurtaja tuo luokan jäiselle
 arktiselle saarelle. Luokka perustaa kylän nuotion ympärille, rakentaa iglut ja kasvihuoneet ja
 valmistautuu revontulijuhlaan. Kaikki kerätty menee yhteiseen varastoon, ja kuun lopussa luokka
-äänestää, mitä rakennetaan. Kylän nuotio polttaa puuta pakkasen mukaan, ja jos kylän onnellisuus
+äänestää, mitä rakennetaan. Kylän nuotio polttaa puuta pakkasen mukaan, ja jos kylän tyytyväisyys
 putoaa liian alas, kylä luovuttaa. Pelin lopussa opettaja saa jälkipuinnin.
 
 Opettaja näyttää pelin projektorilla, ja oppilaat liittyvät omilla laitteillaan koodilla tai

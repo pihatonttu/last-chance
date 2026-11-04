@@ -6,7 +6,9 @@ Toteutussuunnitelma: `superpowers/plans/2026-10-23-arktinen.md`. Rakentui suunni
 `09-uudisasukkaat.md` päälle (haara `uudisasukkaat`). Kohdissa §4, §4b ja §5 alkuarvot on
 korvattu simulaattorilla viritetyillä arvoilla: ne ovat tiedostossa
 `packages/rules/src/params.ts`, ja perustelut ovat dokumentissa `05-tasapaino.md`. Muu teksti
-kuvaa suunnitelmaa sellaisena kuin Samu sen hyväksyi.
+kuvaa suunnitelmaa sellaisena kuin Samu sen hyväksyi. Lasten testipelin jälkeen 2026-11-04
+pelin näkyvä sana on tyytyväisyys (P62), ja kohdat §2 ja §6 on merkitty muuttuneiksi
+(`12-selkeys.md`). Dokumentin sanat onnellisuus ja mieliala ovat historiaa.
 
 ## Miksi
 
@@ -125,6 +127,11 @@ millaisen kylän vieraat näkevät.
   4. Nuotio tarvitsee puuta: mitä kovempi pakkanen, sitä enemmän.
   5. Kyläkokous ja iglut ensin.
   6. Tavoite: iloinen kylä revontulijuhlaan.
+
+  **Muuttui 2026-11-04, ks. `12-selkeys.md`:** askeleita on nyt neljä kuuden sijaan, ja
+  ensimmäinen kertoo tavoitteen ("Pitäkää kylä tyytyväisenä, niin saatte revontulijuhlassa
+  tähtiä."). Muut kolme ovat energia, yhteinen varasto ja nuotio sekä kyläkokous. Yllä oleva
+  lista jää historiaksi.
 - Kuukaudet ovat numeroita ("Kuukausi 3 / 15").
 
 ## 3. Maailma ja nimistö (hyväksytty taulukko)
@@ -296,6 +303,12 @@ sidottu kyläläisten määrään, koska kiinteä 120 riittää kaikille kyläko
   - "Kuukausi 3 / 15";
   - mieliala.
 - Projektorilla lisäksi "Juhlaan N kuukautta".
+
+**Muuttui 2026-11-04, ks. `12-selkeys.md`:** vanha yläpalkki korvattiin. Vasemmalla on iso
+otsikko vaiheen mukaan (HOMMIIN!, KYLÄKOKOUS, KUUKAUSI PÄÄTTYI, TAUKO), keskellä sääkello, joka
+yhdistää ajan ja lämpötilan, ja oikealla ensi kuun ennuste ja kevyt vinkki. Varasto ja
+kuukausi sekä tyytyväisyys (ent. mieliala) ovat kartan yläkulmissa. Yllä oleva kuvaus jää
+historiaksi.
 
 **Nuotion ponnahdusikkuna** (rantautumisruudun napautus) näyttää pakkasen, ennusteen ja
 puuntarpeen. Toimintonappia ei ole.

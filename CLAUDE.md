@@ -94,7 +94,8 @@ tallennetuissa jälkipuinneissa. **Älä nimeä niitä uudelleen.** Paketit ovat
 | `spring` | kuuma lähde |
 | `shelter` | koti (pieni iglu, iglu, iso iglu) |
 | `gathering` | kylätalo (laavu, kylätalo, lumilinna) |
-| `plow`, `mine`, `fish` | Rakenna kasvihuone, Louhi jäätä, Pilki |
+| `plow`, `demolish`, `mine`, `fish` | Rakenna kasvihuone, Pura kasvihuone, Louhi jäätä, Pilki |
+| `happiness`, `mood` | tyytyväisyys yhteensä, kuukauden tyytyväisyys (ei onnellisuus eikä mieliala, P62) |
 | `farmer`, `stonecutter` | Puutarhuri, Jäänhakkaaja (merkit) |
 | landing-ruutu | kylän nuotio, sille ei voi rakentaa |
 
@@ -126,6 +127,10 @@ lukee osan luvuista suoraan oletuksista (`apps/client/src/lib/rules-info.ts`).
 toimi uuden palvelimen kanssa, kasvata `PROTOCOL_VERSION`-arvoa ja kerro syy sen kommentissa.
 Vanhoille välilehdille näytetään kehotus päivittää sivu.
 
+**Äänestyskortit.** Kortin luvut lasketaan säännöistä (`apps/client/src/lib/vote.ts`,
+`rules-info.ts`) eikä niitä kirjoiteta tekstiin. Kotipaikkojen "jälkeen"-luku tulee palvelimelta
+(`VoteOption.shelterAfter`), jotta se on sama kuin yläpalkin luku.
+
 **Uusi arvo unioniin** (toiminto, tapahtuma, kysymys, merkki...). `apps/client/src/lib/enums.ts`
 kaatuu käännökseen, kunnes arvo on lisätty sinne, ja i18n-testi vaatii sille tekstin.
 
@@ -143,6 +148,9 @@ kuva pudottaa koko kartan "ei voitu näyttää" -viestiin, koska varakarttaa ei 
 - Palvelin välimuistittaa kuvat tunniksi (`/art/kenney/**`). Saman nimisen kuvan korvaaminen näkyy
   jo pelanneilla laitteilla viiveellä.
 - Palvelimen uudelleenkäynnistys katkaisee käynnissä olevat pelit.
+- `apps/client/.svelte-check` voi pitää vanhoja kopioita komponentista, joka on poistettu (esim.
+  `PhaseClock.svelte`). Jos `pnpm typecheck` valittaa puuttuvasta tiedostosta, poista kansio ja aja
+  tarkistus uudelleen.
 
 ## Mitä et tee
 

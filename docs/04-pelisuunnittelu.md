@@ -1,17 +1,19 @@
 # Pelisuunnittelu (Last Chance: Arctic)
 
-**Tila: v2 (2026-10-23).** Päätökset P25–P34 ja P40–P59 (`03-paatokset.md`) on viety tähän,
+**Tila: v3 (2026-11-04).** Päätökset P25–P34 ja P40–P63 (`03-paatokset.md`) on viety tähän,
 ja niiden numerot ovat suluissa. Napateema (aina talvi, nuotio, iglut ja jää, häviö):
 `10-arktinen.md`. Kehystys ja omat merkit: `09-uudisasukkaat.md`. Vuodenajat (P43) ja
 vanhat nimet (P44) on korvattu (P49, P54). V3:n tasapainotyön sääntömuutokset (sumu, kodit,
 pyöristys, arvosanarajat) on merkitty **(V3)**; perustelut ovat dokumentissa `05-tasapaino.md`.
+Lasten testipelin korjaukset 2026-11-04 (purkaminen, lumikenttävaroitus, sana tyytyväisyys ja
+uusi pelinäkymä, P60–P63) ovat suunnitelmassa `12-selkeys.md`, ja ne on viety tähän.
 
 - Luvut ovat pelin **nykyiset oletusarvot** (`DEFAULT_PARAMS` tiedostossa
   `packages/rules/src/params.ts`). Ne on viritetty simulaattorilla, ja muutosten perustelut sekä
   suunnittelun alkuarvot ovat dokumentissa `05-tasapaino.md`. Jos luku tässä ja `params.ts` eroavat,
   `params.ts` on oikea.
 
-Reunaehdot tulevat tiedostosta `03-paatokset.md` (P1–P59). Tärkeimmät: ydin (P7), isometriset
+Reunaehdot tulevat tiedostosta `03-paatokset.md` (P1–P63). Tärkeimmät: ydin (P7), isometriset
 neliöt (P10), kartta skaalautuu (P8), 15–30 pelaajaa (P15), enintään 45 minuuttia ja
 tapahtumaloki jälkipuintia varten (P8).
 
@@ -25,8 +27,9 @@ kaikki lämpimänä, jos luokka muistaa ruokkia sitä. Kaikki tehdään talkoill
 päästä** (Lyhyessä pelissä 10) pidetään **revontulijuhla**, ja jäänmurtaja tuo vieraat. Tulos
 kertoo, millaisen kylän vieraat näkevät.
 
-- Jokainen kierros on yksi kuukausi. Kuukaudet ovat numeroita (yläpalkissa kalenterikuvake ja
-  "3 / 15"), eikä vuodenaikoja ole: aina on talvi (P49). Pakkanen vaihtelee kuukaudesta toiseen (§9.1).
+- Jokainen kierros on yksi kuukausi. Kuukaudet ovat numeroita (kartan oikeassa yläkulmassa
+  "Kuukausi 3 / 15"), eikä vuodenaikoja ole: aina on talvi (P49). Pakkanen vaihtelee kuukaudesta
+  toiseen (§9.1).
 - Peli päättyy revontulijuhlaan. Loppuruudulla ovat revontulet ja jäänmurtaja ("Vieraat
   saapuivat revontulijuhlaan!").
 - Jos kylä luovuttaa ennen juhlaa (§9.2), jäänmurtaja tulee ilman juhlaa.
@@ -36,7 +39,7 @@ kertoo, millaisen kylän vieraat näkevät.
 - Saarella on lumisia havumetsiä, lumikenttiä ja jäätiköitä sekä kuuma lähde.
 - Ruoka tulee kasvihuoneista ja pilkkimällä. Puu tulee lumimetsistä ja jää jäälouhoksesta.
 - Rannalla on rantajäätä ja avantoja, ja kauempana on avomerta ja jäälauttoja.
-- Eläimiä ei ole, eikä kukaan kuole tai sairastu. Nälkä ja palelu laskevat vain kylän mielialaa.
+- Eläimiä ei ole, eikä kukaan kuole tai sairastu. Nälkä ja palelu laskevat vain kylän tyytyväisyyttä.
 
 ## 2. Mitoitusperiaate: kaikki lasketaan per kyläläinen (P25)
 
@@ -67,7 +70,7 @@ asukasta.
 | Vaihe | Kesto | Mitä tapahtuu |
 |---|---|---|
 | Aula | ~5 min | Opettaja luo pelin ja näyttää koodin ja QR:n. Oppilaat liittyvät ja kirjoittavat nimimerkin. |
-| Opetus | 0–5 min | Opettaja kertoo tarinan ja tavoitteen (aulassa on näytettävä "Näin pelataan" -kortti). |
+| Opetus | 0–5 min | Opettaja kertoo tarinan ja tavoitteen (aulassa on näytettävä "Näin pelataan" -kortti, jossa on neljä askelta ja ensimmäinen kertoo tavoitteen, P63). |
 | Peli | ~15–25 min | *Normaali* 15 kierrosta tai *Lyhyt* 10 kierrosta, kukin enintään ~100 s. Kierros päättyy aiemmin, kun kaikki ovat valmiita. |
 | Jälkipuinti | 10–15 min | Projektorilla pelin kulku, ja keskustelukysymykset luokalle. |
 
@@ -81,7 +84,7 @@ skaalataan. Simulaattori virittää molemmat.
 1. Toimintavuoro   60 s  (opettaja voi muuttaa: 45 / 60 / 90 s)
                          päättyy heti, kun jokainen paikalla oleva on käyttänyt toimintonsa
 2. Äänestys        30 s  päättyy, kun kaikki paikalla olevat ovat äänestäneet (+3 s varmistus)
-3. Kuukauden vaihde ~8 s yhteenveto: mitä rakennettiin, ruoka, lämpö, kodit ja mieliala
+3. Kuukauden vaihde ~8 s yhteenveto: mitä rakennettiin, ruoka, lämpö, kodit ja tyytyväisyys
 ```
 
 - Täysi kierros kestää ~100 s, ja 15 kierrosta enintään ~25 min. Käytännössä vähemmän, koska
@@ -138,7 +141,7 @@ Kaikki resurssit ovat **koko kylän yhteisiä** (ydin a).
 | Puu | lumimetsän kaataminen | kylän nuotio (joka kuukausi, §9.1) ja rakennukset |
 | Jää | jäälouhos | iglut ja paremmat rakennukset (tasot 2–3) |
 | Ruoka | kasvihuone, pilkkiminen | jokainen syö 6 joka kuukausi |
-| Onnellisuus | kuukauden mieliala (§9) | pisteet, arvosana ja häviöraja (§9.2) |
+| Tyytyväisyys | kuukauden tyytyväisyys (§9) | pisteet, arvosana ja häviöraja (§9.2) |
 
 **Ruokavarasto (P27):** varastoon mahtuu enintään kahden kuukauden tarve (`2 × 6N = 12N`), ja
 ylimenevä osa pilaantuu kuukauden vaihteessa, kun kylä on syönyt (§9). Pilaantunut määrä näkyy
@@ -146,15 +149,24 @@ yhteenvedossa ("Varasto oli täynnä: 14 ruokaa pilaantui."). Puulla ja jääll�
 
 ## 7. Toiminnot
 
-Jokaisella on alussa **3 toimintoa kuukaudessa** (ydin c). Ruutua napautetaan, sivupaneeli
-kertoo alueen tilan ja mitä toiminto tuottaa, ja nappi käyttää yhden toiminnon. Tuotot ovat
-työkalutasolla 1. Työkalukerroin on kuvattu kohdassa §8.
+Jokaisella on alussa **3 toimintoa kuukaudessa** (ydin c). Pelaajalle ne ovat **energiaa**:
+jokainen toiminto vie yhden, ja mittari on vasemmassa alakulmassa ("Energiaa 2" ja suuret
+salamat). Ruutua napautetaan, ja ponnahdusikkunassa on yksi iso toimintonappi, joka käyttää
+yhden energian. Tuotot ovat työkalutasolla 1. Työkalukerroin on kuvattu kohdassa §8.
+
+**Toimintonappi (P63).** Napissa on toiminnon nimi, ja sen alla on joka kerta sama merkintä:
+hinta ja hyöty, esim. `−1 ⚡ → +10 [puukuvake]`. Resurssi näkyy pelin omana kuvakkeena. Kun
+toiminto on työtä (Tutki, Rakenna kasvihuone, Pura kasvihuone, Perusta jäälouhos), nuolen
+jälkeen ovat edistymispallot, esim. `●○○`, ja opiskelussa ja työkaluissa samoin. Jos askelia on yli
+kuusi, näytetään luku, esim. `3 / 8`. Virkistyksessä (Ui, Vietä aikaa yhdessä) näkyy naama.
+Ruudunlukija saa saman sanoina: toiminto, hinta ja hyöty.
 
 | Alue | Toiminto | Vaikutus |
 |---|---|---|
 | Sumu | **Tutki** | +1 työ (× työkalut); paljastuu, kun työ ≥ `1 + ⌊d/2⌋` |
 | Lumikenttä | **Rakenna kasvihuone** | +1 työ (× työkalut); 3 työtä → kasvihuone |
 | Kasvihuone | **Korjaa sato** | +10 ruokaa (× työkalut), enintään kasvihuoneen jäljellä oleva sato. Kasvihuone kasvaa joka kuukausi täyteen 30 ruokaan. Tyhjästä kasvihuoneesta ei saa mitään. |
+| Kasvihuone | **Pura kasvihuone** (P60) | +1 työ (× työkalut); 3 työtä → ruudusta tulee lumikenttä. Ei palauta mitään, ja jäljellä oleva sato menetetään. Toinen, hillitympi nappi Korjaa sato -napin alla. Kuka tahansa voi tehdä sen heti ilman äänestystä. Tyhjänkin kasvihuoneen voi purkaa. |
 | Rantajää | **Pilki** | +4 ruokaa (× työkalut), rajaton mutta selvästi vähemmän kuin kasvihuoneesta (+10). (V3) Vain rantajää, jonka vieressä on tutkittua maata. |
 | Lumimetsä | **Kaada puita** | +10 puuta (× työkalut), enintään metsän puumäärä (täysi metsä 40). Metsä kasvaa kuukaudessa ×1,25 kohti täyttä. Tyhjästä metsästä tulee lumikenttä. |
 | Jäätikkö | **Perusta jäälouhos** | +1 työ (× työkalut); 2 työtä → jäälouhos |
@@ -166,12 +178,21 @@ työkalutasolla 1. Työkalukerroin on kuvattu kohdassa §8.
 | Koti (iglu) | ei toimintoa | tarjoaa kotipaikkoja (§9) |
 | Kylän nuotio | ei toimintoa | rantautumisruutu; napautus näyttää pakkasen, ennusteen ja puuntarpeen (§9.1) |
 
-Tuotot pyöristetään kokonaisluvuiksi. Paneelissa näytetään aina tarkka tuotto ennen napautusta,
-esim. "Kaada puita +13".
+Tuotot pyöristetään kokonaisluvuiksi. Napissa näytetään aina tarkka hyöty ennen napautusta,
+esim. `−1 ⚡ → +13 [puukuvake]` Kaada puita -napissa.
+
+**Purkaminen (P60).** Pura kasvihuone on vain kasvihuoneille. Igluja, koulua, pajaa, kylätaloa
+ja muita rakennuksia ei voi purkaa. Työ etenee kuten rakentamisessa: `demolishWork` on 3 työtä
+kuten `plowWork`, ja työkalut nopeuttavat samoin, joten tasolla 1 purkaminen vie kolme
+energiaa. Keskeneräinen työ säilyy, ja sato voi olla korjattavissa, kunnes työ on valmis.
+Valmis purku muuttaa ruudun lumikentäksi (`stock` ja `work` nollataan) ja kirjaa tapahtuman
+`field-removed`. Tapahtumanauha kertoo: "Kasvihuone purettiin lumikentäksi." Syy on kohdassa
+§10.4.
 
 Taulukon luvut ovat `params.ts`:n oletusarvot (`harvestYield`, `fishYield`, `chopYield`,
-`mineYield`, `quarryCapacity`, `plowWork`, `quarryWork`, `springDivisor`, `gatheringDivisors`).
-Suunnittelun alkuarvot ja viritysten perustelut ovat dokumentissa `05-tasapaino.md`.
+`mineYield`, `quarryCapacity`, `plowWork`, `demolishWork`, `quarryWork`, `springDivisor`,
+`gatheringDivisors`). Suunnittelun alkuarvot ja viritysten perustelut ovat dokumentissa
+`05-tasapaino.md`.
 
 ## 8. Oma kehitys: koulu ja paja
 
@@ -190,7 +211,7 @@ Esimerkki: tason 1 koulussa neljä opiskelutoimintoa nostaa koulutuksen tasolle 
 +1 toiminnon jokaiseen jäljellä olevaan kuukauteen. Kannattaa aikaisin, ei enää lopussa. Juuri
 tällaisesta oppilaat voivat keskustella.
 
-## 9. Kuukauden vaihde ja onnellisuus
+## 9. Kuukauden vaihde ja tyytyväisyys
 
 Kuukauden lopussa tapahtuu järjestyksessä:
 
@@ -206,8 +227,9 @@ Kuukauden lopussa tapahtuu järjestyksessä:
 4. **Kodit (V3):** koti kattaa tasonsa mukaan (pieni iglu, iglu, iso iglu) **1/6, 1/3 tai
    1/2 kylästä**, ja osuudet lasketaan yhteen. Ilman kotia on `round(N × (1 − osuus))` henkeä,
    kuitenkin vähintään yksi, jos osuus on alle 1. Osuuksina laskettuna 15 ja 30 hengen kylä
-   saa samasta tilanteesta saman mielialan.
-5. **Mieliala** lasketaan kokonaislukuna. Arvot ovat nykyiset oletusarvot:
+   saa samasta tilanteesta saman tyytyväisyyden. Yläpalkin ja äänestyskortin kotipaikat ovat
+   tämän laskennan tulos koko kylälle kerralla (`shelterCapacity`, äänestyksessä `shelterAfter`).
+5. **Tyytyväisyys** lasketaan kokonaislukuna. Arvot ovat nykyiset oletusarvot:
 
    | Osa | Ehto | Vaikutus |
    |---|---|---|
@@ -223,11 +245,12 @@ Kuukauden lopussa tapahtuu järjestyksessä:
    (V3) Pyöristykset ovat symmetrisiä (`round`). Alkuperäinen `ceil`/`floor` rankaisi isoa
    kylää joka kuukausi.
 
-   Kuukauden mieliala on noin −25…+15. **Onnellisuus** (pisteet) on kaikkien kuukausien
-   mielialojen summa.
+   Kuukauden tyytyväisyys on noin −25…+15. **Tyytyväisyys yhteensä** (pisteet) on kaikkien
+   kuukausien lukujen summa. Pelaajalle molemmat ovat tyytyväisyyttä (P62); koodissa kuukauden
+   luku on `mood` ja summa `happiness`.
 6. **Luonto:** metsät kasvavat, kasvihuoneet kasvavat täyteen, ja kuuman lähteen ja kylätalon
    käyttökerrat nollautuvat. Mikään ei pidä taukoa talven vuoksi (P49).
-7. **Häviö (P56):** jos onnellisuus on nyt alle häviörajan, kylä luovuttaa (§9.2).
+7. **Häviö (P56):** jos tyytyväisyys yhteensä on nyt alle häviörajan, kylä luovuttaa (§9.2).
 8. Jokaisen toiminnot palautuvat.
 
 Pisteitä ei jaeta per pelaaja. Kylä onnistuu tai epäonnistuu yhdessä (ydin a).
@@ -261,10 +284,10 @@ toiseen, ja vastapainona palaa kylän yksi nuotio.
   `05-tasapaino.md`). Suunnittelun alkuarvot olivat 1 / 2 / 3 (`10-arktinen.md` §4).
 - Kova pakkanen on jyrkkä: 10 puuta kyläläistä kohden on noin yksi kaato jokaiselta. Siksi
   ennuste kannattaa lukea ja varautua edellisenä kuukautena.
-- Jos puuta riittää, kaikki ovat lämpimiä (mieliala +2). Jos ei, nuotio polttaa kaiken
-  varastossa olevan puun, ja ne, joiden osuuteen puuta ei riittänyt, palelevat (mieliala
-  −round(6 × palelevat / N), vähintään −1). Palelu laskee vain mielialaa kuten nälkä: kukaan ei
-  kuole eikä sairastu.
+- Jos puuta riittää, kaikki ovat lämpimiä (tyytyväisyys +2). Jos ei, nuotio polttaa kaiken
+  varastossa olevan puun, ja ne, joiden osuuteen puuta ei riittänyt, palelevat
+  (tyytyväisyys −round(6 × palelevat / N), vähintään −1). Palelu laskee vain tyytyväisyyttä kuten
+  nälkä: kukaan ei kuole eikä sairastu.
 - Kodit (iglut) eivät tarvitse lämmitystä. Vain yhteinen nuotio lämmittää.
 - Aloituspuu (3 per kyläläinen) riittää ensimmäisen kuun nuotioon (leuto 2) ja vähän yli.
 - Tapahtumanauha ilmoittaa kuun alussa, jos puu ei riitä tämän kuun nuotiolle: "Puu ei riitä
@@ -275,14 +298,14 @@ toiseen, ja vastapainona palaa kylän yksi nuotio.
 Peli voi päättyä ennen revontulijuhlaa: jos kylä jätetään kylmään ja nälkään, se luovuttaa.
 Häviö tekee pakkasesta ja nuotiosta oikean uhan.
 
-- **Sääntö:** jos onnellisuus (kuukausien mielialojen summa) on kuukauden vaihteen jälkeen alle
-  **häviörajan**, kylä luovuttaa. Kuukauden yhteenveto näytetään, ja sen jälkeen peli päättyy.
+- **Sääntö:** jos tyytyväisyys yhteensä (kuukausien lukujen summa) on kuukauden vaihteen jälkeen
+  alle **häviörajan**, kylä luovuttaa. Kuukauden yhteenveto näytetään, ja sen jälkeen peli päättyy.
   Raja on **−52** Normaalissa ja **−45** Lyhyessä pelissä (`lossThreshold` tiedostossa
   `params.ts`).
 - **Aina käytössä:** opettajalla ei ole valintaa.
-- **Varoitus:** yläpalkissa häviöraja näkyy onnellisuusluvun alla ("raja −52"). Kun onnellisuus
-  on alle rajan + 20, tapahtumanauha ja kuukauden yhteenveto varoittavat: "Kylä on luovuttamassa!
-  Pitäkää nuotio ja ruoka kunnossa."
+- **Varoitus:** kartan oikeassa yläkulmassa häviöraja näkyy tyytyväisyysluvun alla ("raja −52").
+  Kun tyytyväisyys on alle rajan + 20, tapahtumanauha ja kuukauden yhteenveto varoittavat: "Kylä on
+  luovuttamassa! Pitäkää nuotio ja ruoka kunnossa."
 - **Loppu:** jäänmurtaja tulee ilman juhlaa. Teksti on "Kylä ei jaksanut." ja "Jäänmurtaja haki
   kaikki kotiin. Kokeilkaa uudelleen!" Tähtiä ja tasonimeä ei näytetä. Omat merkit ja
   jälkipuinti näkyvät kuten muulloinkin.
@@ -325,9 +348,43 @@ pysyvät.
 ### 10.2 Äänestys
 
 - Vaihtoehtoina ovat jokaisen rakennuksen **seuraava taso** ja uusi tason 1 koti. Lisäksi aina
-  on mukana **"Ei rakenneta tässä kuussa"**.
-- Kortissa näkyvät hinta, vaikutus ja syy, jos vaihtoehtoa ei voi valita: puu ei riitä, jää
-  ei riitä tai vapaata lumikenttää ei ole. Sellaiseen ei voi äänestää, ja palvelin tarkistaa sen.
+  on mukana **"Ei rakenneta"**.
+- **Kortti kertoo hyödyn heti (P63).** "Mitä nämä tekevät?" -nappia ei ole. Kortissa on rakennus
+  isona kuvana (parannuksessa vanha ja uusi kuva nuolella), hinta kuvakkeina ja kaksi riviä:
+  **iso rivi** kertoo, mitä kylä saa (ilman kuvaketta, ja luvut muodossa ennen → jälkeen, kun
+  jokin kasvaa), ja **pieni rivi** kertoo, mitä lasten pitää sitten tehdä. Kortilla ei ole omaa
+  isoa otsikkoa, koska ylärivin KYLÄKOKOUS kertoo saman (`vote.title` jää ruudunlukijalle).
+
+  | Kortti | Iso rivi | Pieni rivi |
+  |---|---|---|
+  | Pieni iglu | Kotipaikkoja 0 → 3 | Rakennetaan vapaalle lumikentälle. |
+  | Iglu | Kotipaikkoja 3 → 7 | Pieni iglu kasvaa samalla paikalla. |
+  | Iso iglu | Kotipaikkoja 7 → 10 | Iglu kasvaa samalla paikalla. |
+  | Laavu | Tyytyväisyyttä jopa +4 kuussa | Kun vietätte täällä aikaa yhdessä. |
+  | Kylätalo | Tyytyväisyyttä jopa +4 → +5 kuussa | Kun vietätte täällä aikaa yhdessä. |
+  | Lumilinna | Tyytyväisyyttä jopa +5 → +10 kuussa | Kun vietätte täällä aikaa yhdessä. |
+  | Ulkoluokka | Energiaa 3 → 4 joka kuukausi | Kun opiskelet täällä 4 kertaa. |
+  | Koulu | Opiskelu: 1 → 2 askelta kerralla | Kun opiskelet täällä. |
+  | Iso koulu | Opiskelu: 2 → 3 askelta kerralla | Kun opiskelet täällä. |
+  | Työpenkki | Työstä +10 → +13 | Kun teet täällä työkaluja 4 kertaa. |
+  | Paja | Työkalut: 1 → 2 askelta kerralla | Kun teet täällä työkaluja. |
+  | Iso paja | Työkalut: 2 → 3 askelta kerralla | Kun teet täällä työkaluja. |
+  | Ei rakenneta | Puu ja jää säästyvät | Kylä ei saa tässä kuussa mitään uutta. |
+
+  Taulukon luvut ovat esimerkkejä 20 hengen luokasta, ja kotiluvut ovat esimerkki ensimmäisestä
+  kodista ja sen parannuksista. Luvut lasketaan säännöistä (`apps/client/src/lib/rules-info.ts`
+  ja `vote.ts`), eikä niitä kirjoiteta tekstiin. "Jopa" tarkoittaa, että kaikki kuukauden
+  käyttökerrat käytetään (§7).
+- **Kotipaikat (`shelterAfter`).** Koti-kortin "ennen"-luku on yläpalkin kotipaikkojen luku nyt,
+  ja "jälkeen"-luku tulee palvelimelta (`VoteOption.shelterAfter`). Se lasketaan koko kylän
+  osuudesta kerralla (§9 kohta 4) eikä igluittain pyöristäen, joten kortti ja yläpalkki sanovat
+  saman. Ruudun ponnahdusikkuna kertoo rakennuksesta saman suuntaisen rivin (esim. "Koti noin 7
+  kyläläiselle.").
+- **Jos vaihtoehtoa ei voi valita,** kortti sanoo syyn, eikä siihen voi äänestää (palvelin
+  tarkistaa sen). Jos puu tai jää ei riitä, kortissa lukee "Ei vielä varaa" ja puuttuva hinta on
+  punaisella. Jos uudelle kodille ei ole vapaata lumikenttää, pienen rivin tilalla lukee
+  **"Ei vapaata lumikenttää. Purkakaa kasvihuone tai tutkikaa saarta."** (§10.4). Parannus ei
+  tarvitse uutta lumikenttää, joten tila ei estä sitä.
 - **Nuotion varoitus (P55):** jos vaihtoehdon puuhinta on suurempi kuin `puu − tämän kuun
   nuotion tarve`, kortissa lukee punaisella "Nuotiolle ei jää puuta". Äänestää saa silti, ja
   palvelin hyväksyy äänen. Vaihtoehto, joka ei maksa puuta, ei varoita koskaan.
@@ -348,7 +405,31 @@ pysyvät.
   on deterministinen.
 - Päivitys rakennetaan samaan ruutuun.
 - Pelaajat vaikuttavat sijoitukseen sillä, mitkä lumikentät he jättävät ilman kasvihuonetta.
-  Erillistä sijoitusvaihetta ei ole, koska se pidentäisi kierrosta.
+  Erillistä sijoitusvaihetta ei ole, koska se pidentäisi kierrosta. Jos kasvihuoneet täyttävät
+  kaikki lumikentät, katso §10.4.
+
+### 10.4 Kun lumikentät loppuvat (P60, P61)
+
+Kasvihuoneesta ei äänestetä, ja jokainen kasvihuone vie yhden lumikentän. Uusi koti tarvitsee
+**vapaan lumikentän**, eli tutkitun lumikentän, jolla ei ole rakennusta ja joka ei ole kylän
+nuotion ruutu. Lasten testipelissä 2026-11-04 luokka rakensi kasvihuoneita koko kartan täyteen,
+eikä koteja voinut enää rakentaa. Umpikuja oli suunnitteluvirhe eikä pelaajien vika (vain
+laiminlyönti häviää, `10-arktinen.md` §4b), joten sille on kolme osaa:
+
+1. **Varoitus.** Kun kasvihuone jättäisi vapaita lumikenttiä enintään `meadowWarningAt` (2),
+   Rakenna kasvihuone -napin alla lukee: "Iglut tarvitsevat lumikenttiä: tämän jälkeen vapaana
+   on enää 2 lumikenttää." (tai "1 lumikenttä"). Jos kasvihuone veisi viimeisen vapaan
+   lumikentän, lukee "Iglut tarvitsevat lumikenttiä, mutta tämän jälkeen vapaita ei ole."
+   Varoitus ei estä rakentamista (P61). Sääntömoottori laskee luvun toiminnon esikatseluun
+   (`freeMeadowsAfter`).
+2. **Ratkaisu kortissa.** Koti-kortti sanoo, mitä tehdä (§10.2): purkakaa kasvihuone tai
+   tutkikaa saarta.
+3. **Purkaminen.** Pura kasvihuone (§7) muuttaa kasvihuoneen takaisin lumikentäksi. Kuka tahansa
+   voi tehdä sen heti ilman äänestystä, ja se maksaa 3 energiaa. Lumikenttiä saa lisää myös
+   tutkimalla saarta.
+
+Kasvihuoneen purku ei palauta mitään, mutta siitä ei myöskään rangaista: se ei kuulu mihinkään
+merkkiin eikä pelaajan omien toimintojen osuuteen (`09-uudisasukkaat.md` §2.3).
 
 ## 11. Liittyminen, poistuminen ja poissaolevat
 
@@ -365,7 +446,7 @@ pysyvät.
 
 ## 12. Pisteet ja loppu
 
-- Lopputulos on **onnellisuus**, eli kuukausien mielialojen summa.
+- Lopputulos on **tyytyväisyys yhteensä**, eli kuukausien lukujen summa.
 - Arvosanatasoja on kuusi (P32). Ne kuvaavat **kylän tilaa eivätkä ryhmän luonnetta**, ja alin
   taso kertoo silti, että kaikki selvisivät:
 
@@ -388,7 +469,7 @@ pysyvät.
   yhtä monta kuukautta. Viritetyt tasojen 2–6 alarajat ovat Normaalissa −51 / −30 / 20 / 55 / 90
   ja Lyhyessä −44 / −25 / 0 / 18 / 40 (`gradeThresholds` tiedostossa `params.ts`, perustelut
   `05-tasapaino.md`). Taso 1 (Leiri rannalla) tarkoittaa, että kylä selvisi vain juuri ja juuri:
-  onnellisuus pysyi täsmälleen häviörajalla (−52 Normaalissa, −45 Lyhyessä).
+  tyytyväisyys pysyi täsmälleen häviörajalla (−52 Normaalissa, −45 Lyhyessä).
 - **Revontulijuhla (P52):** loppuruudulla näkyvät revontulet ja jäänmurtaja ("Vieraat saapuivat
   revontulijuhlaan!"), arvosana tähtinä ja nimenä sekä siirtymä jälkipuintiin.
 - **Kun kylä luovutti (P56):** jäänmurtaja tulee ilman juhlaa ("Kylä ei jaksanut."), eikä tähtiä
@@ -408,13 +489,14 @@ tyypin ja tiedot. Tyypit:
 
 - **Liittymiset:** liittyminen, paluu, yhteyden katkeaminen, nimen vaihto, poisto.
 - **Toiminnot:** jokainen toiminto (alue, ruutu, tuotto).
-- **Tilamuutokset:** alue paljastui, kuuma lähde löytyi, kasvihuone valmistui, jäälouhos
-  valmistui, metsä loppui (kaadettiin lumikentäksi), tasonnousu.
+- **Tilamuutokset:** alue paljastui, kuuma lähde löytyi, kasvihuone valmistui, kasvihuone
+  purettiin lumikentäksi (`field-removed`, P60), jäälouhos valmistui, metsä loppui (kaadettiin
+  lumikentäksi), tasonnousu.
 - **Äänestykset:** äänet ja niiden muutokset, tulos, tasapeli.
 - **Kuukauden vaihde:** ruoka, nälkäiset, pakkanen, nuotion puu ja palelevat, kodittomat,
-  mieliala, käyttämättä jääneet toiminnot.
+  tyytyväisyys, käyttämättä jääneet toiminnot.
 - **Opettajan toimet:** tauko, jatko, lisäaika, lopetus.
-- **Pelin päättyminen:** onnellisuus, arvosana, onko kyseessä opettajan lopetus ja luovuttiko
+- **Pelin päättyminen:** tyytyväisyys, arvosana, onko kyseessä opettajan lopetus ja luovuttiko
   kylä (`lost`, P56).
 
 Lokiin tallennetaan vain pelaajatunniste, ei nimimerkkiä. Nimet yhdistetään tunnisteisiin
@@ -423,13 +505,13 @@ Lokiin tallennetaan vain pelaajatunniste, ei nimimerkkiä. Nimet yhdistetään t
 ### 13.2 Jälkipuinnin sisältö
 
 1. **Kylän tarina kuukausittain:** kaavio, jossa näkyvät ruoka ja ruoan tarve, kotipaikat ja
-   *N*, mieliala ja onnellisuus. Jokaisesta kuukaudesta näkyy lisäksi lämpö: kuukauden pakkanen
+   *N*, kuukauden tyytyväisyys ja tyytyväisyys yhteensä. Jokaisesta kuukaudesta näkyy lisäksi lämpö: kuukauden pakkanen
    ja se, riittikö nuotion puu (✓ / ✗). Rakennukset merkitään aikajanalle.
 2. **Kriisihetket:** esim. "Kuukausi 6: ruoka loppui, 9 jäi nälkään. Korjaantui kuukaudessa 8."
    Kriisejä on kolmea lajia: ruoka loppui, kodit eivät riittäneet ja nuotion puut loppuivat
    (`cold`), esim. "Kuukausi 8: nuotion puut loppuivat, 12 paleli."
-3. **Mihin toiminnot käytettiin:** ruoka, rakennusaineet, tutkiminen, oma kehitys, virkistys ja
-   käyttämättä jääneet. Koko kylän osalta kuukausittain, ja nimellisessä versiossa myös
+3. **Mihin toiminnot käytettiin:** ruoka, kasvihuoneet (rakentaminen ja purkaminen),
+   rakennusaineet, tutkiminen, oma kehitys, virkistys ja käyttämättä jääneet. Koko kylän osalta kuukausittain, ja nimellisessä versiossa myös
    pelaajittain.
 4. **Äänestykset:** voittajan osuus, tasapelit, osallistumisprosentti ja kuukaudet, joina ei
    rakennettu mitään. Nimellisessä versiossa myös kuka äänesti mitä.
@@ -458,26 +540,59 @@ Tarkka käyttöliittymä suunnitellaan vaiheessa V6, ja napateeman näkymät on 
 - **Saarikartta:** panorointi ja zoomaus, napautus avaa ruudun ponnahdusikkunan. Toimintoympyrää
   ei ole, koska se peittää kartan tabletilla. Rantautumisruudun napautus näyttää **kylän
   nuotion** tilan (pakkanen, ennuste, puuntarve ja varastossa oleva puu) ilman toimintonappia.
-- **Yläpalkki (P55, P56):** kuvakkeet ja luvut, sanat vain ruudunlukijalle ja vihjeenä (P38).
-  - Vasemmalla: puu muodossa "120/60" (varasto / nuotion tarve tässä kuussa, punaisena, jos
-    puu ei riitä), jää, ruoka (varasto/tarve) ja kodit (kotipaikat / *N*).
-  - Keskellä: kello, joka näyttää vaiheen ja ajan.
-  - Oikealla: lämpömittari, esim. "−25°", ja sen alla pieni ennuste "→ −35°"; kalenterikuvake ja
-    kuukausi muodossa "3 / 15"; sekä onnellisuus häviörajoineen ("raja −52"). Onnellisuus on
-    punaisena, kun se on lähellä rajaa.
-  - Projektorilla lisäksi "Juhlaan N kuukautta".
-- **Oma tila:** energiaa jäljellä (esim. 2 / 4), koulutus- ja työkalutaso sekä edistyminen.
-- **Äänestys:** kortit, jakauma ja oma valinta. Jos vaihtoehto veisi nuotion puun, kortissa on
-  punainen varoitus "Nuotiolle ei jää puuta" (§10.2).
+- **Yläpalkki (P55, P56, P63):** sama rivi toimintavuorolla, äänestyksessä, kuukauden vaihteessa
+  ja tauolla (aulalla ja loppuruudulla on omat näkymänsä), ja projektorilla se on isompi.
+  Otsikot ovat sanoja, ja varasto on kuvakkeita ja lukuja (kuvakkeiden sanat vain ruudunlukijalle
+  ja vihjeenä, P38).
+  - Vasemmalla iso otsikko ja alaotsikko vaiheen mukaan:
+
+    | Vaihe | Otsikko | Alaotsikko |
+    |---|---|---|
+    | toimintavuoro | HOMMIIN! | Keskustelkaa ja toimikaa yhdessä |
+    | äänestys | KYLÄKOKOUS | Puhukaa ensin, äänestäkää sitten |
+    | kuukauden vaihde | KUUKAUSI PÄÄTTYI | Katsokaa, miten kylällä menee |
+    | tauko | TAUKO | – |
+
+  - Keskellä **sääkello**: iso rengas, jonka sisällä ovat tämän kuun pakkanen (esim. "−25°") ja
+    sekunnit. Rengas on aika ja tyhjenee vaiheen kuluessa. Sääkello korvaa erillisen kellon ja
+    lämpömittarin.
+  - Oikealla **ennuste** "Ensi kuussa −30°" ja kevyt vinkki, joka kertoo mitä tapahtuu eikä
+    määrää:
+
+    | Ensi kuun pakkanen | Vinkki |
+    |---|---|
+    | −30° tai kylmempi | Kova pakkanen: nuotio vie paljon puuta |
+    | −20° tai −25° | Kylmä sää: nuotio vie enemmän puuta |
+    | −15° tai leudompi | Leuto sää: puuta voi jäädä rakentamiseen |
+    | ei ensi kuuta (viimeinen kuukausi) | Juhla tämän kuun lopussa! |
+
+  - Kartan päällä, yläkulmissa: vasemmalla kylän varasto (puu muodossa "120/60" eli varasto /
+    nuotion tarve tässä kuussa, punaisena, jos puu ei riitä; jää; ruoka varasto/tarve ja kodit
+    kotipaikat / *N*), oikealla "Kuukausi 3 / 15" ja tyytyväisyys naamalla häviörajoineen
+    ("Tyytyväisyys −9", "raja −45"). Tyytyväisyys on punaisena, kun se on lähellä rajaa.
+    Alareunassa ei ole tavoitepalkkia.
+  - Projektorilla lisäksi "Juhlaan N kuukautta" kuukauden alla.
+- **Oma tila:** energiaa jäljellä vasemmassa alakulmassa isona mittarina ("Energiaa 2" ja
+  suuret salamat), koulutus- ja työkalutaso sekä edistyminen.
+- **Ruudun ponnahdusikkuna (P63):** ruudun nimi, yksi iso toimintonappi ja sen alla hinta ja hyöty
+  (§7). Rakennuksen ruudussa on lisäksi yksi lyhyt rivi siitä, mitä rakennus antaa (esim.
+  "Koti noin 7 kyläläiselle."). Kasvihuoneen ruudussa on toinen, hillitympi nappi Pura
+  kasvihuone, ja sen alla lukee "Ruudusta tulee taas lumikenttä." Kun kasvihuone jättäisi
+  vapaita lumikenttiä enintään `meadowWarningAt` (2), Rakenna kasvihuone -napin alla on
+  rauhallinen huomautus (§10.4). Loput (kuvaus, varasto, työn eteneminen, käyttökerrat)
+  odottavat "Lisätietoja"-osan takana.
+- **Äänestys:** kortit, jakauma ja oma valinta. Kortti kertoo hyödyn heti ja ilman erillistä
+  ohjenappia (§10.2). Jos vaihtoehto veisi nuotion puun, kortissa on punainen varoitus
+  "Nuotiolle ei jää puuta".
 - **Kuukauden yhteenveto:** viisi kuvaruutua: mitä rakennettiin, ruoka, **lämpö** ("Kaikilla oli
-  lämmin" tai esim. "4 paleli"), kodit ja mieliala. Tiedot pakkasesta ja poltetusta puusta ovat
+  lämmin" tai esim. "4 paleli"), kodit ja tyytyväisyys. Tiedot pakkasesta ja poltetusta puusta ovat
   avattavissa.
 - **Ei nimiä pelin aikana (P34):** toisten toiminnot näkyvät kartalla pelkkinä tekoina
   ("+10 puuta"), myös projektorilla. Tekijät käsitellään jälkipuinnissa opettajan johdolla.
 
 **Projektori**
-- Koko saari ja kaikki yhteiset luvut isolla, myös lämpömittari ja häviöraja.
-- Ajastin ja vaihe sekä äänestysjakauma.
+- Koko saari ja kaikki yhteiset luvut isolla, myös sääkello ja häviöraja.
+- Vaiheen otsikko (HOMMIIN! tai KYLÄKOKOUS), ajastin ja äänestysjakauma.
 - Tapahtumanauha, esim. "Kylä löysi kuuman lähteen!", "Ensi kuussa kova pakkanen: −35°!",
   "Puu ei riitä nuotiolle: puuttuu 40.", "Ruoka ei riitä: puuttuu 12." ja "Kylä on
   luovuttamassa! Pitäkää nuotio ja ruoka kunnossa."
@@ -509,6 +624,11 @@ kokeilutilassa (P19).
   sekä laiska ja vain taidot yli 80 %:ssa.
 - Tulokset ovat dokumentissa `05-tasapaino.md`.
 
+**Botit eivät pura kasvihuoneita (P60).** Niitä ei ole opetettu purkamaan. Yhteistyöbotti säästää
+seuraavalle rakennukselle lumikentän, joten botit eivät joutuneet umpikujaan, jonka lapset
+löysivät testipelissä. Simulaattori laskee purkamisen toimintoryhmään "kasvihuoneet".
+Hyväksymisehdot ja niiden luvut eivät muuttuneet (`05-tasapaino.md`).
+
 **Tiedossa oleva riski (päässälasku 2026-10-09, N = 30):** 90 toimintoa kuukaudessa voisi tuottaa
 900 puuta, kun rakennus maksaa ~180. Puu voi siis olla liian helppoa, ellei toimintoja kulu
 muualle. Koko pelin kysyntä (~2000 toimintoa: ruoka ~225, rakennusaineet ~500, tutkiminen ~200,
@@ -537,12 +657,14 @@ dokumentissa `05-tasapaino.md`.
 | metsä | 40 puuta, kasvu ×1,25 / kk, +10 / toiminto | §7 |
 | jäälouhos | 120 jäätä, `12 × jäljellä/120`, väh. 2 (alkuarvot 60 ja `8 × jäljellä/60`) | §7 |
 | kasvihuoneen rakennus / jäälouhoksen perustus | 3 / 2 työtä (alkuarvo 3 / 4) | §7 |
+| kasvihuoneen purku (`demolishWork`) | 3 työtä, kuten rakennus | §7 |
+| lumikenttävaroitus (`meadowWarningAt`) | kun kasvihuone jättäisi vapaita lumikenttiä enintään 2 | §10.4 |
 | koulutus / työkalut | +1 toiminto / +25 % per taso, max 3, tarve 4k (alkuarvot max 4, tarve 3k) | §8 |
 | kotipaikat per iglu | 1/6, 1/3 ja 1/2 kylästä | §9 |
 | virkistyskerrat | kuuma lähde N/4, kylätalo N/3 / N/2 / N, pyöristettynä, väh. 1 (alkuarvot N/6 ja N/5 / N/4 / N/3) | §7 |
 | pakkanen | −10° … −35° viiden asteen askelin | §9.1 |
 | nuotion puu per kyläläinen | leuto 2, kylmä 4, kova pakkanen 10 (alkuarvot 1 / 2 / 3) | §9.1 |
-| lämmön mieliala | +2 / −round(6 × palelevat / N) (alkuarvo 10) | §9 |
+| lämmön tyytyväisyys | +2 / −round(6 × palelevat / N) (alkuarvo 10) | §9 |
 | iglujen hinta per kyläläinen | 4 jäätä / 6 jäätä / 6 jäätä + 3 puuta | §10.1 |
 | häviöraja | −52 Normaali, −45 Lyhyt, varoitus rajan + 20 (alkuarvo −60) | §9.2 |
 | aloitusvarat | ruokaa 6N (yksi kuukausi), puuta 3N (nuotio), jäätä 9N (kaksi pientä iglua) (alkuarvot 4N, 2N ja 4N) | — |

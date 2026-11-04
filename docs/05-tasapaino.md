@@ -214,6 +214,26 @@ talvella pilkkimistä.
 - Tulokset (N = 15–40): yhteistyö 5–6 kaikissa peleissä, sekoitus enimmäkseen 5 (4–6),
   satunnainen 2–3, vain taidot 1–2. Talvinälkä: yhteistyö 0 %, sekoitus 0 %.
 
+## Kasvihuoneumpikuja (2026-11-04, `docs/12-selkeys.md`)
+
+Lasten testipelissä luokka rakensi kasvihuoneet kaikille vapaille lumikentille, eikä kotia voinut
+enää rakentaa. Umpikuja ei näkynyt simulaattorissa, koska yhteistyöbotti säästää seuraavalle
+rakennukselle lumikentän (`reservedMeadow` tiedostossa `packages/bots/src/cooperative.ts`).
+Oikea luokka ei säästä lumikenttää samalla tavalla.
+
+- **Botit eivät pura kasvihuoneita.** Niitä ei ole opetettu siihen, ja testi
+  `packages/bots/test/runner.test.ts` vartioi, ettei bottipeleissä tule purkuja. Uusi toiminto
+  `demolish` kuuluu simulaattorin toimintoryhmään "kasvihuoneet" (`fields`).
+- **Hyväksymisehdot eivät muuttuneet.** Ajo `--seeds 40 --villagers 15,30,40 --short` antoi
+  2026-11-04 samat luvut kuin yllä oleva taulukko, esimerkiksi palelu 3 / 10 / 15 %
+  (yhteistyö) ja 10 / 25 / 33 % (sekoitus) sekä satunnaisen häviö 33 / 45 / 35 % Normaalissa.
+- **Uudet luvut eivät ole simulaattorin virittämiä.** `demolishWork` (3) on sama kuin
+  `plowWork`, ja `meadowWarningAt` (2) vain näyttää varoituksen. Kumpikaan ei vaikuta
+  bottipeleihin. Pienten kylien heikko tapaus (`11-avoimet-asiat.md`) koskee yhä botteja,
+  koska ne eivät pura.
+- **Sanat.** Tämän dokumentin sanat onnellisuus ja mieliala tarkoittavat pelissä nykyään
+  tyytyväisyyttä (P62). Koodin nimet `happiness` ja `mood` pysyvät.
+
 ## Tunnetut rajoitukset ja jatkoseuranta
 
 - **Ruoka on painetta vain heikoille luokille.** Yhteistyö ja sekoitus eivät näe nälkää.

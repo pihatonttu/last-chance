@@ -1,6 +1,6 @@
 # Selkeys: lasten testipelin korjaukset
 
-**Tila: toteutuksessa 2026-11-04.** Samu testasi peliä lasten kanssa. Lapset eivät nähneet, mikä
+**Tila: toteutettu 2026-11-04, ei vielä tuotannossa.** Samu testasi peliä lasten kanssa. Lapset eivät nähneet, mikä
 vuoro oli menossa, mitä energia maksaa, miksi rakennuksia kannattaa rakentaa eikä mikä pelin
 tavoite on. He rakensivat kasvihuoneita koko kartan täyteen, eivätkä koteja voinut enää rakentaa.
 
@@ -75,18 +75,23 @@ parannuksessa näkyvät vanha ja uusi kuva nuolella.
 
 | Kortti | Iso rivi | Pieni rivi |
 |---|---|---|
-| Pieni iglu | Kotipaikkoja 8 → 11 | Rakennetaan vapaalle lumikentälle. |
-| Iglu, Iso iglu | Kotipaikkoja 8 → 11 | Pieni iglu kasvaa samalla paikalla. |
+| Pieni iglu | Kotipaikkoja 0 → 3 | Rakennetaan vapaalle lumikentälle. |
+| Iglu | Kotipaikkoja 3 → 7 | Pieni iglu kasvaa samalla paikalla. |
+| Iso iglu | Kotipaikkoja 7 → 10 | Iglu kasvaa samalla paikalla. |
 | Laavu | Tyytyväisyyttä jopa +4 kuussa | Kun vietätte täällä aikaa yhdessä. |
-| Kylätalo, Lumilinna | Tyytyväisyyttä jopa +4 → +5 kuussa | Kun vietätte täällä aikaa yhdessä. |
+| Kylätalo | Tyytyväisyyttä jopa +4 → +5 kuussa | Kun vietätte täällä aikaa yhdessä. |
+| Lumilinna | Tyytyväisyyttä jopa +5 → +10 kuussa | Kun vietätte täällä aikaa yhdessä. |
 | Ulkoluokka | Energiaa 3 → 4 joka kuukausi | Kun opiskelet täällä 4 kertaa. |
-| Koulu, Iso koulu | Opiskelu käy 2 kertaa nopeammin | Kun opiskelet täällä. |
+| Koulu | Opiskelu: 1 → 2 askelta kerralla | Kun opiskelet täällä. |
+| Iso koulu | Opiskelu: 2 → 3 askelta kerralla | Kun opiskelet täällä. |
 | Työpenkki | Työstä +10 → +13 | Kun teet täällä työkaluja 4 kertaa. |
-| Paja, Iso paja | Työkalut valmistuvat 2 kertaa nopeammin | Kun teet täällä työkaluja. |
+| Paja | Työkalut: 1 → 2 askelta kerralla | Kun teet täällä työkaluja. |
+| Iso paja | Työkalut: 2 → 3 askelta kerralla | Kun teet täällä työkaluja. |
 | Ei rakenneta | Puu ja jää säästyvät | Kylä ei saa tässä kuussa mitään uutta. |
 
-Luvut ovat esimerkkejä 20 hengen luokasta ja lasketaan säännöistä, ei kirjoiteta tekstiin. Kotipaikat
-ovat koko kylän luvut (`shelterAfter`), samat kuin yläpalkissa, koska peli pyöristää koko kylän kerralla. Kartalla
+Luvut ovat esimerkkejä 20 hengen luokasta ja lasketaan säännöistä, ei kirjoiteta tekstiin. Kotiluvut
+ovat esimerkki ensimmäisestä kodista ja sen parannuksista. Kotipaikat ovat koko kylän luvut
+(`shelterAfter`), samat kuin yläpalkissa, koska peli pyöristää koko kylän kerralla. Kartalla
 rakennuksen ponnahdusikkuna kertoo saman. Otsikon `vote.title` korvaa ylärivin KYLÄKOKOUS.
 
 ## 4. Tavoite ja Näin pelataan

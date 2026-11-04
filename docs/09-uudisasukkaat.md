@@ -99,6 +99,9 @@ Pelin lopussa jokainen näkee **omalla laitteellaan** 1–3 merkkiä sen mukaan,
 - Toimintomerkkejä on enintään kaksi: pelaajan kaksi eniten käyttämää ryhmää, joissa kummassakin
   on vähintään 3 toimintoa ja 20 % hänen toiminnoistaan. Tasatilanteessa ratkaisee taulukon
   järjestys.
+- Kasvihuoneen purkaminen (`demolish`, `12-selkeys.md`) ei kuulu mihinkään merkkiin, eikä sitä
+  lasketa mukaan pelaajan omien toimintojen osuuteen. Purku ei siis laske hänen muiden töidensä
+  20 %:n osuutta.
 - Merkit lasketaan puhtaalla funktiolla tapahtumalokista (`packages/debrief`).
 - Palvelin lähettää merkit pelin lopussa **vain pelaajalle itselleen**. Niitä ei näytetä
   projektorilla, ei vertailla eikä tallenneta (P20, P23 ja P34 ennallaan).

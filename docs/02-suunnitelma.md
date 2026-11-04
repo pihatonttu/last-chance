@@ -144,6 +144,7 @@ saari/
 | V8 ✓ | Julkaisu novaservulle ja valvonta | `https://last-chance.novanet.fi` toimii 2026-10-09 (`docs/08-julkaisu.md`) |
 | V9 ✓ | Oma peli: uudisasukkaat, vuodenajat, kehystys, merkit (`docs/09-uudisasukkaat.md`, P40–P47) | testit läpi, simulaattori viritetty, talvi tarkistettu selaimessa |
 | V10 ✓ | Last Chance: Arctic (`docs/10-arktinen.md`, P48–P59): arktinen saari ilman vuodenaikoja, kylän nuotio ja pakkanen (lämmityspuu), iglut ja jää, kasvihuoneet ja pilkkiminen, häviö, revontulijuhla ja omat mallit (iglut, kasvihuone, lumilinna, jäänmurtaja). Vanha vektorikartta poistettiin. Julkaistu tuotantoon 2026-10-23. | testit läpi ja simulaattorin hyväksymisehdot täyttyvät (`05-tasapaino.md`). |
+| V11 | Lasten testipelin korjaukset (`docs/12-selkeys.md`, P60–P63): kasvihuoneen purkaminen (Pura kasvihuone) ja lumikenttävaroitus, sana tyytyväisyys onnellisuuden ja mielialan tilalle, uusi pelinäkymä (vaiheen otsikko HOMMIIN! / KYLÄKOKOUS, sääkello, ennuste ja vinkki, toimintonapissa hinta ja hyöty, äänestyskortit kertovat hyödyn luvuin) ja neljän askeleen "Näin pelataan". Toteutettu haarassa 2026-11-04, ei vielä tuotannossa. Kuvat tehdään vielä uudelleen (`tools/art/codex-prompts.md`). | testit läpi; julkaisu on Samun päätös (`08-julkaisu.md`). |
 
 ## 11. MVP:n valmiin määritelmä
 

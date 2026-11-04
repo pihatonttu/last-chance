@@ -11,10 +11,12 @@ ratkaisu sinne, minne se kuuluu (päätökset tiedostoon `03-paatokset.md`).
 3. **Tutkittavien ruutujen väri.** Laatikot ovat yhä mintunvihreitä (`EXPLORE_LOOK` tiedostossa
    `apps/client/src/map/sprites.ts`). Väri on peräisin alkuperäisen pelin vaikutteesta, ja
    vaihtoehto on jäänsininen.
-4. **Pienet kylät.** Kun kyläläisiä on 9–11, kaikki saavat kodin vain 60–78 %:ssa sekaluokan
-   lyhyistä peleistä, ja silloinkin vasta noin kuukautena 8, koska lumikentät loppuvat. Luokkakoossa
-   15–40 ongelmaa ei ole. Demo alkaa 11 botilla ja näyttää siksi tämän heikon tapauksen. Ehdotus:
-   demon boteiksi 15 ja tekstiin "Ei vapaata lumikenttää" vihje tutkia saarta.
+4. **Demon bottien määrä.** Demo alkaa 11 botilla (`demoBots` tiedostossa
+   `apps/client/src/net/mock/server.ts`) ja näyttää siksi pienen kylän heikon tapauksen: kun
+   kyläläisiä on 9–11, kaikki saavat kodin vain 60–78 %:ssa sekaluokan lyhyistä peleistä, ja
+   silloinkin vasta noin kuukautena 8, koska lumikentät loppuvat. Ihmispelaaja voi purkaa
+   kasvihuoneen (P60), mutta botit eivät pura. Luokkakoossa 15–40 ongelmaa ei ole. Ehdotus:
+   demon boteiksi 15.
 5. **Hyvin kylmät pelit.** Noin 8 %:ssa 15 kuukauden peleistä on vähintään 7 kovan pakkasen
    kuukautta. Silloin yhteistyöluokkakin palelee ja jää tasolle 4–5, vaikka se ei häviä, ja
    jälkipuinti kysyy nuotiosta, vaikka pakkanen olisi tehnyt palelemisesta väistämätöntä.
