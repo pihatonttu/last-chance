@@ -1,6 +1,6 @@
 # Selkeys: lasten testipelin korjaukset
 
-**Tila: toteutettu 2026-11-04, ei vielä tuotannossa.** Samu testasi peliä lasten kanssa. Lapset eivät nähneet, mikä
+**Tila: tuotannossa 2026-11-05 vanhoilla kuvilla, uudet kuvat (kohta 5) tulevat erikseen.** Samu testasi peliä lasten kanssa. Lapset eivät nähneet, mikä
 vuoro oli menossa, mitä energia maksaa, miksi rakennuksia kannattaa rakentaa eikä mikä pelin
 tavoite on. He rakensivat kasvihuoneita koko kartan täyteen, eivätkä koteja voinut enää rakentaa.
 
